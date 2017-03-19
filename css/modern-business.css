@@ -3,7 +3,7 @@
 html,
 body {
     height: 100%;
-    background-image: url(../img/canvas_bg.jpg);
+    /**background-image: url(../img/canvas_bg.jpg);*/
     font-family: 'Microsoft YaHei', 'SimHei', sans-serif;
 }
 
