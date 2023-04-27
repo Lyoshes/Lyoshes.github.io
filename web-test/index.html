@@ -52,11 +52,19 @@
       // Добавляем обработчик события на кнопку
       const addCubeBtn = document.querySelector('#add-cube-btn');
       addCubeBtn.addEventListener('click', () => {
-        // Создаем новый куб
-        const newCube = cube.clone();
-        newCube.position.x = Math.random() * 4 - 2;
-        newCube.position.y = Math.random() * 4 - 2;
-        marker.add(newCube);
+        // Создаем луч из камеры
+        const raycaster = new THREE.Raycaster();
+        raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
+        
+        // Получаем список объектов, на которые луч попадает
+        const intersects = raycaster.intersectObjects([marker], true);
+        
+        if (intersects.length > 0) {
+          // Размещаем куб на местности
+          const newCube = cube.clone();
+          newCube.position.copy(intersects[0].point);
+          marker.add(newCube);
+        }
       });
       
       // Создаем функцию рендеринга сцены
