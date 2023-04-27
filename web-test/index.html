@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>AR.js Ball Popper</title>
+    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+    <script src="https://cdn.rawgit.com/jeromeetienne/AR.js/2.1.0/aframe/build/aframe-ar.js"></script>
+    <style>
+      .ball {
+        position: absolute;
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        background-color: red;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <a-scene embedded arjs>
+      <a-marker preset="hiro">
+        <!-- Вставьте здесь 3D-модель или изображение для отображения на маркере -->
+        <a-entity position="0 0 0"></a-entity>
+      </a-marker>
+      
+      <!-- Этот скрипт создает случайные шары и добавляет их в сцену -->
+      <script>
+        function createBall() {
+          // Создайте div элемент с классом "ball"
+          const ball = document.createElement('div');
+          ball.classList.add('ball');
+          
+          // Случайным образом выберите позицию шара
+          const x = Math.random() * 2 - 1;
+          const y = Math.random() * 2 - 1;
+          const z = Math.random() * 2 - 1;
+          ball.setAttribute('position', `${x} ${y} ${z}`);
+          
+          // Добавьте обработчик клика, который удаляет шар при нажатии на него
+          ball.addEventListener('click', () => {
+            ball.parentNode.removeChild(ball);
+          });
+          
+          // Добавьте шар в сцену
+          const scene = document.querySelector('a-scene');
+          scene.appendChild(ball);
+        }
+        
+        // Создайте новый шар каждые 1000 миллисекунд (1 секунда)
+        setInterval(createBall, 1000);
+      </script>
+    </a-scene>
+  </body>
+</html>
