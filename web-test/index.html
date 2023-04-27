@@ -1,78 +1,20 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-  <head>
-    <meta charset="utf-8">
-    <title>Three.js AR</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/110/three.min.js"></script>
-    <style>
-      #marker {
-        width: 200px;
-        height: 200px;
-        border: 2px solid black;
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-      }
-      #add-cube-btn {
-        position: absolute;
-        top: 10px;
-        left: 10px;
-      }
-    </style>
-  </head>
-  <body>
-    <div id="marker">
-      <!-- Вставьте здесь изображение маркера -->
-    </div>
-    <button id="add-cube-btn">Добавить куб</button>
-    <script>
-      // Создаем сцену и добавляем камеру в сцену
-      const scene = new THREE.Scene();
-      const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-      camera.position.z = 5;
-      scene.add(camera);
-      
-      // Создаем рендерер
-      const renderer = new THREE.WebGLRenderer({ alpha: true });
-      renderer.setSize(window.innerWidth, window.innerHeight);
-      document.body.appendChild(renderer.domElement);
-      
-      // Создаем куб и добавляем его в сцену
-      const geometry = new THREE.BoxGeometry(1, 1, 1);
-      const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-      const cube = new THREE.Mesh(geometry, material);
-      scene.add(cube);
-      
-      // Создаем маркер
-      const marker = new THREE.Group();
-      marker.position.z = -5;
-      scene.add(marker);
-      
-      // Добавляем обработчик события на кнопку
-      const addCubeBtn = document.querySelector('#add-cube-btn');
-      addCubeBtn.addEventListener('click', () => {
-        // Создаем луч из камеры
-        const raycaster = new THREE.Raycaster();
-        raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
-        
-        // Получаем список объектов, на которые луч попадает
-        const intersects = raycaster.intersectObjects([marker], true);
-        
-        if (intersects.length > 0) {
-          // Размещаем куб на местности
-          const newCube = cube.clone();
-          newCube.position.copy(intersects[0].point);
-          marker.add(newCube);
-        }
-      });
-      
-      // Создаем функцию рендеринга сцены
-      function render() {
-        requestAnimationFrame(render);
-        renderer.render(scene, camera);
-      }
-      render();
-    </script>
-  </body>
+<head>
+  <meta charset="utf-8">
+  <title>AR.js Example</title>
+  <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+  <script src="ar.js"></script>
+</head>
+<body>
+  <a-scene embedded arjs="sourceType: webcam;">
+    <a-box position='0 0.5 0' material='opacity: 0.5;'></a-box>
+    <a-marker preset="hiro">
+      <a-entity position='0 0 0'>
+        <a-entity gltf-model="https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Duck/glTF/Duck.gltf"></a-entity>
+      </a-entity>
+    </a-marker>
+    <a-entity camera></a-entity>
+  </a-scene>
+</body>
 </html>
