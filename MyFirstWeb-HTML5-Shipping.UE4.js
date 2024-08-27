@@ -427,8 +427,8 @@ Module['UE4_fullscreenFilteringMode'] = 0;
 
 var enableReadFromIndexedDB = (location.search.indexOf('noidbread') == -1);
 var enableWriteToIndexedDB = enableReadFromIndexedDB && (location.search.indexOf('noidbwrite') == -1);
-enableReadFromIndexedDB = false;
-enableWriteToIndexedDB = false;
+enableReadFromIndexedDB = true;
+enableWriteToIndexedDB = true;
 
 if (!enableReadFromIndexedDB) console.log('Running with IndexedDB access disabled.');
 else if (!enableWriteToIndexedDB) console.log('Running in read-only IndexedDB access mode.');
@@ -445,12 +445,30 @@ function formatBytes(bytes) {
 	if (bytes >= 1024) return (bytes / 1024).toFixed(1) + ' KB';
 	return bytes + ' B';
 }
-
+/*
 function reportDataBytesStoredInIndexedDB(deltaBytes) {
 	if (deltaBytes === null) Module['dataBytesStoredInIndexedDB'] = 0; // call with deltaBytes == null to report that DB was cleared.
 	else Module['dataBytesStoredInIndexedDB'] += deltaBytes;
 	document.getElementById('clear_indexeddb').title = 'Clear IndexedDB (' + formatBytes(Module['dataBytesStoredInIndexedDB']) + ')';
 }
+*/
+function reportDataBytesStoredInIndexedDB(deltaBytes) {
+    Module['dataBytesStoredInIndexedDB'] = Module['dataBytesStoredInIndexedDB'] || 0;
+
+    if (deltaBytes === null) {
+        Module['dataBytesStoredInIndexedDB'] = 0; // если deltaBytes == null, сообщаем, что БД была очищена.
+    } else {
+        Module['dataBytesStoredInIndexedDB'] += deltaBytes;
+    }
+
+    var clearButton = document.getElementById('clear_indexeddb');
+    if (clearButton) {
+        clearButton.title = 'Clear IndexedDB (' + formatBytes(Module['dataBytesStoredInIndexedDB']) + ')';
+    } else {
+        console.warn('Element with id "clear_indexeddb" not found.');
+    }
+}
+
 
 function deleteIndexedDBStorage(dbName, onsuccess, onerror, onblocked) {
 	var idb = window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB;
@@ -542,7 +560,7 @@ function fetchFromIndexedDB(db, key) {
 		}
 	});
 }
-
+/*
 function fetchOrDownloadAndStore(db, url, responseType) {
 	return new Promise(function(resolve, reject) {
 		fetchFromIndexedDB(db, url)
@@ -551,7 +569,7 @@ function fetchOrDownloadAndStore(db, url, responseType) {
 			return download(url, responseType)
 			.then(function(data) {
 				// Treat IDB store as separate operation that's not part of the Promise chain.
-				/*return*/ storeToIndexedDB(db, url, data)
+				/*return*!/ storeToIndexedDB(db, url, data)
 				.then(function() { return resolve(data); })
 				.catch(function(error) {
 					if ( enableReadFromIndexedDB || enableWriteToIndexedDB ) {
@@ -563,6 +581,27 @@ function fetchOrDownloadAndStore(db, url, responseType) {
 			.catch(function(error) { return reject(error); })
 		});
 	});
+}*/
+
+function fetchOrDownloadAndStore(db, url, responseType) {
+    return new Promise(function(resolve, reject) {
+        fetchFromIndexedDB(db, url)
+        .then(function(data) { 
+            return resolve(data); 
+        })
+        .catch(function(error) {
+            return download(url, responseType)
+            .then(function(data) {
+                storeToIndexedDB(db, url, data)
+                .then(function() { return resolve(data); })
+                .catch(function(error) {
+                    console.error('Failed to store download to IndexedDB! ' + error);
+                    return resolve(data); // Если загрузка успешна, но сохранение не удалось, игнорируем ошибку
+                })
+            })
+            .catch(function(error) { return reject(error); })
+        });
+    });
 }
 
 function openIndexedDB(dbName, dbVersion) {
@@ -602,6 +641,9 @@ Module.locateFile = function(name) {
 		serveGzipped = false;
 	}
 
+    if (name.endsWith('.data')) {
+        serveGzipped = true;  // Настройка для использования сжатых данных
+    }
 	// uncompressing very large gzip files may slow down startup times.
 //	if (!dataFileIsGzipCompressed && name.split('.').slice(-1)[0] == 'data') serveGzipped = false;
 
@@ -621,7 +663,7 @@ Module.getPreloadedPackage = function(remotePackageName, remotePackageSize) {
 
 // ----------------------------------------
 // wasm
-
+/*
 Module['instantiateWasm'] = function(info, receiveInstance) {
 	Module['wasmDownloadAction'].then(function(downloadResults) {
 		taskProgress(TASK_COMPILING);
@@ -647,6 +689,36 @@ Module['instantiateWasm'] = function(info, receiveInstance) {
 	});
 	return {};
 }
+*/
+
+Module['instantiateWasm'] = function(info, receiveInstance) {
+    Module['wasmDownloadAction'].then(function(downloadResults) {
+        taskProgress(TASK_COMPILING);
+        
+        // Если модуль WebAssembly успешно загружен, сохраняем бинарные данные
+        var wasmInstantiate = WebAssembly.instantiate(downloadResults.wasmModule || new Uint8Array(downloadResults.wasmBytes), info);
+        
+        return wasmInstantiate.then(function(output) {
+            var instance = output.instance || output;
+            var module = output.module;
+            taskFinished(TASK_COMPILING);
+            Module['wasmInstantiateActionResolve'](instance);
+            receiveInstance(instance, module);
+
+            // Попытка сохранить скомпилированный бинарный код вместо самого модуля
+            if (!downloadResults.fromIndexedDB) {
+                storeToIndexedDB(downloadResults.db, 'wasmBytes', downloadResults.wasmBytes).catch(function() {
+                    console.warn('Failed to store wasm bytes to IndexedDB');
+                });
+            }
+        });
+    }).catch(function(error) {
+        $('#mainarea').empty();
+        $('#mainarea').append('<div class="alert alert-danger centered-axis-xy" style ="min-height: 10pt" role="alert">WebAssembly instantiation failed: <br> ' + error + '</div></div>');
+    });
+    return {};
+}
+
 
 
 // ----------------------------------------
