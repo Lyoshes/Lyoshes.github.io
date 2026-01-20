@@ -70,47 +70,22 @@
   // demonstrate how cubes can wrap around the ring.  Additional shapes can easily be
   // added later.  If you don't want a particular shape, remove its entry from the
   // PIECES array.
+  // For initial tests we keep the piece set simple: a single block and a
+  // 2-block bar.  More complex shapes can be reintroduced later once the
+  // basic falling and rotation mechanics feel solid.
   const PIECES = [
     {
       name: 'single',
       rotations: [
         // just one block
-        [{x: 0, y: 0}],
+        [{ x: 0, y: 0 }],
       ],
     },
     {
       name: 'bar2',
       rotations: [
         // two horizontally adjacent blocks
-        [{x: 0, y: 0}, {x: 1, y: 0}],
-      ],
-    },
-    {
-      name: 'bar3',
-      rotations: [
-        // three horizontally adjacent blocks
-        [{x: -1, y: 0}, {x: 0, y: 0}, {x: 1, y: 0}],
-      ],
-    },
-    {
-      name: 'bar4',
-      rotations: [
-        // four horizontally adjacent blocks
-        [{x: -1, y: 0}, {x: 0, y: 0}, {x: 1, y: 0}, {x: 2, y: 0}],
-      ],
-    },
-    {
-      name: 'square',
-      rotations: [
-        // 2x2 square (two sectors wide, two rows high)
-        [{x: 0, y: 0}, {x: 1, y: 0}, {x: 0, y: 1}, {x: 1, y: 1}],
-      ],
-    },
-    {
-      name: 'L',
-      rotations: [
-        // simple L shape: two in a row plus one above the pivot
-        [{x: 0, y: 0}, {x: 1, y: 0}, {x: 0, y: 1}],
+        [{ x: 0, y: 0 }, { x: 1, y: 0 }],
       ],
     },
   ];
@@ -119,14 +94,24 @@
   let activePiece = null;      // the current piece object from PIECES
   let pieceRotIndex = 0;       // which rotation state is active
   let pieceY = 0;              // integer y coordinate of the piece pivot
+  // Sector index where the piece is anchored when it spawns.  This value is
+  // captured at spawn time so the piece always falls in the "front" (center)
+  // sector relative to the player.  Rotating the tower does not move the
+  // falling piece around the ring; instead the world rotates around the piece.
+  let pieceS0 = 0;
   let fallTimer = 0;           // accumulates time until the piece moves down one cell
   const fallInterval = 0.7;    // seconds per drop (adjust for difficulty)
 
-  // Spawn a new piece above the top of the visible area.
+  // Spawn a new piece above the top of the visible area.  The piece
+  // anchors to the current front sector (getRotIndex()) so that it
+  // always falls down the centre of the screen regardless of how the
+  // cylinder is rotated afterwards.
   function spawnPiece() {
     const index = Math.floor(Math.random() * PIECES.length);
     activePiece = PIECES[index];
     pieceRotIndex = 0;
+    // Capture the current front-facing sector as the anchor for this piece.
+    pieceS0 = getRotIndex();
     // Position the pivot above the top of the grid so the entire shape starts
     // outside the visible playfield.  We add a buffer so even tall pieces with
     // positive y offsets spawn out of view.  Feel free to adjust the buffer
@@ -139,10 +124,12 @@
   function canPlaceAt(y, rotIndex = pieceRotIndex) {
     if (!activePiece) return false;
     const cells = activePiece.rotations[rotIndex];
-    const s0 = getRotIndex();
+    // Use the fixed pieceS0 captured at spawn time rather than the
+    // current rotation index.  This ensures the piece does not move
+    // around the ring when the tower rotates.
     for (const cell of cells) {
       const cy = y + cell.y;
-      const cs = normSector(s0 + cell.x);
+      const cs = normSector(pieceS0 + cell.x);
       // If the cell is below the bottom of the field, it's a collision.
       if (cy < 0) return false;
       // Ignore cells above the top – they simply haven't entered the field yet.
@@ -157,10 +144,12 @@
   function lockPiece() {
     if (!activePiece) return;
     const cells = activePiece.rotations[pieceRotIndex];
-    const s0 = getRotIndex();
+    // Place each cell of the active piece into the grid using the fixed
+    // sector pieceS0.  This prevents the piece from shifting around the ring
+    // when the tower rotates.
     for (const cell of cells) {
       const cy = pieceY + cell.y;
-      const cs = normSector(s0 + cell.x);
+      const cs = normSector(pieceS0 + cell.x);
       if (cy >= 0 && cy < H) {
         grid[cy][cs] = 1;
       }
@@ -348,11 +337,13 @@
     // Draw the active falling piece on top of the existing grid.
     if (activePiece) {
       const cells = activePiece.rotations[pieceRotIndex];
-      const s0 = getRotIndex();
+      // Draw each cell of the active piece using the fixed pieceS0.  We compute
+      // the world sector as pieceS0 + cell.x and then map it to screen space
+      // based on the current rotation of the tower (rotFloat).
       for (const cell of cells) {
         const cyPiece = pieceY + cell.y;
         if (cyPiece < 0 || cyPiece >= H) continue;
-        const cs = normSector(s0 + cell.x);
+        const cs = normSector(pieceS0 + cell.x);
         const ang = ((cs - rotFloat) / N) * Math.PI * 2;
         const cxPiece = centerX + Math.cos(ang) * radiusX;
         const cyPiecePx = bottomY - cyPiece * levelStep + Math.sin(ang) * radiusY;
