@@ -60,16 +60,19 @@
   let dragging = false;
   let startX = 0;
   let startRot = 0;
-  let lastStep = 0;
+  let startY = 0;
+  let lastDropStep = 0;
 
   const PX_PER_STEP = 34;        // smaller => more sensitive (like iOS picker)
   const DEADZONE_PX = 6;
+  const PX_PER_DROP = 18;        // smaller => faster soft drop
 
   canvas.addEventListener('pointerdown', (e) => {
     dragging = true;
     startX = e.clientX;
-    startRot = targetRot;  // integer sector baseline
-    lastStep = 0;
+    startY = e.clientY;
+    startRot = rotFloat;   // continuous baseline
+    lastDropStep = 0;
     rotVel = 0;
     canvas.setPointerCapture(e.pointerId);
   });
@@ -77,16 +80,23 @@
   canvas.addEventListener('pointermove', (e) => {
     if (!dragging) return;
     const dx = e.clientX - startX;
-    if (Math.abs(dx) < DEADZONE_PX) return;
+    const dy = e.clientY - startY;
+    if (Math.abs(dx) < DEADZONE_PX && Math.abs(dy) < DEADZONE_PX) return;
 
-    // Negative dx => drag left => increase sector index (turn right)
-    const step = Math.trunc(-dx / PX_PER_STEP);
-
-    if (step !== lastStep) {
-      lastStep = step;
-      targetRot = startRot + step; // integer stepping
-      rotFloat = targetRot;        // immediate snap
+    if (Math.abs(dx) >= DEADZONE_PX) {
+      // Positive dx => drag right => rotate cylinder right
+      rotFloat = startRot + dx / PX_PER_STEP;
+      targetRot = rotFloat;
       rotVel = 0;
+    }
+
+    if (dy > DEADZONE_PX) {
+      const dropStep = Math.trunc(dy / PX_PER_DROP);
+      if (dropStep > lastDropStep) {
+        const steps = dropStep - lastDropStep;
+        for (let i = 0; i < steps; i++) tryMoveDown();
+        lastDropStep = dropStep;
+      }
     }
   });
 
@@ -207,7 +217,7 @@
   }
 
   function sectorCenterXY(centerX, yScreen, radiusX, radiusY, s, rot) {
-    const ang = ((s - rot) / N) * TAU + ANG_OFFSET;
+    const ang = ((s + rot) / N) * TAU + ANG_OFFSET;
     return {
       x: centerX + Math.cos(ang) * radiusX,
       y: yScreen + Math.sin(ang) * radiusY,
