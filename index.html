@@ -54,13 +54,155 @@
   window.addEventListener('resize', resize);
   resize();
 
-  // ===== Grid (placeholder occupancy for now) =====
-  // 0 empty, 1 filled
-  const grid = Array.from({length: H}, () => new Uint8Array(N)); // y=0 bottom
+  // ===== Grid =====
+  // 0 empty, 1 filled. y=0 is the bottom row.
+  const grid = Array.from({length: H}, () => new Uint8Array(N));
 
-  // Simple demo: fill some cells so you see the structure
-  for (let s=0; s<N; s+=3) grid[0][s] = 1;
-  for (let s=1; s<N; s+=5) grid[1][s] = 1;
+  // ===== Piece definitions =====
+  // Piece definitions
+  // Each entry defines a piece by its name and an array of rotation states.  Each rotation
+  // state is a list of cell offsets relative to a pivot at (0,0).  The offsets are in
+  // sector (x) and vertical (y) coordinates.  Negative x values mean the cell lies to
+  // the left of the pivot; positive values lie to the right.  Negative y values are
+  // above the pivot; positive values are below.
+  //
+  // For this MVP we include a handful of simple shapes that span multiple sectors to
+  // demonstrate how cubes can wrap around the ring.  Additional shapes can easily be
+  // added later.  If you don't want a particular shape, remove its entry from the
+  // PIECES array.
+  const PIECES = [
+    {
+      name: 'single',
+      rotations: [
+        // just one block
+        [{x: 0, y: 0}],
+      ],
+    },
+    {
+      name: 'bar2',
+      rotations: [
+        // two horizontally adjacent blocks
+        [{x: 0, y: 0}, {x: 1, y: 0}],
+      ],
+    },
+    {
+      name: 'bar3',
+      rotations: [
+        // three horizontally adjacent blocks
+        [{x: -1, y: 0}, {x: 0, y: 0}, {x: 1, y: 0}],
+      ],
+    },
+    {
+      name: 'bar4',
+      rotations: [
+        // four horizontally adjacent blocks
+        [{x: -1, y: 0}, {x: 0, y: 0}, {x: 1, y: 0}, {x: 2, y: 0}],
+      ],
+    },
+    {
+      name: 'square',
+      rotations: [
+        // 2x2 square (two sectors wide, two rows high)
+        [{x: 0, y: 0}, {x: 1, y: 0}, {x: 0, y: 1}, {x: 1, y: 1}],
+      ],
+    },
+    {
+      name: 'L',
+      rotations: [
+        // simple L shape: two in a row plus one above the pivot
+        [{x: 0, y: 0}, {x: 1, y: 0}, {x: 0, y: 1}],
+      ],
+    },
+  ];
+
+  // Active falling piece state
+  let activePiece = null;      // the current piece object from PIECES
+  let pieceRotIndex = 0;       // which rotation state is active
+  let pieceY = 0;              // integer y coordinate of the piece pivot
+  let fallTimer = 0;           // accumulates time until the piece moves down one cell
+  const fallInterval = 0.7;    // seconds per drop (adjust for difficulty)
+
+  // Spawn a new piece above the top of the visible area.
+  function spawnPiece() {
+    const index = Math.floor(Math.random() * PIECES.length);
+    activePiece = PIECES[index];
+    pieceRotIndex = 0;
+    // Position the pivot above the top of the grid so the entire shape starts
+    // outside the visible playfield.  We add a buffer so even tall pieces with
+    // positive y offsets spawn out of view.  Feel free to adjust the buffer
+    // value to change how far above the field new pieces appear.
+    const bufferRows = 3;
+    pieceY = H + bufferRows;
+  }
+
+  // Determine whether the active piece can occupy a given y position.
+  function canPlaceAt(y, rotIndex = pieceRotIndex) {
+    if (!activePiece) return false;
+    const cells = activePiece.rotations[rotIndex];
+    const s0 = getRotIndex();
+    for (const cell of cells) {
+      const cy = y + cell.y;
+      const cs = normSector(s0 + cell.x);
+      // If the cell is below the bottom of the field, it's a collision.
+      if (cy < 0) return false;
+      // Ignore cells above the top – they simply haven't entered the field yet.
+      if (cy >= H) continue;
+      if (grid[cy][cs]) return false;
+    }
+    return true;
+  }
+
+  // Lock the current piece into the grid at its current position,
+  // clear any complete rings, and spawn a new piece.
+  function lockPiece() {
+    if (!activePiece) return;
+    const cells = activePiece.rotations[pieceRotIndex];
+    const s0 = getRotIndex();
+    for (const cell of cells) {
+      const cy = pieceY + cell.y;
+      const cs = normSector(s0 + cell.x);
+      if (cy >= 0 && cy < H) {
+        grid[cy][cs] = 1;
+      }
+    }
+    clearRings();
+    spawnPiece();
+  }
+
+  // Attempt to move the active piece down by one row. If it can't move,
+  // lock it and spawn a new one.
+  function tryMoveDown() {
+    if (canPlaceAt(pieceY - 1)) {
+      pieceY -= 1;
+    } else {
+      lockPiece();
+    }
+  }
+
+  // Remove any fully occupied rings and shift everything above them down.
+  function clearRings() {
+    let cleared = 0;
+    for (let y = 0; y < H; y++) {
+      let full = true;
+      for (let s = 0; s < N; s++) {
+        if (!grid[y][s]) {
+          full = false;
+          break;
+        }
+      }
+      if (full) {
+        // Remove this ring and insert an empty ring at the top.
+        grid.splice(y, 1);
+        grid.push(new Uint8Array(N));
+        y--; // recheck the new row at this index
+        cleared++;
+      }
+    }
+    if (cleared > 0) {
+      // Reward: lower the kill zone for each cleared ring.
+      killLevel = Math.max(0, killLevel - killReward * cleared);
+    }
+  }
 
   // ===== Rotation with inertia + ratchet =====
   let rotFloat = 0; // in sectors
@@ -203,6 +345,24 @@
       }
     }
 
+    // Draw the active falling piece on top of the existing grid.
+    if (activePiece) {
+      const cells = activePiece.rotations[pieceRotIndex];
+      const s0 = getRotIndex();
+      for (const cell of cells) {
+        const cyPiece = pieceY + cell.y;
+        if (cyPiece < 0 || cyPiece >= H) continue;
+        const cs = normSector(s0 + cell.x);
+        const ang = ((cs - rotFloat) / N) * Math.PI * 2;
+        const cxPiece = centerX + Math.cos(ang) * radiusX;
+        const cyPiecePx = bottomY - cyPiece * levelStep + Math.sin(ang) * radiusY;
+        const depth = (Math.sin(ang) + 1) * 0.5;
+        const size = 10 + depth * 6;
+        ctx.fillStyle = `rgba(255,180,180,${0.6 + depth * 0.4})`;
+        ctx.fillRect(cxPiece - size/2, cyPiecePx - size/2, size, size);
+      }
+    }
+
     // HUD
     rightHud.textContent = `rotIndex=${rotIndex}  killLine=${killLine}/${H}`;
     leftHud.textContent = `N=${N}  H=${H}  rot=${rotFloat.toFixed(2)}`;
@@ -220,6 +380,13 @@
     if (killLevel >= H) {
       // simple game over reset for now
       killLevel = 0;
+    }
+
+    // update falling piece
+    fallTimer += dt;
+    if (fallTimer >= fallInterval) {
+      fallTimer -= fallInterval;
+      tryMoveDown();
     }
 
     // rotation inertia + snap
@@ -247,6 +414,9 @@
     requestAnimationFrame(tick);
   }
   requestAnimationFrame(tick);
+
+  // Start the first falling piece.
+  spawnPiece();
 
 })();
 </script>
