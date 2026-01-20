@@ -157,7 +157,12 @@
   function lockPiece() {
     if (!activePiece) return;
     const cells = activePiece.rotations[pieceRotIndex];
+    // Snap rotation to the sector used for landing so the locked blocks
+    // stay exactly where the falling piece visually landed.
     const s0 = getRotIndex();
+    rotFloat = s0;
+    targetRot = s0;
+    rotVel = 0;
     for (const cell of cells) {
       const cy = pieceY + cell.y;
       const cs = normSector(s0 + cell.x);
@@ -293,6 +298,9 @@
     const levelStep = towerHeightPx / H;
 
     const rotIndex = getRotIndex();
+    // Angle offset so that the "front" sector (rotIndex) is drawn on the center drop-line.
+    // With this offset: sector == rotIndex => x == centerX.
+    const ANG_OFFSET = -Math.PI / 2;
 
     // Draw water (killzone) as a filled region from bottom up
     const killLine = Math.floor(killLevel);
@@ -317,18 +325,19 @@
         if (!grid[y][s]) continue;
 
         // map sector to angle; rotate by rotFloat
-        const ang = ((s - rotFloat) / N) * Math.PI * 2;
+        const ang = ((s - rotFloat) / N) * Math.PI * 2 + ANG_OFFSET;
         const cx = centerX + Math.cos(ang) * radiusX;
         const cy = py + Math.sin(ang) * radiusY;
 
         // size: clamp by local arc spacing so adjacent sectors look "glued"
         const depth = (Math.sin(ang) + 1) * 0.5; // 0 back .. 1 front
-        const sizeDepth = 10 + depth * 6;
-        const ang2 = ((s + 1 - rotFloat) / N) * Math.PI * 2;
+        const ang2 = ((s + 1 - rotFloat) / N) * Math.PI * 2 + ANG_OFFSET;
         const cx2 = centerX + Math.cos(ang2) * radiusX;
         const cy2 = py + Math.sin(ang2) * radiusY;
         const arcDist = Math.hypot(cx2 - cx, cy2 - cy);
-        const size = Math.min(sizeDepth, Math.max(6, arcDist * 0.98));
+        // Make blocks tightly packed: width ~= distance between sector centers.
+        // Slightly oversize to avoid visible gaps due to AA.
+        const size = Math.max(6, Math.min(26, arcDist * 1.05));
 
         ctx.fillStyle = `rgba(230,230,240,${0.55 + depth*0.35})`;
         ctx.fillRect(cx - size/2, cy - size/2, size, size);
@@ -336,7 +345,7 @@
 
       // highlight active/front sector line (only at few top levels to reduce clutter)
       if (y % 3 === 0) {
-        const ang = ((rotIndex - rotFloat) / N) * Math.PI * 2;
+        const ang = ((rotIndex - rotFloat) / N) * Math.PI * 2 + ANG_OFFSET;
         const x1 = centerX + Math.cos(ang) * (radiusX * 0.15);
         const y1 = py + Math.sin(ang) * (radiusY * 0.15);
         const x2 = centerX + Math.cos(ang) * (radiusX * 1.02);
@@ -368,8 +377,17 @@
       for (const c of cells) { minX = Math.min(minX, c.x); maxX = Math.max(maxX, c.x); }
       const midX = (minX + maxX) * 0.5;
 
-      const size = 14;
-      const gap = 1.5;
+      // Match the block size to the actual sector-to-sector spacing at the front.
+      // (Front is the center drop-line because of ANG_OFFSET above.)
+      const sampleY = bottomY - Math.min(H-1, Math.max(0, pieceY)) * levelStep;
+      const a1 = 0 + (-Math.PI/2); // same as ANG_OFFSET (front)
+      const a2 = a1 + (Math.PI * 2) / N;
+      const fx1 = centerX + Math.cos(a1) * radiusX;
+      const fy1 = sampleY + Math.sin(a1) * radiusY;
+      const fx2 = centerX + Math.cos(a2) * radiusX;
+      const fy2 = sampleY + Math.sin(a2) * radiusY;
+      const size = Math.max(10, Math.min(26, Math.hypot(fx2 - fx1, fy2 - fy1) * 1.05));
+      const gap = 0; // no gaps inside a falling piece
       ctx.fillStyle = 'rgba(255,180,180,0.95)';
 
       for (const cell of cells) {
