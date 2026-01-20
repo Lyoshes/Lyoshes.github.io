@@ -60,16 +60,21 @@
   let dragging = false;
   let startX = 0;
   let startRot = 0;
+  let startY = 0;
   let lastStep = 0;
+  let lastDropStep = 0;
 
   const PX_PER_STEP = 34;        // smaller => more sensitive (like iOS picker)
   const DEADZONE_PX = 6;
+  const PX_PER_DROP = 18;        // smaller => faster soft drop
 
   canvas.addEventListener('pointerdown', (e) => {
     dragging = true;
     startX = e.clientX;
+    startY = e.clientY;
     startRot = targetRot;  // integer sector baseline
     lastStep = 0;
+    lastDropStep = 0;
     rotVel = 0;
     canvas.setPointerCapture(e.pointerId);
   });
@@ -82,11 +87,13 @@
     // Positive dx => drag right => increase sector index (turn right)
     const step = Math.trunc(dx / PX_PER_STEP);
 
-    if (step !== lastStep) {
-      lastStep = step;
-      targetRot = startRot + step; // integer stepping
-      rotFloat = targetRot;        // immediate snap
-      rotVel = 0;
+    if (dy > DEADZONE_PX) {
+      const dropStep = Math.trunc(dy / PX_PER_DROP);
+      if (dropStep > lastDropStep) {
+        const steps = dropStep - lastDropStep;
+        for (let i = 0; i < steps; i++) tryMoveDown();
+        lastDropStep = dropStep;
+      }
     }
   });
 
@@ -207,7 +214,7 @@
   }
 
   function sectorCenterXY(centerX, yScreen, radiusX, radiusY, s, rot) {
-    const ang = ((s - rot) / N) * TAU + ANG_OFFSET;
+    const ang = ((s + rot) / N) * TAU + ANG_OFFSET;
     return {
       x: centerX + Math.cos(ang) * radiusX,
       y: yScreen + Math.sin(ang) * radiusY,
