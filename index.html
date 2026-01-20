@@ -321,9 +321,14 @@
         const cx = centerX + Math.cos(ang) * radiusX;
         const cy = py + Math.sin(ang) * radiusY;
 
-        // size depends on depth (front bigger)
+        // size: clamp by local arc spacing so adjacent sectors look "glued"
         const depth = (Math.sin(ang) + 1) * 0.5; // 0 back .. 1 front
-        const size = 10 + depth * 6;
+        const sizeDepth = 10 + depth * 6;
+        const ang2 = ((s + 1 - rotFloat) / N) * Math.PI * 2;
+        const cx2 = centerX + Math.cos(ang2) * radiusX;
+        const cy2 = py + Math.sin(ang2) * radiusY;
+        const arcDist = Math.hypot(cx2 - cx, cy2 - cy);
+        const size = Math.min(sizeDepth, Math.max(6, arcDist * 0.98));
 
         ctx.fillStyle = `rgba(230,230,240,${0.55 + depth*0.35})`;
         ctx.fillRect(cx - size/2, cy - size/2, size, size);
@@ -345,6 +350,14 @@
       }
     }
 
+    // Visual "drop line": the piece always falls on the tower axis.
+    ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(centerX, topY);
+    ctx.lineTo(centerX, bottomY);
+    ctx.stroke();
+
     // Draw the active falling piece in SCREEN SPACE (always in the center “drop line”).
     // The cylinder rotation selects where it will land, but the piece itself does not
     // travel around the circumference while falling.
@@ -361,10 +374,12 @@
 
       for (const cell of cells) {
         const cyPiece = pieceY + cell.y;
-        if (cyPiece < 0 || cyPiece >= H) continue;
+        // allow drawing slightly outside the field so the entry is visible
+        if (cyPiece < -3 || cyPiece > H + 3) continue;
         const localX = (cell.x - midX) * (size + gap);
         const cxPiece = centerX + localX;
         const cyPiecePx = bottomY - cyPiece * levelStep; // straight vertical fall
+        if (cyPiecePx < topY - 80 || cyPiecePx > bottomY + 80) continue;
         ctx.fillRect(cxPiece - size/2, cyPiecePx - size/2, size, size);
       }
     }
