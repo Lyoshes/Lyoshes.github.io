@@ -298,14 +298,14 @@
     }
 
     // ===== Ghost projection (landing position) =====
-    // Render the landing cells in cylinder-space (same projection as locked blocks),
-    // so the ghost matches the exact final placement.
+    // Render ghost in cylinder-space (same projection as locked blocks),
+    // but use a SNAPPED rotation so the front sector is perfectly aligned to the drop-line.
     if (activePiece) {
       const ghostY = computeGhostY();
       if (ghostY !== null) {
         const s0 = snappedRot();
+        const rotSnap = s0; // integer rotation => exact alignment
 
-        // Build a list of ghost cells so we can sort back-to-front.
         const ghostCells = [];
         for (const c of activePiece.cells) {
           const cy = ghostY + c.y;
@@ -313,7 +313,7 @@
           if (cy < 0 || cy >= H) continue;
 
           const yScr = levelYToScreenY(topY, towerHeightPx, cy + 0.5);
-          const p0 = sectorCenterXY(centerX, yScr, radiusX, radiusY, cs, rotFloat);
+          const p0 = sectorCenterXY(centerX, yScr, radiusX, radiusY, cs, rotSnap);
           ghostCells.push({cy, cs, yScr, p0});
         }
 
@@ -321,8 +321,8 @@
 
         for (const g of ghostCells) {
           const p0 = g.p0;
-          const p1 = sectorCenterXY(centerX, g.yScr, radiusX, radiusY, g.cs + 1, rotFloat);
-          const p_1 = sectorCenterXY(centerX, g.yScr, radiusX, radiusY, g.cs - 1, rotFloat);
+          const p1 = sectorCenterXY(centerX, g.yScr, radiusX, radiusY, g.cs + 1, rotSnap);
+          const p_1 = sectorCenterXY(centerX, g.yScr, radiusX, radiusY, g.cs - 1, rotSnap);
           const tx = (p1.x - p_1.x);
           const ty = (p1.y - p_1.y);
           const arcDist = Math.hypot(p1.x - p0.x, p1.y - p0.y);
@@ -337,28 +337,35 @@
 
 
 
-    // ===== Active falling piece (ALWAYS in screen center, no rotation with cylinder) =====
+    // ===== Active falling piece =====
+    // IMPORTANT: draw using the SAME sector projection as the ghost / final placement,
+    // but still "falls straight down" (x for each cell is constant over time).
     if (activePiece) {
-      const yScr = levelYToScreenY(topY, towerHeightPx, pieceY + 0.5);
-
-      // determine block width at "front" (bottom point) at this height:
-      // take the currently front sector s0 (snapped) and compute arc distance to neighbor
       const s0 = snappedRot();
-      const p0 = sectorCenterXY(centerX, yScr, radiusX, radiusY, s0, rotFloat);
-      const p1 = sectorCenterXY(centerX, yScr, radiusX, radiusY, s0+1, rotFloat);
+      const rotSnap = s0; // integer rotation => exact alignment of the front sector
+
+      // Use block size at current piece height
+      const yScrRef = levelYToScreenY(topY, towerHeightPx, (pieceY) + 0.5);
+      const p0 = sectorCenterXY(centerX, yScrRef, radiusX, radiusY, s0, rotSnap);
+      const p1 = sectorCenterXY(centerX, yScrRef, radiusX, radiusY, s0 + 1, rotSnap);
       const arcDist = Math.hypot(p1.x - p0.x, p1.y - p0.y);
+
       const bw = arcDist * 1.06;
       const bh = (towerHeightPx / H) * 0.90;
 
-      // Draw blocks with pivot block at exact centerX
-      // (x offsets use integer dx, so bar2 appears to the right of pivot – that's OK for MVP)
+      ctx.fillStyle = 'rgba(255,170,180,0.75)';
       for (const c of activePiece.cells) {
-        const x = centerX + c.x * bw;
-        const y = levelYToScreenY(topY, towerHeightPx, (pieceY + c.y) + 0.5);
-        ctx.fillStyle = 'rgba(255,170,180,0.75)';
-        ctx.fillRect(x - bw/2, y - bh/2, bw, bh);
+        const cs = normSector(s0 + c.x);
+        const cy = pieceY + c.y;
+
+        const yScr = levelYToScreenY(topY, towerHeightPx, cy + 0.5);
+        const pc = sectorCenterXY(centerX, yScr, radiusX, radiusY, cs, rotSnap);
+
+        // draw as axis-aligned rect (same look as before), but at projected x/y
+        ctx.fillRect(pc.x - bw/2, pc.y - bh/2, bw, bh);
       }
     }
+
 
     // HUD
     document.getElementById('hud').textContent =
