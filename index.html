@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <title>Ring Tetris MVP</title>
+  <style>
+    html, body { margin:0; padding:0; height:100%; background:#0b0f14; overflow:hidden; touch-action:none; }
+    canvas { display:block; width:100%; height:100%; }
+    .hud {
+      position:fixed; left:12px; top:10px; right:12px;
+      color:#e6edf3; font:14px/1.3 system-ui,-apple-system,Segoe UI,Roboto,Arial;
+      display:flex; justify-content:space-between; gap:12px; pointer-events:none;
+      text-shadow: 0 1px 2px rgba(0,0,0,.5);
+    }
+    .hint {
+      position:fixed; left:12px; bottom:12px; right:12px;
+      color:#9fb0c2; font:12px/1.3 system-ui,-apple-system,Segoe UI,Roboto,Arial;
+      opacity:.9; pointer-events:none;
+    }
+  </style>
+</head>
+<body>
+  <div class="hud">
+    <div id="leftHud">N=30 H=24</div>
+    <div id="rightHud"></div>
+  </div>
+  <div class="hint">Свайп влево/вправо: вращение цилиндра с инерцией и “трещёткой”.</div>
+  <canvas id="c"></canvas>
+
+<script>
+(() => {
+  // ===== Config =====
+  const N = 30;       // sectors
+  const H = 24;       // visible height (levels)
+  const pixelsPerSectorFactor = 6; // smaller => faster rotation per swipe
+  const friction = 8.0;          // bigger => stronger damping
+  const snapStrength = 18.0;     // bigger => stronger snap
+  const snapVelThreshold = 0.6;  // sectors/sec
+  const snapEps = 0.002;         // sectors
+  const killRate = 0.35;         // levels/sec (tune)
+  const killReward = 2.0;        // levels to push back on ring clear (future)
+
+  // ===== Canvas =====
+  const canvas = document.getElementById('c');
+  const ctx = canvas.getContext('2d', { alpha: false });
+
+  function resize() {
+    const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+    canvas.width = Math.floor(canvas.clientWidth * dpr);
+    canvas.height = Math.floor(canvas.clientHeight * dpr);
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  // ===== Grid (placeholder occupancy for now) =====
+  // 0 empty, 1 filled
+  const grid = Array.from({length: H}, () => new Uint8Array(N)); // y=0 bottom
+
+  // Simple demo: fill some cells so you see the structure
+  for (let s=0; s<N; s+=3) grid[0][s] = 1;
+  for (let s=1; s<N; s+=5) grid[1][s] = 1;
+
+  // ===== Rotation with inertia + ratchet =====
+  let rotFloat = 0; // in sectors
+  let rotVel = 0;   // sectors/sec
+  let dragging = false;
+  let dragStartX = 0;
+  let dragStartRot = 0;
+  let lastMoveT = 0;
+  let lastMoveX = 0;
+  let killLevel = 0; // levels from bottom, grows upward (float)
+
+  const leftHud = document.getElementById('leftHud');
+  const rightHud = document.getElementById('rightHud');
+
+  function normSector(i) {
+    let x = i % N;
+    if (x < 0) x += N;
+    return x;
+  }
+
+  function getRotIndex() {
+    return normSector(Math.round(rotFloat));
+  }
+
+  function onPointerDown(e) {
+    dragging = true;
+    const x = e.clientX ?? (e.touches && e.touches[0]?.clientX) ?? 0;
+    dragStartX = x;
+    dragStartRot = rotFloat;
+    rotVel = 0;
+    lastMoveT = performance.now();
+    lastMoveX = x;
+  }
+
+  function onPointerMove(e) {
+    if (!dragging) return;
+    const x = e.clientX ?? (e.touches && e.touches[0]?.clientX) ?? 0;
+
+    const w = canvas.clientWidth || 1;
+    const pixelsPerSector = w / pixelsPerSectorFactor;
+
+    const dx = x - dragStartX;
+    rotFloat = dragStartRot + (-dx / pixelsPerSector);
+
+    // estimate velocity
+    const now = performance.now();
+    const dt = Math.max(1, now - lastMoveT) / 1000;
+    const vx = (x - lastMoveX) / dt; // px/sec
+    rotVel = -(vx / pixelsPerSector); // sectors/sec
+
+    lastMoveT = now;
+    lastMoveX = x;
+  }
+
+  function onPointerUp() {
+    dragging = false;
+  }
+
+  // use pointer events when available
+  canvas.addEventListener('pointerdown', onPointerDown, {passive:false});
+  canvas.addEventListener('pointermove', onPointerMove, {passive:false});
+  canvas.addEventListener('pointerup', onPointerUp, {passive:true});
+  canvas.addEventListener('pointercancel', onPointerUp, {passive:true});
+
+  // iOS Safari sometimes prefers touch events; add fallback
+  canvas.addEventListener('touchstart', (e)=>{ e.preventDefault(); onPointerDown(e); }, {passive:false});
+  canvas.addEventListener('touchmove',  (e)=>{ e.preventDefault(); onPointerMove(e); }, {passive:false});
+  canvas.addEventListener('touchend',   (e)=>{ e.preventDefault(); onPointerUp(e); }, {passive:false});
+
+  // ===== Render helpers =====
+  function draw() {
+    const w = canvas.clientWidth;
+    const h = canvas.clientHeight;
+    ctx.clearRect(0,0,w,h);
+
+    // Background
+    ctx.fillStyle = '#0b0f14';
+    ctx.fillRect(0,0,w,h);
+
+    // Layout: pseudo-3D cylinder as stacked ellipses
+    const centerX = w * 0.5;
+    const topY = h * 0.12;
+    const bottomY = h * 0.90;
+    const towerHeightPx = bottomY - topY;
+
+    const radiusX = Math.min(w * 0.42, 260);
+    const radiusY = radiusX * 0.22; // ellipse squash for 3D feel
+    const levelStep = towerHeightPx / H;
+
+    const rotIndex = getRotIndex();
+
+    // Draw water (killzone) as a filled region from bottom up
+    const killLine = Math.floor(killLevel);
+    const waterY = bottomY - Math.min(H, Math.max(0, killLevel)) * levelStep;
+    ctx.fillStyle = 'rgba(40,120,200,0.20)';
+    ctx.fillRect(0, waterY, w, bottomY - waterY);
+
+    // Draw levels from bottom to top for better overlap look
+    for (let y=0; y<H; y++) {
+      const py = bottomY - y * levelStep;
+      const alpha = 0.12 + (y / H) * 0.18;
+      ctx.strokeStyle = `rgba(180,200,220,${alpha})`;
+      ctx.lineWidth = 1;
+
+      // ellipse ring
+      ctx.beginPath();
+      ctx.ellipse(centerX, py, radiusX, radiusY, 0, 0, Math.PI*2);
+      ctx.stroke();
+
+      // draw occupied cells as small quads on the ring
+      for (let s=0; s<N; s++) {
+        if (!grid[y][s]) continue;
+
+        // map sector to angle; rotate by rotFloat
+        const ang = ((s - rotFloat) / N) * Math.PI * 2;
+        const cx = centerX + Math.cos(ang) * radiusX;
+        const cy = py + Math.sin(ang) * radiusY;
+
+        // size depends on depth (front bigger)
+        const depth = (Math.sin(ang) + 1) * 0.5; // 0 back .. 1 front
+        const size = 10 + depth * 6;
+
+        ctx.fillStyle = `rgba(230,230,240,${0.55 + depth*0.35})`;
+        ctx.fillRect(cx - size/2, cy - size/2, size, size);
+      }
+
+      // highlight active/front sector line (only at few top levels to reduce clutter)
+      if (y % 3 === 0) {
+        const ang = ((rotIndex - rotFloat) / N) * Math.PI * 2;
+        const x1 = centerX + Math.cos(ang) * (radiusX * 0.15);
+        const y1 = py + Math.sin(ang) * (radiusY * 0.15);
+        const x2 = centerX + Math.cos(ang) * (radiusX * 1.02);
+        const y2 = py + Math.sin(ang) * (radiusY * 1.02);
+        ctx.strokeStyle = 'rgba(255,210,120,0.35)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(x1,y1);
+        ctx.lineTo(x2,y2);
+        ctx.stroke();
+      }
+    }
+
+    // HUD
+    rightHud.textContent = `rotIndex=${rotIndex}  killLine=${killLine}/${H}`;
+    leftHud.textContent = `N=${N}  H=${H}  rot=${rotFloat.toFixed(2)}`;
+  }
+
+  // ===== Update loop =====
+  let lastT = performance.now();
+  function tick() {
+    const now = performance.now();
+    const dt = Math.min(0.05, (now - lastT) / 1000);
+    lastT = now;
+
+    // update killzone
+    killLevel += killRate * dt;
+    if (killLevel >= H) {
+      // simple game over reset for now
+      killLevel = 0;
+    }
+
+    // rotation inertia + snap
+    if (!dragging) {
+      // inertia
+      rotFloat += rotVel * dt;
+
+      // damping
+      rotVel *= Math.exp(-friction * dt);
+
+      // snap-to-sector when slow
+      if (Math.abs(rotVel) < snapVelThreshold) {
+        const target = Math.round(rotFloat);
+        const diff = target - rotFloat;
+        rotVel += diff * snapStrength * dt;
+
+        if (Math.abs(diff) < snapEps && Math.abs(rotVel) < 0.05) {
+          rotFloat = target;
+          rotVel = 0;
+        }
+      }
+    }
+
+    draw();
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+
+})();
+</script>
+</body>
+</html>
