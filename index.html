@@ -41,7 +41,7 @@
   let activePiece = null;
   let pieceY = H + 3;       // float (grid coords), decreases to 0
   let fallTimer = 0;
-  let fallInterval = 0.7;   // seconds per row
+  let fallInterval = 0.45;   // seconds per row (faster)
 
   // ===== Killzone (visual only for now) =====
   let killLevel = 0;
@@ -55,38 +55,46 @@
   const DAMP = 9.0;         // velocity damping
   const SPRING = 35.0;      // pull to target
 
-  // ===== Input (swipe) =====
+  // ===== Input (drag like iOS picker) =====
+  // Hold the cylinder, drag left/right: it steps through sectors one by one (no inertia).
   let dragging = false;
-  let lastX = 0;
-  let lastT = 0;
+  let startX = 0;
+  let startRot = 0;
+  let lastStep = 0;
+
+  const PX_PER_STEP = 34;        // smaller => more sensitive (like iOS picker)
+  const DEADZONE_PX = 6;
 
   canvas.addEventListener('pointerdown', (e) => {
     dragging = true;
-    lastX = e.clientX;
-    lastT = performance.now();
+    startX = e.clientX;
+    startRot = targetRot;  // integer sector baseline
+    lastStep = 0;
+    rotVel = 0;
     canvas.setPointerCapture(e.pointerId);
   });
 
   canvas.addEventListener('pointermove', (e) => {
     if (!dragging) return;
-    const now = performance.now();
-    const dx = e.clientX - lastX;
-    const dt = Math.max(0.001, (now - lastT) / 1000);
+    const dx = e.clientX - startX;
+    if (Math.abs(dx) < DEADZONE_PX) return;
 
-    // map pixels to sectors: 1 sector per ~60 px (tune)
-    const deltaS = dx / 60;
-    targetRot -= deltaS;
+    // Negative dx => drag left => increase sector index (turn right)
+    const step = Math.trunc(-dx / PX_PER_STEP);
 
-    // inertia estimate
-    rotVel = (-deltaS / dt) * 0.35;
-
-    lastX = e.clientX;
-    lastT = now;
+    if (step !== lastStep) {
+      lastStep = step;
+      targetRot = startRot + step; // integer stepping
+      rotFloat = targetRot;        // immediate snap
+      rotVel = 0;
+    }
   });
 
   canvas.addEventListener('pointerup', (e) => {
+    if (!dragging) return;
     dragging = false;
     canvas.releasePointerCapture(e.pointerId);
+    // already snapped during drag; nothing else to do
   });
 
   function normSector(s) {
@@ -327,17 +335,8 @@
       spawnPiece();
     }
 
-    // rotation spring + damping (only when not actively dragging)
-    if (!dragging) {
-      const diff = (targetRot - rotFloat);
-      rotVel += diff * SPRING * dt;
-      rotVel *= Math.exp(-DAMP * dt);
-      rotFloat += rotVel * dt;
-    } else {
-      rotFloat += rotVel * dt;
-      rotVel *= Math.exp(-DAMP * dt);
-    }
-
+    // rotation: picker-like discrete stepping (no inertia)
+    rotFloat = targetRot;
     // keep rotFloat bounded to avoid float growth
     if (rotFloat >  1e6) rotFloat %= N;
     if (rotFloat < -1e6) rotFloat %= N;
