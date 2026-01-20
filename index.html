@@ -7,278 +7,213 @@
   <style>
     html, body { margin:0; padding:0; height:100%; background:#0b0f14; overflow:hidden; touch-action:none; }
     canvas { display:block; width:100%; height:100%; }
-    .hud {
-      position:fixed; left:12px; top:10px; right:12px;
-      color:#e6edf3; font:14px/1.3 system-ui,-apple-system,Segoe UI,Roboto,Arial;
-      display:flex; justify-content:space-between; gap:12px; pointer-events:none;
-      text-shadow: 0 1px 2px rgba(0,0,0,.5);
-    }
-    .hint {
-      position:fixed; left:12px; bottom:12px; right:12px;
-      color:#9fb0c2; font:12px/1.3 system-ui,-apple-system,Segoe UI,Roboto,Arial;
-      opacity:.9; pointer-events:none;
-    }
+    .hint { position:fixed; left:10px; bottom:10px; color:#9fb2c7; font:12px/1.3 system-ui, -apple-system, Segoe UI, Roboto, Arial; opacity:.85; }
+    .hud  { position:fixed; left:10px; top:10px; color:#cfe0f3; font:12px/1.3 system-ui, -apple-system, Segoe UI, Roboto, Arial; opacity:.9; }
   </style>
 </head>
 <body>
-  <div class="hud">
-    <div id="leftHud">N=30 H=24</div>
-    <div id="rightHud"></div>
-  </div>
-  <div class="hint">Свайп влево/вправо: вращение цилиндра с инерцией и “трещёткой”.</div>
-  <canvas id="c"></canvas>
-
+<canvas id="c"></canvas>
+<div class="hud" id="hud"></div>
+<div class="hint">Свайп влево/вправо: вращение цилиндра с инерцией. Фигура падает строго по центру; цилиндр «подставляет» сектор.</div>
 <script>
 (() => {
-  // ===== Config =====
-  const N = 30;       // sectors
-  const H = 24;       // visible height (levels)
-  const pixelsPerSectorFactor = 6; // smaller => faster rotation per swipe
-  const friction = 8.0;          // bigger => stronger damping
-  const snapStrength = 18.0;     // bigger => stronger snap
-  const snapVelThreshold = 0.6;  // sectors/sec
-  const snapEps = 0.002;         // sectors
-  const killRate = 0.35;         // levels/sec (tune)
-  const killReward = 2.0;        // levels to push back on ring clear (future)
-
-  // ===== Canvas =====
   const canvas = document.getElementById('c');
-  const ctx = canvas.getContext('2d', { alpha: false });
+  const ctx = canvas.getContext('2d');
 
-  function resize() {
-    const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
-    canvas.width = Math.floor(canvas.clientWidth * dpr);
-    canvas.height = Math.floor(canvas.clientHeight * dpr);
-    ctx.setTransform(dpr,0,0,dpr,0,0);
-  }
-  window.addEventListener('resize', resize);
-  resize();
+  const TAU = Math.PI * 2;
+
+  // ===== Game params =====
+  const N = 30;   // sectors around ring
+  const H = 24;   // height in rows (0 bottom)
+  const ANG_OFFSET = Math.PI / 2; // "front" is the bottom point (closest to user)
 
   // ===== Grid =====
-  // 0 empty, 1 filled. y=0 is the bottom row.
+  // grid[y][s] : 0 empty, 1 filled
   const grid = Array.from({length: H}, () => new Uint8Array(N));
 
-  // ===== Piece definitions =====
-  // Piece definitions
-  // Each entry defines a piece by its name and an array of rotation states.  Each rotation
-  // state is a list of cell offsets relative to a pivot at (0,0).  The offsets are in
-  // sector (x) and vertical (y) coordinates.  Negative x values mean the cell lies to
-  // the left of the pivot; positive values lie to the right.  Negative y values are
-  // above the pivot; positive values are below.
-  //
-  // For this MVP we include a handful of simple shapes that span multiple sectors to
-  // demonstrate how cubes can wrap around the ring.  Additional shapes can easily be
-  // added later.  If you don't want a particular shape, remove its entry from the
-  // PIECES array.
+  // ===== Pieces (MVP: single + bar2) =====
   const PIECES = [
-    {
-      name: 'single',
-      rotations: [
-        // just one block
-        [{x: 0, y: 0}],
-      ],
-    },
-    {
-      name: 'bar2',
-      rotations: [
-        // two horizontally adjacent blocks
-        [{x: 0, y: 0}, {x: 1, y: 0}],
-      ],
-    },
-    {
-      name: 'bar3',
-      rotations: [
-        // three horizontally adjacent blocks
-        [{x: -1, y: 0}, {x: 0, y: 0}, {x: 1, y: 0}],
-      ],
-    },
-    {
-      name: 'bar4',
-      rotations: [
-        // four horizontally adjacent blocks
-        [{x: -1, y: 0}, {x: 0, y: 0}, {x: 1, y: 0}, {x: 2, y: 0}],
-      ],
-    },
-    {
-      name: 'square',
-      rotations: [
-        // 2x2 square (two sectors wide, two rows high)
-        [{x: 0, y: 0}, {x: 1, y: 0}, {x: 0, y: 1}, {x: 1, y: 1}],
-      ],
-    },
-    {
-      name: 'L',
-      rotations: [
-        // simple L shape: two in a row plus one above the pivot
-        [{x: 0, y: 0}, {x: 1, y: 0}, {x: 0, y: 1}],
-      ],
-    },
+    { name:'single', cells:[{x:0,y:0}] },
+    { name:'bar2',   cells:[{x:0,y:0},{x:1,y:0}] },
   ];
 
-  // Active falling piece state
-  let activePiece = null;      // the current piece object from PIECES
-  let pieceRotIndex = 0;       // which rotation state is active
-  let pieceY = 0;              // integer y coordinate of the piece pivot
-  let fallTimer = 0;           // accumulates time until the piece moves down one cell
-  const fallInterval = 0.7;    // seconds per drop (adjust for difficulty)
+  // Active falling piece state (falls in screen-space center)
+  let activePiece = null;
+  let pieceY = H + 3;       // float (grid coords), decreases to 0
+  let fallTimer = 0;
+  let fallInterval = 0.7;   // seconds per row
 
-  // Spawn a new piece above the top of the visible area.
-  function spawnPiece() {
-    const index = Math.floor(Math.random() * PIECES.length);
-    activePiece = PIECES[index];
-    pieceRotIndex = 0;
-    // Position the pivot above the top of the grid so the entire shape starts
-    // outside the visible playfield.  We add a buffer so even tall pieces with
-    // positive y offsets spawn out of view.  Feel free to adjust the buffer
-    // value to change how far above the field new pieces appear.
-    const bufferRows = 3;
-    pieceY = H + bufferRows;
+  // ===== Killzone (visual only for now) =====
+  let killLevel = 0;
+  let killRate  = 0.18;     // rows per second
+
+  // ===== Rotation (cylinder) =====
+  let rotFloat  = 0;        // continuous sectors
+  let targetRot = 0;
+  let rotVel    = 0;        // sectors/sec
+
+  const DAMP = 9.0;         // velocity damping
+  const SPRING = 35.0;      // pull to target
+
+  // ===== Input (swipe) =====
+  let dragging = false;
+  let lastX = 0;
+  let lastT = 0;
+
+  canvas.addEventListener('pointerdown', (e) => {
+    dragging = true;
+    lastX = e.clientX;
+    lastT = performance.now();
+    canvas.setPointerCapture(e.pointerId);
+  });
+
+  canvas.addEventListener('pointermove', (e) => {
+    if (!dragging) return;
+    const now = performance.now();
+    const dx = e.clientX - lastX;
+    const dt = Math.max(0.001, (now - lastT) / 1000);
+
+    // map pixels to sectors: 1 sector per ~60 px (tune)
+    const deltaS = dx / 60;
+    targetRot -= deltaS;
+
+    // inertia estimate
+    rotVel = (-deltaS / dt) * 0.35;
+
+    lastX = e.clientX;
+    lastT = now;
+  });
+
+  canvas.addEventListener('pointerup', (e) => {
+    dragging = false;
+    canvas.releasePointerCapture(e.pointerId);
+  });
+
+  function normSector(s) {
+    s %= N;
+    if (s < 0) s += N;
+    return s;
   }
 
-  // Determine whether the active piece can occupy a given y position.
-  function canPlaceAt(y, rotIndex = pieceRotIndex) {
+  function snappedRot() {
+    return normSector(Math.round(rotFloat));
+  }
+
+  // ===== Spawn / collision / lock =====
+  function spawnPiece() {
+    activePiece = PIECES[(Math.random() * PIECES.length) | 0];
+    // start above top
+    pieceY = H + 3;
+    fallTimer = 0;
+  }
+
+  function canPlaceAt(y) {
     if (!activePiece) return false;
-    const cells = activePiece.rotations[rotIndex];
-    const s0 = getRotIndex();
-    for (const cell of cells) {
-      const cy = y + cell.y;
-      const cs = normSector(s0 + cell.x);
-      // If the cell is below the bottom of the field, it's a collision.
+    const s0 = snappedRot(); // IMPORTANT: cylinder decides landing sector
+    for (const c of activePiece.cells) {
+      const cy = y + c.y;
+      const cs = normSector(s0 + c.x);
       if (cy < 0) return false;
-      // Ignore cells above the top – they simply haven't entered the field yet.
-      if (cy >= H) continue;
+      if (cy >= H) continue; // above field is ok
       if (grid[cy][cs]) return false;
     }
     return true;
   }
 
-  // Lock the current piece into the grid at its current position,
-  // clear any complete rings, and spawn a new piece.
   function lockPiece() {
     if (!activePiece) return;
-    const cells = activePiece.rotations[pieceRotIndex];
-    // Snap rotation to the sector used for landing so the locked blocks
-    // stay exactly where the falling piece visually landed.
-    const s0 = getRotIndex();
+
+    // ===== CRITICAL FIX 1: snap rotation BEFORE writing to grid =====
+    const s0 = snappedRot();
     rotFloat = s0;
     targetRot = s0;
     rotVel = 0;
-    for (const cell of cells) {
-      const cy = pieceY + cell.y;
-      const cs = normSector(s0 + cell.x);
-      if (cy >= 0 && cy < H) {
-        grid[cy][cs] = 1;
-      }
+
+    // write cells
+    for (const c of activePiece.cells) {
+      const cy = Math.floor(pieceY) + c.y;
+      const cs = normSector(s0 + c.x);
+      if (cy >= 0 && cy < H) grid[cy][cs] = 1;
     }
+
     clearRings();
+
+    // If piece locked above visible area -> reset (simple MVP)
+    // Spawn next
     spawnPiece();
   }
 
-  // Attempt to move the active piece down by one row. If it can't move,
-  // lock it and spawn a new one.
+  function clearRings() {
+    for (let y = 0; y < H; y++) {
+      let full = true;
+      for (let s = 0; s < N; s++) {
+        if (!grid[y][s]) { full = false; break; }
+      }
+      if (!full) continue;
+
+      // drop everything above down
+      for (let yy = y; yy < H - 1; yy++) {
+        grid[yy].set(grid[yy + 1]);
+      }
+      grid[H - 1].fill(0);
+
+      y--; // re-check same row
+
+      // reward: push back killzone a bit
+      killLevel = Math.max(0, killLevel - 1.0);
+    }
+  }
+
   function tryMoveDown() {
-    if (canPlaceAt(pieceY - 1)) {
-      pieceY -= 1;
+    const nextY = Math.floor(pieceY) - 1;
+    if (canPlaceAt(nextY)) {
+      pieceY = nextY;
     } else {
       lockPiece();
     }
   }
 
-  // Remove any fully occupied rings and shift everything above them down.
-  function clearRings() {
-    let cleared = 0;
-    for (let y = 0; y < H; y++) {
-      let full = true;
-      for (let s = 0; s < N; s++) {
-        if (!grid[y][s]) {
-          full = false;
-          break;
-        }
-      }
-      if (full) {
-        // Remove this ring and insert an empty ring at the top.
-        grid.splice(y, 1);
-        grid.push(new Uint8Array(N));
-        y--; // recheck the new row at this index
-        cleared++;
-      }
-    }
-    if (cleared > 0) {
-      // Reward: lower the kill zone for each cleared ring.
-      killLevel = Math.max(0, killLevel - killReward * cleared);
+  // ===== Rendering helpers =====
+  function resize() {
+    const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+    const w = Math.floor(canvas.clientWidth * dpr);
+    const h = Math.floor(canvas.clientHeight * dpr);
+    if (canvas.width !== w || canvas.height !== h) {
+      canvas.width = w;
+      canvas.height = h;
+      ctx.setTransform(dpr,0,0,dpr,0,0); // keep coordinates in CSS pixels
     }
   }
 
-  // ===== Rotation with inertia + ratchet =====
-  let rotFloat = 0; // in sectors
-  let rotVel = 0;   // sectors/sec
-  let dragging = false;
-  let dragStartX = 0;
-  let dragStartRot = 0;
-  let lastMoveT = 0;
-  let lastMoveX = 0;
-  let killLevel = 0; // levels from bottom, grows upward (float)
-
-  const leftHud = document.getElementById('leftHud');
-  const rightHud = document.getElementById('rightHud');
-
-  function normSector(i) {
-    let x = i % N;
-    if (x < 0) x += N;
-    return x;
+  function levelYToScreenY(topY, towerHeightPx, y) {
+    // y=0 bottom, y=H top
+    const t = 1 - (y / H);
+    return topY + t * towerHeightPx;
   }
 
-  function getRotIndex() {
-    return normSector(Math.round(rotFloat));
+  function sectorCenterXY(centerX, yScreen, radiusX, radiusY, s, rot) {
+    const ang = ((s - rot) / N) * TAU + ANG_OFFSET;
+    return {
+      x: centerX + Math.cos(ang) * radiusX,
+      y: yScreen + Math.sin(ang) * radiusY,
+      ang,
+    };
   }
 
-  function onPointerDown(e) {
-    dragging = true;
-    const x = e.clientX ?? (e.touches && e.touches[0]?.clientX) ?? 0;
-    dragStartX = x;
-    dragStartRot = rotFloat;
-    rotVel = 0;
-    lastMoveT = performance.now();
-    lastMoveX = x;
+  function drawOrientedBlock(px, py, tx, ty, w, h, fillStyle, alpha=1) {
+    ctx.save();
+    ctx.translate(px, py);
+    const a = Math.atan2(ty, tx);
+    ctx.rotate(a);
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = fillStyle;
+    ctx.fillRect(-w/2, -h/2, w, h);
+    ctx.restore();
+    ctx.globalAlpha = 1;
   }
 
-  function onPointerMove(e) {
-    if (!dragging) return;
-    const x = e.clientX ?? (e.touches && e.touches[0]?.clientX) ?? 0;
-
-    const w = canvas.clientWidth || 1;
-    const pixelsPerSector = w / pixelsPerSectorFactor;
-
-    const dx = x - dragStartX;
-    rotFloat = dragStartRot + (-dx / pixelsPerSector);
-
-    // estimate velocity
-    const now = performance.now();
-    const dt = Math.max(1, now - lastMoveT) / 1000;
-    const vx = (x - lastMoveX) / dt; // px/sec
-    rotVel = -(vx / pixelsPerSector); // sectors/sec
-
-    lastMoveT = now;
-    lastMoveX = x;
-  }
-
-  function onPointerUp() {
-    dragging = false;
-  }
-
-  // use pointer events when available
-  canvas.addEventListener('pointerdown', onPointerDown, {passive:false});
-  canvas.addEventListener('pointermove', onPointerMove, {passive:false});
-  canvas.addEventListener('pointerup', onPointerUp, {passive:true});
-  canvas.addEventListener('pointercancel', onPointerUp, {passive:true});
-
-  // iOS Safari sometimes prefers touch events; add fallback
-  canvas.addEventListener('touchstart', (e)=>{ e.preventDefault(); onPointerDown(e); }, {passive:false});
-  canvas.addEventListener('touchmove',  (e)=>{ e.preventDefault(); onPointerMove(e); }, {passive:false});
-  canvas.addEventListener('touchend',   (e)=>{ e.preventDefault(); onPointerUp(e); }, {passive:false});
-
-  // ===== Render helpers =====
   function draw() {
+    resize();
     const w = canvas.clientWidth;
     const h = canvas.clientHeight;
     ctx.clearRect(0,0,w,h);
@@ -287,176 +222,139 @@
     ctx.fillStyle = '#0b0f14';
     ctx.fillRect(0,0,w,h);
 
-    // Layout: pseudo-3D cylinder as stacked ellipses
+    // Layout cylinder
     const centerX = w * 0.5;
-    const topY = h * 0.12;
-    const bottomY = h * 0.90;
+    const topY = h * 0.10;
+    const bottomY = h * 0.92;
     const towerHeightPx = bottomY - topY;
 
-    const radiusX = Math.min(w * 0.42, 260);
-    const radiusY = radiusX * 0.22; // ellipse squash for 3D feel
-    const levelStep = towerHeightPx / H;
+    const radiusX = Math.min(w * 0.38, 260);
+    const radiusY = radiusX * 0.28;
 
-    const rotIndex = getRotIndex();
-    // Angle offset so that the "front" sector (rotIndex) is drawn on the center drop-line.
-    // With this offset: sector == rotIndex => x == centerX.
-    const ANG_OFFSET = -Math.PI / 2;
+    // Water / killzone
+    const killY = levelYToScreenY(topY, towerHeightPx, killLevel);
+    ctx.fillStyle = 'rgba(28,72,120,0.42)';
+    ctx.fillRect(0, killY, w, h - killY);
 
-    // Draw water (killzone) as a filled region from bottom up
-    const killLine = Math.floor(killLevel);
-    const waterY = bottomY - Math.min(H, Math.max(0, killLevel)) * levelStep;
-    ctx.fillStyle = 'rgba(40,120,200,0.20)';
-    ctx.fillRect(0, waterY, w, bottomY - waterY);
-
-    // Draw levels from bottom to top for better overlap look
-    for (let y=0; y<H; y++) {
-      const py = bottomY - y * levelStep;
-      const alpha = 0.12 + (y / H) * 0.18;
-      ctx.strokeStyle = `rgba(180,200,220,${alpha})`;
-      ctx.lineWidth = 1;
-
-      // ellipse ring
+    // Rings (level ellipses)
+    ctx.strokeStyle = 'rgba(160,190,220,0.25)';
+    ctx.lineWidth = 1;
+    for (let y=0; y<=H; y++) {
+      const py = levelYToScreenY(topY, towerHeightPx, y);
       ctx.beginPath();
-      ctx.ellipse(centerX, py, radiusX, radiusY, 0, 0, Math.PI*2);
+      ctx.ellipse(centerX, py, radiusX, radiusY, 0, 0, TAU);
       ctx.stroke();
-
-      // draw occupied cells as small quads on the ring
-      for (let s=0; s<N; s++) {
-        if (!grid[y][s]) continue;
-
-        // map sector to angle; rotate by rotFloat
-        const ang = ((s - rotFloat) / N) * Math.PI * 2 + ANG_OFFSET;
-        const cx = centerX + Math.cos(ang) * radiusX;
-        const cy = py + Math.sin(ang) * radiusY;
-
-        // size: clamp by local arc spacing so adjacent sectors look "glued"
-        const depth = (Math.sin(ang) + 1) * 0.5; // 0 back .. 1 front
-        const ang2 = ((s + 1 - rotFloat) / N) * Math.PI * 2 + ANG_OFFSET;
-        const cx2 = centerX + Math.cos(ang2) * radiusX;
-        const cy2 = py + Math.sin(ang2) * radiusY;
-        const arcDist = Math.hypot(cx2 - cx, cy2 - cy);
-        // Make blocks tightly packed: width ~= distance between sector centers.
-        // Slightly oversize to avoid visible gaps due to AA.
-        const size = Math.max(6, Math.min(26, arcDist * 1.05));
-
-        ctx.fillStyle = `rgba(230,230,240,${0.55 + depth*0.35})`;
-        ctx.fillRect(cx - size/2, cy - size/2, size, size);
-      }
-
-      // highlight active/front sector line (only at few top levels to reduce clutter)
-      if (y % 3 === 0) {
-        const ang = ((rotIndex - rotFloat) / N) * Math.PI * 2 + ANG_OFFSET;
-        const x1 = centerX + Math.cos(ang) * (radiusX * 0.15);
-        const y1 = py + Math.sin(ang) * (radiusY * 0.15);
-        const x2 = centerX + Math.cos(ang) * (radiusX * 1.02);
-        const y2 = py + Math.sin(ang) * (radiusY * 1.02);
-        ctx.strokeStyle = 'rgba(255,210,120,0.35)';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(x1,y1);
-        ctx.lineTo(x2,y2);
-        ctx.stroke();
-      }
     }
 
-    // Visual "drop line": the piece always falls on the tower axis.
-    ctx.strokeStyle = 'rgba(255,255,255,0.08)';
-    ctx.lineWidth = 2;
+    // Center drop-line (visual)
+    ctx.strokeStyle = 'rgba(255,220,140,0.55)';
     ctx.beginPath();
     ctx.moveTo(centerX, topY);
     ctx.lineTo(centerX, bottomY);
     ctx.stroke();
 
-    // Draw the active falling piece in SCREEN SPACE (always in the center “drop line”).
-    // The cylinder rotation selects where it will land, but the piece itself does not
-    // travel around the circumference while falling.
+    // ===== Fixed blocks =====
+    // draw back-to-front by painter's algorithm: use sin(angle) as depth proxy
+    const blocks = [];
+    for (let y=0; y<H; y++) {
+      const yScr = levelYToScreenY(topY, towerHeightPx, y + 0.5);
+      for (let s=0; s<N; s++) {
+        if (!grid[y][s]) continue;
+        const p = sectorCenterXY(centerX, yScr, radiusX, radiusY, s, rotFloat);
+        blocks.push({y, s, yScr, p});
+      }
+    }
+    blocks.sort((a,b) => (a.p.y - b.p.y)); // farther (top) first, closer (bottom) last
+
+    for (const b of blocks) {
+      const p0 = b.p;
+      // neighbor points to estimate tangent and width
+      const p1 = sectorCenterXY(centerX, b.yScr, radiusX, radiusY, b.s+1, rotFloat);
+      const p_1 = sectorCenterXY(centerX, b.yScr, radiusX, radiusY, b.s-1, rotFloat);
+      const tx = (p1.x - p_1.x);
+      const ty = (p1.y - p_1.y);
+      const arcDist = Math.hypot(p1.x - p0.x, p1.y - p0.y);
+
+      // ===== CRITICAL FIX 2: exact-ish sector width + tiny overlap =====
+      const bw = arcDist * 1.06; // overlap kills anti-alias seams
+      const bh = (towerHeightPx / H) * 0.90;
+
+      drawOrientedBlock(p0.x, p0.y, tx, ty, bw, bh, 'rgba(235,240,250,0.55)', 1);
+    }
+
+    // ===== Active falling piece (ALWAYS in screen center, no rotation with cylinder) =====
     if (activePiece) {
-      const cells = activePiece.rotations[pieceRotIndex];
-      // Center the shape around x=0 for rendering, so 2-block bars look “glued”.
-      let minX = Infinity, maxX = -Infinity;
-      for (const c of cells) { minX = Math.min(minX, c.x); maxX = Math.max(maxX, c.x); }
-      const midX = (minX + maxX) * 0.5;
+      const yScr = levelYToScreenY(topY, towerHeightPx, pieceY + 0.5);
 
-      // Match the block size to the actual sector-to-sector spacing at the front.
-      // (Front is the center drop-line because of ANG_OFFSET above.)
-      const sampleY = bottomY - Math.min(H-1, Math.max(0, pieceY)) * levelStep;
-      const a1 = 0 + (-Math.PI/2); // same as ANG_OFFSET (front)
-      const a2 = a1 + (Math.PI * 2) / N;
-      const fx1 = centerX + Math.cos(a1) * radiusX;
-      const fy1 = sampleY + Math.sin(a1) * radiusY;
-      const fx2 = centerX + Math.cos(a2) * radiusX;
-      const fy2 = sampleY + Math.sin(a2) * radiusY;
-      const size = Math.max(10, Math.min(26, Math.hypot(fx2 - fx1, fy2 - fy1) * 1.05));
-      const gap = 0; // no gaps inside a falling piece
-      ctx.fillStyle = 'rgba(255,180,180,0.95)';
+      // determine block width at "front" (bottom point) at this height:
+      // take the currently front sector s0 (snapped) and compute arc distance to neighbor
+      const s0 = snappedRot();
+      const p0 = sectorCenterXY(centerX, yScr, radiusX, radiusY, s0, rotFloat);
+      const p1 = sectorCenterXY(centerX, yScr, radiusX, radiusY, s0+1, rotFloat);
+      const arcDist = Math.hypot(p1.x - p0.x, p1.y - p0.y);
+      const bw = arcDist * 1.06;
+      const bh = (towerHeightPx / H) * 0.90;
 
-      for (const cell of cells) {
-        const cyPiece = pieceY + cell.y;
-        // allow drawing slightly outside the field so the entry is visible
-        if (cyPiece < -3 || cyPiece > H + 3) continue;
-        const localX = (cell.x - midX) * (size + gap);
-        const cxPiece = centerX + localX;
-        const cyPiecePx = bottomY - cyPiece * levelStep; // straight vertical fall
-        if (cyPiecePx < topY - 80 || cyPiecePx > bottomY + 80) continue;
-        ctx.fillRect(cxPiece - size/2, cyPiecePx - size/2, size, size);
+      // Draw blocks with pivot block at exact centerX
+      // (x offsets use integer dx, so bar2 appears to the right of pivot – that's OK for MVP)
+      for (const c of activePiece.cells) {
+        const x = centerX + c.x * bw;
+        const y = levelYToScreenY(topY, towerHeightPx, (pieceY + c.y) + 0.5);
+        ctx.fillStyle = 'rgba(255,170,180,0.75)';
+        ctx.fillRect(x - bw/2, y - bh/2, bw, bh);
       }
     }
 
     // HUD
-    rightHud.textContent = `rotIndex=${rotIndex}  killLine=${killLine}/${H}`;
-    leftHud.textContent = `N=${N}  H=${H}  rot=${rotFloat.toFixed(2)}`;
+    document.getElementById('hud').textContent =
+      `N=${N} H=${H} rot=${rotFloat.toFixed(2)} (snap=${snappedRot()})  kill=${killLevel.toFixed(1)}/${H}`;
   }
 
-  // ===== Update loop =====
-  let lastT = performance.now();
-  function tick() {
-    const now = performance.now();
-    const dt = Math.min(0.05, (now - lastT) / 1000);
-    lastT = now;
+  // ===== Main loop =====
+  let last = performance.now();
+  function tick(now) {
+    const dt = Math.min(0.05, Math.max(0.001, (now - last) / 1000));
+    last = now;
 
-    // update killzone
+    // killzone
     killLevel += killRate * dt;
     if (killLevel >= H) {
-      // simple game over reset for now
+      // simple reset
+      for (let y=0; y<H; y++) grid[y].fill(0);
       killLevel = 0;
+      rotFloat = targetRot = 0;
+      rotVel = 0;
+      spawnPiece();
     }
 
-    // update falling piece
+    // rotation spring + damping (only when not actively dragging)
+    if (!dragging) {
+      const diff = (targetRot - rotFloat);
+      rotVel += diff * SPRING * dt;
+      rotVel *= Math.exp(-DAMP * dt);
+      rotFloat += rotVel * dt;
+    } else {
+      rotFloat += rotVel * dt;
+      rotVel *= Math.exp(-DAMP * dt);
+    }
+
+    // keep rotFloat bounded to avoid float growth
+    if (rotFloat >  1e6) rotFloat %= N;
+    if (rotFloat < -1e6) rotFloat %= N;
+
+    // falling
     fallTimer += dt;
     if (fallTimer >= fallInterval) {
       fallTimer -= fallInterval;
       tryMoveDown();
     }
 
-    // rotation inertia + snap
-    if (!dragging) {
-      // inertia
-      rotFloat += rotVel * dt;
-
-      // damping
-      rotVel *= Math.exp(-friction * dt);
-
-      // snap-to-sector when slow
-      if (Math.abs(rotVel) < snapVelThreshold) {
-        const target = Math.round(rotFloat);
-        const diff = target - rotFloat;
-        rotVel += diff * snapStrength * dt;
-
-        if (Math.abs(diff) < snapEps && Math.abs(rotVel) < 0.05) {
-          rotFloat = target;
-          rotVel = 0;
-        }
-      }
-    }
-
     draw();
     requestAnimationFrame(tick);
   }
-  requestAnimationFrame(tick);
 
-  // Start the first falling piece.
   spawnPiece();
-
+  requestAnimationFrame(tick);
 })();
 </script>
 </body>
