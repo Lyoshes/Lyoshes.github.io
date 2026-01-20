@@ -79,8 +79,8 @@
     const dx = e.clientX - startX;
     if (Math.abs(dx) < DEADZONE_PX) return;
 
-    // Negative dx => drag left => increase sector index (turn right)
-    const step = Math.trunc(-dx / PX_PER_STEP);
+    // Positive dx => drag right => increase sector index (turn right)
+    const step = Math.trunc(dx / PX_PER_STEP);
 
     if (step !== lastStep) {
       lastStep = step;
