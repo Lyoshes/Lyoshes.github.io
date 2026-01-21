@@ -214,6 +214,13 @@
   const LOCK_RESET_ON_MOVE = true;
   const LOCK_RESET_LIMIT = 12;
 
+  // ===== Killzone (CONFIG) =====
+  const KILL_RATE = 0.09;         // units per second (how fast KZ rises)
+  const KILL_RING_BONUS = 3.0;    // how much KZ drops when ring is cleared
+
+  // ===== Piece fall speed (CONFIG) =====
+  const FALL_INTERVAL = 1;     // seconds per row (lower = faster)
+
   // ===== Controls direction params =====
   // Direction switch for cylinder rotation (+1 / -1)
   const ROT_DIR = 1;
@@ -246,7 +253,6 @@
   let activePiece = null;
   let pieceY = H + 3;
   let fallTimer = 0;
-  let fallInterval = 0.45;
 
   // ===== Lock delay runtime state =====
   let lockTimer = 0;
@@ -255,7 +261,6 @@
 
   // ===== Killzone (visual only) =====
   let killLevel = 0;
-  let killRate  = 0.18;
 
   // ===== Rotation (cylinder) =====
   let rotFloat  = 0;
@@ -293,7 +298,7 @@
   let lastTapTime = 0;
   let lastTapX = 0;
   let lastTapY = 0;
-  const APP_VERSION = '0.4.2';
+  const APP_VERSION = '0.4.4';
 
   // ===== Game state / scoring =====
   let gameState = 'intro'; // intro | playing | gameover
@@ -729,7 +734,7 @@
 
       y--;
       cleared += 1;
-      killLevel = Math.max(0, killLevel - 1.0);
+      killLevel = Math.max(0, killLevel - KILL_RING_BONUS);
     }
     return cleared;
   }
@@ -1141,7 +1146,7 @@
     if (gameState === 'playing') {
       elapsedMs = now - startTime;
       updateTimeHud();
-      killLevel += killRate * dt;
+      killLevel += KILL_RATE * dt;
       if (killLevel >= H) endGame();
     }
 
@@ -1151,8 +1156,8 @@
 
     if (gameState === 'playing') {
       fallTimer += dt;
-      if (fallTimer >= fallInterval) {
-        fallTimer -= fallInterval;
+      if (fallTimer >= FALL_INTERVAL) {
+        fallTimer -= FALL_INTERVAL;
         tryMoveDown();
       }
     }
