@@ -14,7 +14,8 @@
 <body>
 <canvas id="c"></canvas>
 <div class="hud" id="hud"></div>
-<div class="hint">Свайп влево/вправо: вращение цилиндра с инерцией. Фигура падает строго по центру; цилиндр «подставляет» сектор.</div>
+<div class="hint">Свайп влево/вправо: вращение цилиндра (шагами). Свайп вниз: ускоряет падение. Двойной тап/клик: поворот фигуры по часовой.</div>
+
 <script>
 (() => {
   const canvas = document.getElementById('c');
@@ -27,8 +28,17 @@
   const H = 24;   // height in rows (0 bottom)
   const ANG_OFFSET = Math.PI / 2; // "front" is the bottom point (closest to user)
 
+  // ===== Layout tuning =====
+  // Extra space below the lowest ring so it doesn't go off-screen.
+  // Increase BOTTOM_PAD_PX if you want even more "platform air".
+  const TOP_PAD_PX = 18;
+  const BOTTOM_PAD_PX = 90; // <-- main change: more bottom space
+
+  // Optional: slightly reduce radii to help on short screens
+  const MAX_RADIUS_X = 260;
+  const RADIUS_X_FACTOR = 0.36; // was 0.38
+
   // ===== Grid =====
-  // grid[y][s] : 0 empty, 1 filled
   const grid = Array.from({length: H}, () => new Uint8Array(N));
 
   // ===== Pieces (MVP: single + bar2) =====
@@ -37,59 +47,92 @@
     { name:'bar2',   cells:[{x:0,y:0},{x:1,y:0}] },
   ];
 
-  // Active falling piece state (falls in screen-space center)
+  // Active falling piece state
   let activePiece = null;
-  let pieceY = H + 3;       // float (grid coords), decreases to 0
+  let pieceY = H + 3;
   let fallTimer = 0;
-  let fallInterval = 0.45;   // seconds per row (faster)
+  let fallInterval = 0.45;
 
   // ===== Killzone (visual only for now) =====
   let killLevel = 0;
-  let killRate  = 0.18;     // rows per second
+  let killRate  = 0.18;
 
   // ===== Rotation (cylinder) =====
-  let rotFloat  = 0;        // continuous sectors
+  let rotFloat  = 0;
   let targetRot = 0;
-  let rotVel    = 0;        // sectors/sec
+  let rotVel    = 0;
 
-  const DAMP = 9.0;         // velocity damping
-  const SPRING = 35.0;      // pull to target
-
-  // ===== Input (drag like iOS picker) =====
-  // Hold the cylinder, drag left/right: it steps through sectors one by one (no inertia).
+  // ===== Input =====
   let dragging = false;
   let startX = 0;
-  let startRot = 0;
   let startY = 0;
+  let startRot = 0;
+  let lastRotStep = 0;
   let lastDropStep = 0;
 
-  const PX_PER_STEP = 34;        // smaller => more sensitive (like iOS picker)
+  const PX_PER_STEP = 34;
   const DEADZONE_PX = 6;
-  const PX_PER_DROP = 18;        // smaller => faster soft drop
+  const PX_PER_DROP = 18;
+
+  // Direction switch for cylinder rotation:
+  const ROT_DIR = 1;
+
+  // ===== Double tap / double click =====
+  const DOUBLE_TAP_MS = 280;
+  const DOUBLE_TAP_MAX_DIST = 18;
+  let lastTapTime = 0;
+  let lastTapX = 0;
+  let lastTapY = 0;
 
   canvas.addEventListener('pointerdown', (e) => {
+    // --- double tap detector ---
+    const now = performance.now();
+    const dt = now - lastTapTime;
+    const dxTap = e.clientX - lastTapX;
+    const dyTap = e.clientY - lastTapY;
+    const distTap = Math.hypot(dxTap, dyTap);
+
+    if (dt <= DOUBLE_TAP_MS && distTap <= DOUBLE_TAP_MAX_DIST) {
+      e.preventDefault?.();
+      rotatePieceCW();
+      lastTapTime = 0;
+    } else {
+      lastTapTime = now;
+      lastTapX = e.clientX;
+      lastTapY = e.clientY;
+    }
+
     dragging = true;
     startX = e.clientX;
     startY = e.clientY;
-    startRot = rotFloat;   // continuous baseline
+    startRot = targetRot;
+    lastRotStep = 0;
     lastDropStep = 0;
     rotVel = 0;
     canvas.setPointerCapture(e.pointerId);
-  });
+  }, { passive: false });
 
   canvas.addEventListener('pointermove', (e) => {
     if (!dragging) return;
+
     const dx = e.clientX - startX;
     const dy = e.clientY - startY;
+
     if (Math.abs(dx) < DEADZONE_PX && Math.abs(dy) < DEADZONE_PX) return;
 
+    // Horizontal: discrete step rotation
     if (Math.abs(dx) >= DEADZONE_PX) {
-      // Positive dx => drag right => rotate cylinder right
-      rotFloat = startRot + dx / PX_PER_STEP;
-      targetRot = rotFloat;
-      rotVel = 0;
+      const step = Math.trunc((-dx / PX_PER_STEP) * ROT_DIR);
+
+      if (step !== lastRotStep) {
+        lastRotStep = step;
+        targetRot = startRot + step;
+        rotFloat = targetRot;
+        rotVel = 0;
+      }
     }
 
+    // Vertical: soft drop
     if (dy > DEADZONE_PX) {
       const dropStep = Math.trunc(dy / PX_PER_DROP);
       if (dropStep > lastDropStep) {
@@ -104,7 +147,6 @@
     if (!dragging) return;
     dragging = false;
     canvas.releasePointerCapture(e.pointerId);
-    // already snapped during drag; nothing else to do
   });
 
   function normSector(s) {
@@ -117,22 +159,44 @@
     return normSector(Math.round(rotFloat));
   }
 
+  // ===== Piece rotation CW =====
+  function rotateCellsCW(cells) {
+    const rotated = cells.map(({x,y}) => ({ x: y, y: -x }));
+    let minX = Infinity, minY = Infinity;
+    for (const c of rotated) { minX = Math.min(minX, c.x); minY = Math.min(minY, c.y); }
+    for (const c of rotated) { c.x -= minX; c.y -= minY; }
+    rotated.sort((a,b) => (a.y - b.y) || (a.x - b.x));
+    return rotated;
+  }
+
+  function rotatePieceCW() {
+    if (!activePiece) return;
+    const newCells = rotateCellsCW(activePiece.cells);
+
+    const oldCells = activePiece.cells;
+    activePiece.cells = newCells;
+
+    if (!canPlaceAt(Math.floor(pieceY))) {
+      activePiece.cells = oldCells;
+    }
+  }
+
   // ===== Spawn / collision / lock =====
   function spawnPiece() {
-    activePiece = PIECES[(Math.random() * PIECES.length) | 0];
-    // start above top
+    const proto = PIECES[(Math.random() * PIECES.length) | 0];
+    activePiece = { name: proto.name, cells: proto.cells.map(c => ({x:c.x, y:c.y})) };
     pieceY = H + 3;
     fallTimer = 0;
   }
 
   function canPlaceAt(y) {
     if (!activePiece) return false;
-    const s0 = snappedRot(); // IMPORTANT: cylinder decides landing sector
+    const s0 = snappedRot();
     for (const c of activePiece.cells) {
       const cy = y + c.y;
       const cs = normSector(s0 + c.x);
       if (cy < 0) return false;
-      if (cy >= H) continue; // above field is ok
+      if (cy >= H) continue;
       if (grid[cy][cs]) return false;
     }
     return true;
@@ -148,13 +212,11 @@
   function lockPiece() {
     if (!activePiece) return;
 
-    // ===== CRITICAL FIX 1: snap rotation BEFORE writing to grid =====
     const s0 = snappedRot();
     rotFloat = s0;
     targetRot = s0;
     rotVel = 0;
 
-    // write cells
     for (const c of activePiece.cells) {
       const cy = Math.floor(pieceY) + c.y;
       const cs = normSector(s0 + c.x);
@@ -162,9 +224,6 @@
     }
 
     clearRings();
-
-    // If piece locked above visible area -> reset (simple MVP)
-    // Spawn next
     spawnPiece();
   }
 
@@ -176,15 +235,12 @@
       }
       if (!full) continue;
 
-      // drop everything above down
       for (let yy = y; yy < H - 1; yy++) {
         grid[yy].set(grid[yy + 1]);
       }
       grid[H - 1].fill(0);
 
-      y--; // re-check same row
-
-      // reward: push back killzone a bit
+      y--;
       killLevel = Math.max(0, killLevel - 1.0);
     }
   }
@@ -206,18 +262,17 @@
     if (canvas.width !== w || canvas.height !== h) {
       canvas.width = w;
       canvas.height = h;
-      ctx.setTransform(dpr,0,0,dpr,0,0); // keep coordinates in CSS pixels
+      ctx.setTransform(dpr,0,0,dpr,0,0);
     }
   }
 
   function levelYToScreenY(topY, towerHeightPx, y) {
-    // y=0 bottom, y=H top
     const t = 1 - (y / H);
     return topY + t * towerHeightPx;
   }
 
   function sectorCenterXY(centerX, yScreen, radiusX, radiusY, s, rot) {
-    const ang = ((s + rot) / N) * TAU + ANG_OFFSET;
+    const ang = ((s - rot) / N) * TAU + ANG_OFFSET;
     return {
       x: centerX + Math.cos(ang) * radiusX,
       y: yScreen + Math.sin(ang) * radiusY,
@@ -243,25 +298,23 @@
     const h = canvas.clientHeight;
     ctx.clearRect(0,0,w,h);
 
-    // Background
     ctx.fillStyle = '#0b0f14';
     ctx.fillRect(0,0,w,h);
 
-    // Layout cylinder
     const centerX = w * 0.5;
-    const topY = h * 0.10;
-    const bottomY = h * 0.92;
-    const towerHeightPx = bottomY - topY;
 
-    const radiusX = Math.min(w * 0.38, 260);
+    // ===== CHANGED: more space below =====
+    const topY = TOP_PAD_PX;
+    const bottomY = h - BOTTOM_PAD_PX;
+    const towerHeightPx = Math.max(1, bottomY - topY);
+
+    const radiusX = Math.min(w * RADIUS_X_FACTOR, MAX_RADIUS_X);
     const radiusY = radiusX * 0.28;
 
-    // Water / killzone
     const killY = levelYToScreenY(topY, towerHeightPx, killLevel);
     ctx.fillStyle = 'rgba(28,72,120,0.42)';
     ctx.fillRect(0, killY, w, h - killY);
 
-    // Rings (level ellipses)
     ctx.strokeStyle = 'rgba(160,190,220,0.25)';
     ctx.lineWidth = 1;
     for (let y=0; y<=H; y++) {
@@ -271,15 +324,13 @@
       ctx.stroke();
     }
 
-    // Center drop-line (visual)
     ctx.strokeStyle = 'rgba(255,220,140,0.55)';
     ctx.beginPath();
     ctx.moveTo(centerX, topY);
     ctx.lineTo(centerX, bottomY);
     ctx.stroke();
 
-    // ===== Fixed blocks =====
-    // draw back-to-front by painter's algorithm: use sin(angle) as depth proxy
+    // Fixed blocks
     const blocks = [];
     for (let y=0; y<H; y++) {
       const yScr = levelYToScreenY(topY, towerHeightPx, y + 0.5);
@@ -289,32 +340,28 @@
         blocks.push({y, s, yScr, p});
       }
     }
-    blocks.sort((a,b) => (a.p.y - b.p.y)); // farther (top) first, closer (bottom) last
+    blocks.sort((a,b) => (a.p.y - b.p.y));
 
     for (const b of blocks) {
       const p0 = b.p;
-      // neighbor points to estimate tangent and width
       const p1 = sectorCenterXY(centerX, b.yScr, radiusX, radiusY, b.s+1, rotFloat);
       const p_1 = sectorCenterXY(centerX, b.yScr, radiusX, radiusY, b.s-1, rotFloat);
       const tx = (p1.x - p_1.x);
       const ty = (p1.y - p_1.y);
       const arcDist = Math.hypot(p1.x - p0.x, p1.y - p0.y);
 
-      // ===== CRITICAL FIX 2: exact-ish sector width + tiny overlap =====
-      const bw = arcDist * 1.06; // overlap kills anti-alias seams
+      const bw = arcDist * 1.06;
       const bh = (towerHeightPx / H) * 0.90;
 
       drawOrientedBlock(p0.x, p0.y, tx, ty, bw, bh, 'rgba(235,240,250,0.55)', 1);
     }
 
-    // ===== Ghost projection (landing position) =====
-    // Render ghost in cylinder-space (same projection as locked blocks),
-    // but use a SNAPPED rotation so the front sector is perfectly aligned to the drop-line.
+    // Ghost
     if (activePiece) {
       const ghostY = computeGhostY();
       if (ghostY !== null) {
         const s0 = snappedRot();
-        const rotSnap = s0; // integer rotation => exact alignment
+        const rotSnap = s0;
 
         const ghostCells = [];
         for (const c of activePiece.cells) {
@@ -345,17 +392,12 @@
       }
     }
 
-
-
-    // ===== Active falling piece =====
-    // IMPORTANT: draw using the SAME sector projection as the ghost / final placement,
-    // but still "falls straight down" (x for each cell is constant over time).
+    // Active piece
     if (activePiece) {
       const s0 = snappedRot();
-      const rotSnap = s0; // integer rotation => exact alignment of the front sector
+      const rotSnap = s0;
 
-      // Use block size at current piece height
-      const yScrRef = levelYToScreenY(topY, towerHeightPx, (pieceY) + 0.5);
+      const yScrRef = levelYToScreenY(topY, towerHeightPx, pieceY + 0.5);
       const p0 = sectorCenterXY(centerX, yScrRef, radiusX, radiusY, s0, rotSnap);
       const p1 = sectorCenterXY(centerX, yScrRef, radiusX, radiusY, s0 + 1, rotSnap);
       const arcDist = Math.hypot(p1.x - p0.x, p1.y - p0.y);
@@ -371,15 +413,12 @@
         const yScr = levelYToScreenY(topY, towerHeightPx, cy + 0.5);
         const pc = sectorCenterXY(centerX, yScr, radiusX, radiusY, cs, rotSnap);
 
-        // draw as axis-aligned rect (same look as before), but at projected x/y
         ctx.fillRect(pc.x - bw/2, pc.y - bh/2, bw, bh);
       }
     }
 
-
-    // HUD
     document.getElementById('hud').textContent =
-      `N=${N} H=${H} rot=${rotFloat.toFixed(2)} (snap=${snappedRot()})  kill=${killLevel.toFixed(1)}/${H}`;
+      `N=${N} H=${H} rot=${rotFloat.toFixed(2)} (snap=${snappedRot()}) kill=${killLevel.toFixed(1)}/${H} ROT_DIR=${ROT_DIR}`;
   }
 
   // ===== Main loop =====
@@ -388,10 +427,8 @@
     const dt = Math.min(0.05, Math.max(0.001, (now - last) / 1000));
     last = now;
 
-    // killzone
     killLevel += killRate * dt;
     if (killLevel >= H) {
-      // simple reset
       for (let y=0; y<H; y++) grid[y].fill(0);
       killLevel = 0;
       rotFloat = targetRot = 0;
@@ -399,13 +436,10 @@
       spawnPiece();
     }
 
-    // rotation: picker-like discrete stepping (no inertia)
     rotFloat = targetRot;
-    // keep rotFloat bounded to avoid float growth
     if (rotFloat >  1e6) rotFloat %= N;
     if (rotFloat < -1e6) rotFloat %= N;
 
-    // falling
     fallTimer += dt;
     if (fallTimer >= fallInterval) {
       fallTimer -= fallInterval;
