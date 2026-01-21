@@ -212,6 +212,7 @@
   let appliedRotStep = 0;
   let lastDropStep = 0;
   let dragInputSign = 1;
+  let dragMode = null; // 'rotate' | 'drop'
 
   const PX_PER_STEP = 34;
   const DEADZONE_PX = 6;
@@ -539,6 +540,7 @@
     startRot = targetRot;
     appliedRotStep = 0;
     lastDropStep = 0;
+    dragMode = null;
     rotVel = 0;
     canvas.setPointerCapture(e.pointerId);
   }, { passive: false });
@@ -553,7 +555,11 @@
 
     if (Math.abs(dx) < DEADZONE_PX && Math.abs(dy) < DEADZONE_PX) return;
 
-    if (Math.abs(dx) >= DEADZONE_PX) {
+    if (!dragMode) {
+      dragMode = (Math.abs(dy) > Math.abs(dx)) ? 'drop' : 'rotate';
+    }
+
+    if (dragMode === 'rotate' && Math.abs(dx) >= DEADZONE_PX) {
       const desiredStep = Math.trunc((-dx / PX_PER_STEP) * ROT_DIR * dragInputSign);
 
       if (desiredStep !== appliedRotStep) {
@@ -576,7 +582,7 @@
       }
     }
 
-    if (dy > DEADZONE_PX) {
+    if (dragMode === 'drop' && dy > DEADZONE_PX) {
       const dropStep = Math.trunc(dy / PX_PER_DROP);
       if (dropStep > lastDropStep) {
         const steps = dropStep - lastDropStep;
