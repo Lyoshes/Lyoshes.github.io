@@ -129,7 +129,7 @@
 
   // ===== Controls direction params =====
   // Direction switch for cylinder rotation (+1 / -1)
-  const ROT_DIR = -1;
+  const ROT_DIR = 1;
 
   // Rotation direction for the PIECE:
   // +1 = default "rotate right / clockwise" (as you requested)
@@ -501,7 +501,7 @@
     }
 
     dragging = true;
-    dragInputSign = (e.pointerType === 'touch') ? -1 : 1;
+    dragInputSign = (e.pointerType === 'touch') ? 1 : -1;
     startX = e.clientX;
     startY = e.clientY;
     startRot = targetRot;
