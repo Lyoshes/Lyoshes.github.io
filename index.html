@@ -7,7 +7,17 @@
   <style>
     html, body { margin:0; padding:0; height:100%; background:#0b0f14; overflow:hidden; touch-action:none; }
     canvas { display:block; width:100%; height:100%; touch-action:none; }
-    .hud  { position:fixed; left:10px; top:10px; color:#cfe0f3; font:12px/1.3 system-ui, -apple-system, Segoe UI, Roboto, Arial; opacity:.9; }
+    .hud  {
+      position:fixed;
+      left:10px;
+      top:54px;
+      color:#cfe0f3;
+      font:12px/1.3 system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      opacity:.9;
+      display:flex;
+      flex-direction:column;
+      gap:2px;
+    }
     .hud-right {
       position:fixed;
       right:10px;
@@ -17,6 +27,8 @@
       opacity:.95;
       text-align:right;
     }
+    #scoreHud { font-size:16px; font-weight:600; }
+    #timeHud { font-size:12px; color:#b6c9e6; }
     .hud-right canvas {
       margin-top:6px;
       background:rgba(10,15,22,0.55);
@@ -130,6 +142,7 @@
 <div class="hud" id="hud"></div>
 <div class="hud-right">
   <div id="scoreHud">Score: 0</div>
+  <div id="timeHud">Time: 0:00</div>
   <div id="nextLabel">Next</div>
   <canvas id="nextCanvas" width="90" height="90"></canvas>
 </div>
@@ -263,7 +276,7 @@
   let lastTapTime = 0;
   let lastTapX = 0;
   let lastTapY = 0;
-  const APP_VERSION = '0.3.8';
+  const APP_VERSION = '0.3.9';
 
   // ===== Game state / scoring =====
   let gameState = 'intro'; // intro | playing | gameover
@@ -276,7 +289,9 @@
   const overlayTitle = document.getElementById('overlayTitle');
   const overlayStats = document.getElementById('overlayStats');
   const startBtn = document.getElementById('startBtn');
+  const hud = document.getElementById('hud');
   const scoreHud = document.getElementById('scoreHud');
+  const timeHud = document.getElementById('timeHud');
   const nextCanvas = document.getElementById('nextCanvas');
   const nextCtx = nextCanvas.getContext('2d');
   const helpBtn = document.getElementById('helpBtn');
@@ -408,6 +423,10 @@
     scoreHud.textContent = `Score: ${score}`;
   }
 
+  function updateTimeHud() {
+    timeHud.textContent = `Time: ${formatElapsed(elapsedMs)}`;
+  }
+
   function drawNextPreview() {
     nextCtx.clearRect(0, 0, nextCanvas.width, nextCanvas.height);
     if (!nextPiece) return;
@@ -451,6 +470,7 @@
     gameState = 'playing';
     nextPiece = null;
     updateScoreHud();
+    updateTimeHud();
     spawnPiece();
     drawNextPreview();
     updateOverlay();
@@ -462,6 +482,7 @@
     isGrounded = false;
     lockTimer = 0;
     lockResets = 0;
+    updateTimeHud();
     updateOverlay();
   }
 
@@ -863,10 +884,10 @@
       }
     }
 
-    document.getElementById('hud').textContent =
-      `rot=${rotFloat.toFixed(2)} snap=${snappedRot()} ` +
-      `grounded=${isGrounded?1:0} lock=${lockTimer.toFixed(2)}/${LOCK_DELAY_SEC} ` +
-      `resets=${lockResets}/${LOCK_RESET_LIMIT||'∞'} time=${formatElapsed(elapsedMs)}`;
+    hud.innerHTML =
+      `<div>rot=${rotFloat.toFixed(2)} snap=${snappedRot()}</div>` +
+      `<div>grounded=${isGrounded?1:0} lock=${lockTimer.toFixed(2)}/${LOCK_DELAY_SEC}</div>` +
+      `<div>resets=${lockResets}/${LOCK_RESET_LIMIT||'∞'}</div>`;
   }
 
   // =========================
@@ -879,6 +900,7 @@
 
     if (gameState === 'playing') {
       elapsedMs = now - startTime;
+      updateTimeHud();
       killLevel += killRate * dt;
       if (killLevel >= H) endGame();
     }
