@@ -15,9 +15,9 @@
 <canvas id="c"></canvas>
 <div class="hud" id="hud"></div>
 <div class="hint">
-  Свайп влево/вправо: вращение цилиндра (шагами). Свайп вниз: ускоряет падение.
-  Двойной тап/клик: поворот фигуры по часовой. Падают 12 пентамино (без зеркал).
-  Есть "lock delay" как в тетрисе (настраивается).
+  Свайп влево/вправо: вращение цилиндра (шагами, с коллизией — нельзя “проехать” в занятое).
+  Свайп вниз: ускоряет падение. Двойной тап/клик: поворот фигуры по часовой.
+  Падают 12 пентамино (без зеркал). Есть lock delay (настраивается).
 </div>
 
 <script>
@@ -89,14 +89,17 @@
   let startX = 0;
   let startY = 0;
   let startRot = 0;
-  let lastRotStep = 0;
+
+  // IMPORTANT: we will apply horizontal rotation step-by-step with collision checks
+  let appliedRotStep = 0; // how many steps we actually applied during this drag
+
   let lastDropStep = 0;
 
   const PX_PER_STEP = 34;
   const DEADZONE_PX = 6;
   const PX_PER_DROP = 18;
 
-  // Direction switch for cylinder rotation:
+  // Direction switch for cylinder rotation (+1 / -1)
   const ROT_DIR = 1;
 
   // ===== Double tap / double click =====
@@ -106,6 +109,165 @@
   let lastTapX = 0;
   let lastTapY = 0;
 
+  // =========================
+  // Helpers
+  // =========================
+  function normSector(s) {
+    s %= N;
+    if (s < 0) s += N;
+    return s;
+  }
+
+  function snappedRot() {
+    return normSector(Math.round(rotFloat));
+  }
+
+  // Collision check with an explicit rotation value (integer, in sectors)
+  function canPlaceAtRot(y, rotInt) {
+    if (!activePiece) return false;
+    const s0 = normSector(rotInt);
+
+    for (const c of activePiece.cells) {
+      const cy = y + c.y;
+      const cs = normSector(s0 + c.x);
+
+      if (cy < 0) return false;
+      if (cy >= H) continue;
+      if (grid[cy][cs]) return false;
+    }
+    return true;
+  }
+
+  function canPlaceAt(y) {
+    return canPlaceAtRot(y, snappedRot());
+  }
+
+  // ===== Piece rotation CW =====
+  function rotateCellsCW(cells) {
+    const rotated = cells.map(({x,y}) => ({ x: y, y: -x }));
+    let minX = Infinity, minY = Infinity;
+    for (const c of rotated) { minX = Math.min(minX, c.x); minY = Math.min(minY, c.y); }
+    for (const c of rotated) { c.x -= minX; c.y -= minY; }
+    rotated.sort((a,b) => (a.y - b.y) || (a.x - b.x));
+    return rotated;
+  }
+
+  function maybeResetLockDelay() {
+    if (!LOCK_RESET_ON_MOVE) return;
+    if (LOCK_RESET_LIMIT !== 0 && lockResets >= LOCK_RESET_LIMIT) return;
+    lockTimer = 0;
+    lockResets += 1;
+  }
+
+  function rotatePieceCW() {
+    if (!activePiece) return;
+
+    const newCells = rotateCellsCW(activePiece.cells);
+    const oldCells = activePiece.cells;
+    activePiece.cells = newCells;
+
+    // Must remain placeable at current rotation
+    if (!canPlaceAt(Math.floor(pieceY))) {
+      activePiece.cells = oldCells;
+      return;
+    }
+
+    if (isGrounded) maybeResetLockDelay();
+  }
+
+  function computeGhostY() {
+    if (!activePiece) return null;
+    let y = Math.floor(pieceY);
+    while (canPlaceAt(y - 1)) y -= 1;
+    return y;
+  }
+
+  function updateGroundedState() {
+    const nextY = Math.floor(pieceY) - 1;
+    const groundedNow = !canPlaceAt(nextY);
+
+    if (groundedNow && !isGrounded) {
+      isGrounded = true;
+      lockTimer = 0;
+      lockResets = 0;
+    } else if (!groundedNow && isGrounded) {
+      isGrounded = false;
+      lockTimer = 0;
+      lockResets = 0;
+    }
+    return groundedNow;
+  }
+
+  // ===== Spawn / lock / clear =====
+  function spawnPiece() {
+    const proto = PENTOMINOES[(Math.random() * PENTOMINOES.length) | 0];
+    activePiece = { name: proto.name, cells: proto.cells.map(c => ({x:c.x, y:c.y})) };
+
+    pieceY = H + 3;
+    fallTimer = 0;
+
+    isGrounded = false;
+    lockTimer = 0;
+    lockResets = 0;
+
+    if (!canPlaceAt(Math.floor(pieceY))) {
+      for (let y=0; y<H; y++) grid[y].fill(0);
+      killLevel = 0;
+    }
+  }
+
+  function clearRings() {
+    for (let y = 0; y < H; y++) {
+      let full = true;
+      for (let s = 0; s < N; s++) {
+        if (!grid[y][s]) { full = false; break; }
+      }
+      if (!full) continue;
+
+      for (let yy = y; yy < H - 1; yy++) {
+        grid[yy].set(grid[yy + 1]);
+      }
+      grid[H - 1].fill(0);
+
+      y--;
+      killLevel = Math.max(0, killLevel - 1.0);
+    }
+  }
+
+  function lockPiece() {
+    if (!activePiece) return;
+
+    const s0 = snappedRot();
+    rotFloat = s0;
+    targetRot = s0;
+    rotVel = 0;
+
+    for (const c of activePiece.cells) {
+      const cy = Math.floor(pieceY) + c.y;
+      const cs = normSector(s0 + c.x);
+      if (cy >= 0 && cy < H) grid[cy][cs] = 1;
+    }
+
+    clearRings();
+    spawnPiece();
+  }
+
+  function tryMoveDown() {
+    const nextY = Math.floor(pieceY) - 1;
+    if (canPlaceAt(nextY)) {
+      pieceY = nextY;
+      isGrounded = false;
+      lockTimer = 0;
+      lockResets = 0;
+      return true;
+    }
+    isGrounded = true;
+    return false;
+  }
+
+  // =========================
+  // Input handlers
+  // =========================
   canvas.addEventListener('pointerdown', (e) => {
     e.preventDefault?.();
 
@@ -128,8 +290,8 @@
     dragging = true;
     startX = e.clientX;
     startY = e.clientY;
-    startRot = targetRot;
-    lastRotStep = 0;
+    startRot = targetRot;          // baseline for this drag
+    appliedRotStep = 0;            // what we actually managed to apply
     lastDropStep = 0;
     rotVel = 0;
     canvas.setPointerCapture(e.pointerId);
@@ -144,26 +306,40 @@
 
     if (Math.abs(dx) < DEADZONE_PX && Math.abs(dy) < DEADZONE_PX) return;
 
-    // Horizontal: rotate cylinder (step)
+    // ===== Horizontal: rotate cylinder WITH collision (step-by-step) =====
     if (Math.abs(dx) >= DEADZONE_PX) {
-      const step = Math.trunc((-dx / PX_PER_STEP) * ROT_DIR);
-      if (step !== lastRotStep) {
-        lastRotStep = step;
-        targetRot = startRot + step;
-        rotFloat = targetRot;
-        rotVel = 0;
+      // desired steps from baseline
+      const desiredStep = Math.trunc((-dx / PX_PER_STEP) * ROT_DIR);
 
-        // If grounded, rotation change should allow "adjust", so reset lock delay
-        if (isGrounded) maybeResetLockDelay();
+      if (desiredStep !== appliedRotStep) {
+        const dir = Math.sign(desiredStep - appliedRotStep);
+
+        // attempt to move one sector at a time towards desiredStep, stopping on collision
+        while (appliedRotStep !== desiredStep) {
+          const nextStep = appliedRotStep + dir;
+          const candidateRot = startRot + nextStep;
+          const ok = canPlaceAtRot(Math.floor(pieceY), candidateRot);
+
+          if (!ok) break; // stop: cannot rotate into occupied cells
+
+          // apply
+          appliedRotStep = nextStep;
+          targetRot = candidateRot;
+          rotFloat = targetRot;
+          rotVel = 0;
+
+          // If grounded, a successful rotation lets you "slide" under stuff => reset delay
+          if (isGrounded) maybeResetLockDelay();
+        }
       }
     }
 
-    // Vertical: soft drop
+    // ===== Vertical: soft drop =====
     if (dy > DEADZONE_PX) {
       const dropStep = Math.trunc(dy / PX_PER_DROP);
       if (dropStep > lastDropStep) {
         const steps = dropStep - lastDropStep;
-        for (let i = 0; i < steps; i++) tryMoveDown(true);
+        for (let i = 0; i < steps; i++) tryMoveDown();
         lastDropStep = dropStep;
       }
     }
@@ -175,164 +351,9 @@
     canvas.releasePointerCapture(e.pointerId);
   }, { passive: false });
 
-  function normSector(s) {
-    s %= N;
-    if (s < 0) s += N;
-    return s;
-  }
-
-  function snappedRot() {
-    return normSector(Math.round(rotFloat));
-  }
-
-  // ===== Piece rotation CW =====
-  function rotateCellsCW(cells) {
-    const rotated = cells.map(({x,y}) => ({ x: y, y: -x }));
-    let minX = Infinity, minY = Infinity;
-    for (const c of rotated) { minX = Math.min(minX, c.x); minY = Math.min(minY, c.y); }
-    for (const c of rotated) { c.x -= minX; c.y -= minY; }
-    rotated.sort((a,b) => (a.y - b.y) || (a.x - b.x));
-    return rotated;
-  }
-
-  function rotatePieceCW() {
-    if (!activePiece) return;
-
-    const newCells = rotateCellsCW(activePiece.cells);
-    const oldCells = activePiece.cells;
-    activePiece.cells = newCells;
-
-    if (!canPlaceAt(Math.floor(pieceY))) {
-      activePiece.cells = oldCells;
-      return;
-    }
-
-    // successful rotate => reset lock delay if grounded
-    if (isGrounded) maybeResetLockDelay();
-  }
-
-  // ===== Lock delay helpers =====
-  function maybeResetLockDelay() {
-    if (!LOCK_RESET_ON_MOVE) return;
-    if (LOCK_RESET_LIMIT !== 0 && lockResets >= LOCK_RESET_LIMIT) return;
-    lockTimer = 0;
-    lockResets += 1;
-  }
-
-  function updateGroundedState() {
-    const nextY = Math.floor(pieceY) - 1;
-    const groundedNow = !canPlaceAt(nextY);
-    if (groundedNow && !isGrounded) {
-      // just touched ground
-      isGrounded = true;
-      lockTimer = 0;
-      lockResets = 0;
-    } else if (!groundedNow && isGrounded) {
-      // lifted off ground (e.g., after rotation or cylinder move gave space)
-      isGrounded = false;
-      lockTimer = 0;
-      lockResets = 0;
-    }
-    return groundedNow;
-  }
-
-  // ===== Spawn / collision / lock =====
-  function spawnPiece() {
-    const proto = PENTOMINOES[(Math.random() * PENTOMINOES.length) | 0];
-    activePiece = { name: proto.name, cells: proto.cells.map(c => ({x:c.x, y:c.y})) };
-
-    pieceY = H + 3;
-    fallTimer = 0;
-
-    // reset lock state
-    isGrounded = false;
-    lockTimer = 0;
-    lockResets = 0;
-
-    if (!canPlaceAt(Math.floor(pieceY))) {
-      for (let y=0; y<H; y++) grid[y].fill(0);
-      killLevel = 0;
-    }
-  }
-
-  function canPlaceAt(y) {
-    if (!activePiece) return false;
-    const s0 = snappedRot();
-
-    for (const c of activePiece.cells) {
-      const cy = y + c.y;
-      const cs = normSector(s0 + c.x);
-      if (cy < 0) return false;
-      if (cy >= H) continue;
-      if (grid[cy][cs]) return false;
-    }
-    return true;
-  }
-
-  function computeGhostY() {
-    if (!activePiece) return null;
-    let y = Math.floor(pieceY);
-    while (canPlaceAt(y - 1)) y -= 1;
-    return y;
-  }
-
-  function lockPiece() {
-    if (!activePiece) return;
-
-    const s0 = snappedRot();
-    rotFloat = s0;
-    targetRot = s0;
-    rotVel = 0;
-
-    for (const c of activePiece.cells) {
-      const cy = Math.floor(pieceY) + c.y;
-      const cs = normSector(s0 + c.x);
-      if (cy >= 0 && cy < H) grid[cy][cs] = 1;
-    }
-
-    clearRings();
-    spawnPiece();
-  }
-
-  function clearRings() {
-    for (let y = 0; y < H; y++) {
-      let full = true;
-      for (let s = 0; s < N; s++) {
-        if (!grid[y][s]) { full = false; break; }
-      }
-      if (!full) continue;
-
-      for (let yy = y; yy < H - 1; yy++) {
-        grid[yy].set(grid[yy + 1]);
-      }
-      grid[H - 1].fill(0);
-
-      y--;
-      killLevel = Math.max(0, killLevel - 1.0);
-    }
-  }
-
-  // tryMoveDown(manual = true for soft drop)
-  function tryMoveDown(manual=false) {
-    const nextY = Math.floor(pieceY) - 1;
-    if (canPlaceAt(nextY)) {
-      pieceY = nextY;
-
-      // if we moved down successfully, we are not grounded
-      isGrounded = false;
-      lockTimer = 0;
-      lockResets = 0;
-
-      return true;
-    } else {
-      // can't move down: start / continue lock delay
-      // (actual locking handled in tick via timer)
-      isGrounded = true;
-      return false;
-    }
-  }
-
-  // ===== Rendering helpers =====
+  // =========================
+  // Rendering
+  // =========================
   function resize() {
     const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
     const w = Math.floor(canvas.clientWidth * dpr);
@@ -380,7 +401,6 @@
     ctx.fillRect(0,0,w,h);
 
     const centerX = w * 0.5;
-
     const topY = TOP_PAD_PX;
     const bottomY = h - BOTTOM_PAD_PX;
     const towerHeightPx = Math.max(1, bottomY - topY);
@@ -499,7 +519,9 @@
       `grounded=${isGrounded?1:0} lock=${lockTimer.toFixed(2)}/${LOCK_DELAY_SEC} resets=${lockResets}/${LOCK_RESET_LIMIT||'∞'}`;
   }
 
-  // ===== Main loop =====
+  // =========================
+  // Main loop
+  // =========================
   let last = performance.now();
   function tick(now) {
     const dt = Math.min(0.05, Math.max(0.001, (now - last) / 1000));
@@ -515,7 +537,7 @@
       spawnPiece();
     }
 
-    // rotation: discrete stepping
+    // rotation is discrete
     rotFloat = targetRot;
     if (rotFloat >  1e6) rotFloat %= N;
     if (rotFloat < -1e6) rotFloat %= N;
@@ -524,17 +546,14 @@
     fallTimer += dt;
     if (fallTimer >= fallInterval) {
       fallTimer -= fallInterval;
-      // try to fall one row; if can't, we become grounded
-      tryMoveDown(false);
+      tryMoveDown();
     }
 
-    // Update grounded state and apply lock delay
+    // grounded + lock delay
     const groundedNow = updateGroundedState();
     if (groundedNow) {
       lockTimer += dt;
-      if (lockTimer >= LOCK_DELAY_SEC) {
-        lockPiece();
-      }
+      if (lockTimer >= LOCK_DELAY_SEC) lockPiece();
     }
 
     draw();
