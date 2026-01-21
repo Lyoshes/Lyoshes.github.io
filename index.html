@@ -213,11 +213,16 @@
   let lastDropStep = 0;
   let dragInputSign = 1;
   let dragMode = null; // 'rotate' | 'drop'
+  let lastMoveY = 0;
+  let lastMoveTime = 0;
 
   const PX_PER_STEP = 34;
   const DEADZONE_PX = 6;
   const PX_PER_DROP = 18;
   const AXIS_DOMINANCE = 1.35;
+  const SWIPE_SPEED_REF = 650;
+  const MIN_DROP_PX = 6;
+  const MAX_DROP_PX = 22;
 
   // ===== Double tap / double click =====
   const DOUBLE_TAP_MS = 280;
@@ -225,7 +230,7 @@
   let lastTapTime = 0;
   let lastTapX = 0;
   let lastTapY = 0;
-  const APP_VERSION = '0.3.5';
+  const APP_VERSION = '0.3.6';
 
   // ===== Game state / scoring =====
   let gameState = 'intro'; // intro | playing | gameover
@@ -542,6 +547,8 @@
     appliedRotStep = 0;
     lastDropStep = 0;
     dragMode = null;
+    lastMoveY = e.clientY;
+    lastMoveTime = performance.now();
     rotVel = 0;
     canvas.setPointerCapture(e.pointerId);
   }, { passive: false });
@@ -553,6 +560,7 @@
 
     const dx = e.clientX - startX;
     const dy = e.clientY - startY;
+    const now = performance.now();
 
     if (Math.abs(dx) < DEADZONE_PX && Math.abs(dy) < DEADZONE_PX) return;
 
@@ -592,13 +600,22 @@
     }
 
     if (dragMode === 'drop' && dy > DEADZONE_PX) {
-      const dropStep = Math.trunc(dy / PX_PER_DROP);
+      const dt = Math.max(1, now - lastMoveTime);
+      const dyStep = e.clientY - lastMoveY;
+      const v = Math.max(1, (dyStep / dt) * 1000);
+      const scaledPxPerDrop = Math.max(
+        MIN_DROP_PX,
+        Math.min(MAX_DROP_PX, PX_PER_DROP * (SWIPE_SPEED_REF / v))
+      );
+      const dropStep = Math.trunc(dy / scaledPxPerDrop);
       if (dropStep > lastDropStep) {
         const steps = dropStep - lastDropStep;
         for (let i = 0; i < steps; i++) tryMoveDown();
         lastDropStep = dropStep;
       }
     }
+    lastMoveY = e.clientY;
+    lastMoveTime = now;
   }, { passive: false });
 
   canvas.addEventListener('pointerup', (e) => {
