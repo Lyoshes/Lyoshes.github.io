@@ -121,19 +121,31 @@
       z-index:3;
     }
     .color-btn {
-      width:42px;
-      height:42px;
+      width:46px;
+      height:46px;
       border-radius:999px;
-      border:1px solid rgba(160,190,220,0.35);
+      border:2px solid rgba(160,190,220,0.35);
       background:rgba(14,20,28,0.85);
       display:flex;
       align-items:center;
       justify-content:center;
+      cursor:pointer;
+      position:relative;
+      font:bold 14px/1 system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      color:#fff;
+      text-shadow:0 1px 2px rgba(0,0,0,0.5);
     }
-    .color-dot {
-      width:16px;
-      height:16px;
-      border-radius:999px;
+    .color-btn.active {
+      border-color:#fff;
+      box-shadow:0 0 8px rgba(255,255,255,0.5);
+    }
+    .color-btn.empty {
+      opacity:0.4;
+      cursor:default;
+    }
+    .color-btn .charges {
+      position:absolute;
+      z-index:1;
     }
   </style>
 </head>
@@ -160,17 +172,18 @@
     <p>Swipe left/right: rotate the cylinder in steps.</p>
     <p>Swipe down: faster drop.</p>
     <p>Double tap / click: rotate the piece.</p>
+    <p><b>Magic:</b> Tap a color button to select element, then double tap a block to destroy it. Each element has 3 charges per game.</p>
     <button id="helpClose">Close</button>
   </div>
 </div>
 <div class="controls-right">
   <button class="control-btn" id="rotateBtn" aria-label="Rotate">⟳</button>
 </div>
-<div class="color-row" aria-label="Colors">
-  <div class="color-btn"><span class="color-dot" style="background:#ff4d4d;"></span></div>
-  <div class="color-btn"><span class="color-dot" style="background:#4da6ff;"></span></div>
-  <div class="color-btn"><span class="color-dot" style="background:#ffd84d;"></span></div>
-  <div class="color-btn"><span class="color-dot" style="background:#47d16a;"></span></div>
+<div class="color-row" aria-label="Magic">
+  <button class="color-btn" id="magicRed" data-element="fire" style="background:radial-gradient(circle, #ff4d4d 40%, rgba(14,20,28,0.85) 70%);"><span class="charges">3</span></button>
+  <button class="color-btn" id="magicBlue" data-element="water" style="background:radial-gradient(circle, #4da6ff 40%, rgba(14,20,28,0.85) 70%);"><span class="charges">3</span></button>
+  <button class="color-btn" id="magicYellow" data-element="lightning" style="background:radial-gradient(circle, #ffd84d 40%, rgba(14,20,28,0.85) 70%);"><span class="charges">3</span></button>
+  <button class="color-btn" id="magicGreen" data-element="earth" style="background:radial-gradient(circle, #47d16a 40%, rgba(14,20,28,0.85) 70%);"><span class="charges">3</span></button>
 </div>
 
 <script>
@@ -280,7 +293,7 @@
   let lastTapTime = 0;
   let lastTapX = 0;
   let lastTapY = 0;
-  const APP_VERSION = '0.3.10';
+  const APP_VERSION = '0.4.0';
 
   // ===== Game state / scoring =====
   let gameState = 'intro'; // intro | playing | gameover
@@ -303,6 +316,81 @@
   const helpClose = document.getElementById('helpClose');
   const rotateBtn = document.getElementById('rotateBtn');
   let pausedFromState = null;
+
+  // ===== Magic system =====
+  const magicBtns = {
+    fire: document.getElementById('magicRed'),
+    water: document.getElementById('magicBlue'),
+    lightning: document.getElementById('magicYellow'),
+    earth: document.getElementById('magicGreen'),
+  };
+  const magicCharges = { fire: 3, water: 3, lightning: 3, earth: 3 };
+  let activeMagic = null; // currently selected element
+
+  function updateMagicBtns() {
+    for (const [element, btn] of Object.entries(magicBtns)) {
+      const charges = magicCharges[element];
+      btn.querySelector('.charges').textContent = charges;
+      btn.classList.toggle('empty', charges <= 0);
+      btn.classList.toggle('active', activeMagic === element && charges > 0);
+    }
+  }
+
+  function selectMagic(element) {
+    if (magicCharges[element] <= 0) return;
+    activeMagic = (activeMagic === element) ? null : element;
+    updateMagicBtns();
+  }
+
+  function shootMagic(screenX, screenY) {
+    if (!activeMagic || magicCharges[activeMagic] <= 0) return false;
+    
+    const w = canvas.clientWidth;
+    const h = canvas.clientHeight;
+    const centerX = w * 0.5;
+    const topY = TOP_PAD_PX;
+    const bottomY = h - BOTTOM_PAD_PX;
+    const towerHeightPx = Math.max(1, bottomY - topY);
+    const radiusX = Math.min(w * RADIUS_X_FACTOR, MAX_RADIUS_X);
+    const radiusY = radiusX * 0.28;
+
+    // Find which block was hit
+    let hitBlock = null;
+    let hitDist = Infinity;
+
+    for (let y = 0; y < H; y++) {
+      const yScr = levelYToScreenY(topY, towerHeightPx, y + 0.5);
+      for (let s = 0; s < N; s++) {
+        if (!grid[y][s]) continue;
+        const p = sectorCenterXY(centerX, yScr, radiusX, radiusY, s, rotFloat);
+        const depth = Math.sin(p.ang);
+        // Only hit front-facing blocks
+        if (depth < -0.1) continue;
+        
+        const dx = screenX - p.x;
+        const dy = screenY - p.y;
+        const dist = Math.hypot(dx, dy);
+        const bh = (towerHeightPx / H) * 0.90;
+        const bw = bh * 1.2;
+        
+        if (Math.abs(dx) < bw/2 && Math.abs(dy) < bh/2 && dist < hitDist) {
+          hitDist = dist;
+          hitBlock = { y, s };
+        }
+      }
+    }
+
+    if (hitBlock) {
+      grid[hitBlock.y][hitBlock.s] = 0;
+      magicCharges[activeMagic]--;
+      score += 25; // bonus for destroying block
+      updateScoreHud();
+      activeMagic = null;
+      updateMagicBtns();
+      return true;
+    }
+    return false;
+  }
 
   function normSector(s) {
     s %= N;
@@ -473,6 +561,13 @@
     elapsedMs = 0;
     gameState = 'playing';
     nextPiece = null;
+    // Reset magic
+    magicCharges.fire = 3;
+    magicCharges.water = 3;
+    magicCharges.lightning = 3;
+    magicCharges.earth = 3;
+    activeMagic = null;
+    updateMagicBtns();
     updateScoreHud();
     updateTimeHud();
     spawnPiece();
@@ -588,7 +683,12 @@
     const distTap = Math.hypot(dxTap, dyTap);
 
     if (dt <= DOUBLE_TAP_MS && distTap <= DOUBLE_TAP_MAX_DIST) {
-      rotatePieceByDir();   // <--- HERE
+      // If magic is active, try to shoot; otherwise rotate piece
+      if (activeMagic && magicCharges[activeMagic] > 0) {
+        shootMagic(e.clientX, e.clientY);
+      } else {
+        rotatePieceByDir();
+      }
       lastTapTime = 0;
     } else {
       lastTapTime = now;
@@ -701,6 +801,14 @@
     if (gameState !== 'playing') return;
     rotatePieceByDir();
   });
+
+  // Magic buttons
+  for (const [element, btn] of Object.entries(magicBtns)) {
+    btn.addEventListener('click', () => {
+      if (gameState !== 'playing') return;
+      selectMagic(element);
+    });
+  }
 
   helpBtn.addEventListener('click', () => {
     if (gameState === 'playing') {
@@ -958,6 +1066,7 @@
     if (gameState !== 'playing') startGame();
   });
 
+  updateMagicBtns();
   updateOverlay();
   requestAnimationFrame(tick);
 })();
