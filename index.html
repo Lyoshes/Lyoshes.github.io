@@ -41,7 +41,7 @@
 
   // ===== Tetris-like lock delay (CONFIG) =====
   // Time (seconds) the piece may still be adjusted after it first "touches down".
-  const LOCK_DELAY_SEC = 0.55;          // <-- tweak this
+  const LOCK_DELAY_SEC = 0.58;          // <-- tweak this
   const LOCK_RESET_ON_MOVE = true;      // like modern tetris: reset delay on successful move/rotate
   const LOCK_RESET_LIMIT = 12;          // 0 = unlimited; otherwise cap number of resets to avoid stalling forever
 
@@ -100,7 +100,7 @@
   const PX_PER_DROP = 18;
 
   // Direction switch for cylinder rotation (+1 / -1)
-  const ROT_DIR = 1;
+  const ROT_DIR = -1;
 
   // ===== Double tap / double click =====
   const DOUBLE_TAP_MS = 280;
