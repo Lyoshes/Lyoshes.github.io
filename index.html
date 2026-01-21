@@ -217,6 +217,7 @@
   const PX_PER_STEP = 34;
   const DEADZONE_PX = 6;
   const PX_PER_DROP = 18;
+  const AXIS_DOMINANCE = 1.35;
 
   // ===== Double tap / double click =====
   const DOUBLE_TAP_MS = 280;
@@ -556,7 +557,15 @@
     if (Math.abs(dx) < DEADZONE_PX && Math.abs(dy) < DEADZONE_PX) return;
 
     if (!dragMode) {
-      dragMode = (Math.abs(dy) > Math.abs(dx)) ? 'drop' : 'rotate';
+      const adx = Math.abs(dx);
+      const ady = Math.abs(dy);
+      if (ady >= adx * AXIS_DOMINANCE) {
+        dragMode = 'drop';
+      } else if (adx >= ady * AXIS_DOMINANCE) {
+        dragMode = 'rotate';
+      } else {
+        return;
+      }
     }
 
     if (dragMode === 'rotate' && Math.abs(dx) >= DEADZONE_PX) {
