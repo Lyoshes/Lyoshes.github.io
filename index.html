@@ -195,6 +195,7 @@
   let lastTapTime = 0;
   let lastTapX = 0;
   let lastTapY = 0;
+  const APP_VERSION = '0.3.2';
 
   // ===== Game state / scoring =====
   let gameState = 'intro'; // intro | playing | gameover
@@ -324,11 +325,11 @@
     overlay.classList.remove('hidden');
     if (gameState === 'intro') {
       overlayTitle.textContent = 'Elemental Blocks';
-      overlayStats.textContent = 'Push Start';
+      overlayStats.textContent = `Push Start • v${APP_VERSION}`;
       startBtn.textContent = 'Start';
     } else {
       overlayTitle.textContent = 'Game Over';
-      overlayStats.textContent = `Score: ${score} • Time: ${formatElapsed(elapsedMs)}`;
+      overlayStats.textContent = `Score: ${score} • Time: ${formatElapsed(elapsedMs)} • v${APP_VERSION}`;
       startBtn.textContent = 'Play again';
     }
   }
@@ -501,7 +502,7 @@
     }
 
     dragging = true;
-    dragInputSign = (e.pointerType === 'touch') ? -1 : 1;
+    dragInputSign = -1;
     startX = e.clientX;
     startY = e.clientY;
     startRot = targetRot;
