@@ -63,15 +63,16 @@
     .help-btn {
       position:fixed;
       left:10px;
-      bottom:10px;
+      top:10px;
       width:36px;
       height:36px;
-      border-radius:999px;
+      border-radius:6px;
       border:1px solid rgba(160,190,220,0.35);
       background:rgba(14,20,28,0.85);
       color:#cfe0f3;
       font:18px/1 system-ui, -apple-system, Segoe UI, Roboto, Arial;
       cursor:pointer;
+      z-index:4;
     }
     .help-btn:active { transform:translateY(1px); }
     .help-panel p { margin:6px 0; color:#b6c9e6; text-align:left; }
@@ -99,6 +100,29 @@
       user-select:none;
     }
     .control-btn:active { transform:translateY(1px); }
+    .color-row {
+      position:fixed;
+      left:10px;
+      bottom:12px;
+      display:flex;
+      gap:8px;
+      z-index:3;
+    }
+    .color-btn {
+      width:42px;
+      height:42px;
+      border-radius:999px;
+      border:1px solid rgba(160,190,220,0.35);
+      background:rgba(14,20,28,0.85);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+    .color-dot {
+      width:16px;
+      height:16px;
+      border-radius:999px;
+    }
   </style>
 </head>
 <body>
@@ -128,7 +152,12 @@
 </div>
 <div class="controls-right">
   <button class="control-btn" id="rotateBtn" aria-label="Rotate">⟳</button>
-  <button class="control-btn" id="dropBtn" aria-label="Drop">↓</button>
+</div>
+<div class="color-row" aria-label="Colors">
+  <div class="color-btn"><span class="color-dot" style="background:#ff4d4d;"></span></div>
+  <div class="color-btn"><span class="color-dot" style="background:#4da6ff;"></span></div>
+  <div class="color-btn"><span class="color-dot" style="background:#ffd84d;"></span></div>
+  <div class="color-btn"><span class="color-dot" style="background:#47d16a;"></span></div>
 </div>
 
 <script>
@@ -254,8 +283,7 @@
   const helpOverlay = document.getElementById('helpOverlay');
   const helpClose = document.getElementById('helpClose');
   const rotateBtn = document.getElementById('rotateBtn');
-  const dropBtn = document.getElementById('dropBtn');
-  let dropHoldTimer = null;
+  let pausedFromState = null;
 
   function normSector(s) {
     s %= N;
@@ -649,35 +677,31 @@
     rotatePieceByDir();
   });
 
-  function startDropHold() {
-    if (gameState !== 'playing') return;
-    if (dropHoldTimer) return;
-    tryMoveDown();
-    dropHoldTimer = setInterval(() => {
-      if (gameState !== 'playing') return;
-      tryMoveDown();
-    }, 60);
-  }
-
-  function stopDropHold() {
-    if (dropHoldTimer) {
-      clearInterval(dropHoldTimer);
-      dropHoldTimer = null;
+  helpBtn.addEventListener('click', () => {
+    if (gameState === 'playing') {
+      pausedFromState = 'playing';
+      gameState = 'paused';
     }
-  }
-
-  dropBtn.addEventListener('pointerdown', (e) => {
-    e.preventDefault?.();
-    startDropHold();
-    dropBtn.setPointerCapture?.(e.pointerId);
-  }, { passive: false });
-  dropBtn.addEventListener('pointerup', (e) => {
-    e.preventDefault?.();
-    stopDropHold();
-    dropBtn.releasePointerCapture?.(e.pointerId);
-  }, { passive: false });
-  dropBtn.addEventListener('pointerleave', stopDropHold);
-  dropBtn.addEventListener('pointercancel', stopDropHold);
+    helpOverlay.classList.remove('hidden');
+  });
+  helpClose.addEventListener('click', () => {
+    helpOverlay.classList.add('hidden');
+    if (pausedFromState === 'playing') {
+      pausedFromState = null;
+      gameState = 'playing';
+      last = performance.now();
+    }
+  });
+  helpOverlay.addEventListener('click', (e) => {
+    if (e.target === helpOverlay) {
+      helpOverlay.classList.add('hidden');
+      if (pausedFromState === 'playing') {
+        pausedFromState = null;
+        gameState = 'playing';
+        last = performance.now();
+      }
+    }
+  });
 
   // =========================
   // Rendering
@@ -840,9 +864,9 @@
     }
 
     document.getElementById('hud').textContent =
-      `piece=${activePiece?.name ?? '-'} rot=${rotFloat.toFixed(2)} snap=${snappedRot()} ` +
+      `rot=${rotFloat.toFixed(2)} snap=${snappedRot()} ` +
       `grounded=${isGrounded?1:0} lock=${lockTimer.toFixed(2)}/${LOCK_DELAY_SEC} ` +
-      `resets=${lockResets}/${LOCK_RESET_LIMIT||'∞'} score=${score} time=${formatElapsed(elapsedMs)} ROTATE_DIR=${ROTATE_DIR}`;
+      `resets=${lockResets}/${LOCK_RESET_LIMIT||'∞'} time=${formatElapsed(elapsedMs)}`;
   }
 
   // =========================
@@ -885,15 +909,6 @@
 
   startBtn.addEventListener('click', () => {
     if (gameState !== 'playing') startGame();
-  });
-  helpBtn.addEventListener('click', () => {
-    helpOverlay.classList.remove('hidden');
-  });
-  helpClose.addEventListener('click', () => {
-    helpOverlay.classList.add('hidden');
-  });
-  helpOverlay.addEventListener('click', (e) => {
-    if (e.target === helpOverlay) helpOverlay.classList.add('hidden');
   });
 
   updateOverlay();
