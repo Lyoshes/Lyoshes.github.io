@@ -15,7 +15,7 @@
 <body>
 <canvas id="c"></canvas>
 <div class="hud" id="hud"></div>
-<div class="hint">Свайп влево/вправо: вращение цилиндра (шагами). Свайп вниз: ускоряет падение. Двойной тап/клик: поворот фигуры по часовой.</div>
+<div class="hint">Свайп влево/вправо: вращение цилиндра (шагами). Свайп вниз: ускоряет падение. Двойной тап/клик: поворот фигуры по часовой. Падают 12 пентамино (без зеркальных версий).</div>
 
 <script>
 (() => {
@@ -42,10 +42,22 @@
   // ===== Grid =====
   const grid = Array.from({length: H}, () => new Uint8Array(N));
 
-  // ===== Pieces (MVP: single + bar2) =====
-  const PIECES = [
-    { name:'single', cells:[{x:0,y:0}] },
-    { name:'bar2',   cells:[{x:0,y:0},{x:1,y:0}] },
+  // ===== Pentomino set (12), NO MIRRORS =====
+  // Only one chirality for F/N/Z; rotation is allowed (double tap).
+  // Coordinates are in local piece space; (0,0) is bottom-left-ish reference.
+  const PENTOMINOES = [
+    { name:'F', cells:[ {x:1,y:0},{x:2,y:0},{x:0,y:1},{x:1,y:1},{x:1,y:2} ] },
+    { name:'I', cells:[ {x:0,y:0},{x:1,y:0},{x:2,y:0},{x:3,y:0},{x:4,y:0} ] },
+    { name:'L', cells:[ {x:0,y:0},{x:0,y:1},{x:0,y:2},{x:0,y:3},{x:1,y:0} ] },
+    { name:'P', cells:[ {x:0,y:0},{x:1,y:0},{x:0,y:1},{x:1,y:1},{x:0,y:2} ] },
+    { name:'N', cells:[ {x:0,y:0},{x:0,y:1},{x:1,y:1},{x:1,y:2},{x:1,y:3} ] }, // one chirality (no mirror)
+    { name:'T', cells:[ {x:0,y:0},{x:1,y:0},{x:2,y:0},{x:1,y:1},{x:1,y:2} ] },
+    { name:'U', cells:[ {x:0,y:0},{x:2,y:0},{x:0,y:1},{x:1,y:1},{x:2,y:1} ] },
+    { name:'V', cells:[ {x:0,y:0},{x:0,y:1},{x:0,y:2},{x:1,y:0},{x:2,y:0} ] },
+    { name:'W', cells:[ {x:0,y:0},{x:1,y:0},{x:1,y:1},{x:2,y:1},{x:2,y:2} ] },
+    { name:'X', cells:[ {x:1,y:0},{x:0,y:1},{x:1,y:1},{x:2,y:1},{x:1,y:2} ] },
+    { name:'Y', cells:[ {x:0,y:0},{x:0,y:1},{x:0,y:2},{x:0,y:3},{x:1,y:1} ] },
+    { name:'Z', cells:[ {x:0,y:0},{x:1,y:0},{x:1,y:1},{x:1,y:2},{x:2,y:2} ] }, // one chirality (no mirror)
   ];
 
   // Active falling piece state
@@ -87,7 +99,6 @@
   let lastTapY = 0;
 
   canvas.addEventListener('pointerdown', (e) => {
-    // For touch: block browser gesture handling early
     e.preventDefault?.();
 
     // --- double tap detector ---
@@ -99,7 +110,7 @@
 
     if (dt <= DOUBLE_TAP_MS && distTap <= DOUBLE_TAP_MAX_DIST) {
       rotatePieceCW();
-      lastTapTime = 0; // reset to avoid triple-trigger
+      lastTapTime = 0;
     } else {
       lastTapTime = now;
       lastTapX = e.clientX;
@@ -118,7 +129,6 @@
 
   canvas.addEventListener('pointermove', (e) => {
     if (!dragging) return;
-    // IMPORTANT: without this, iOS Safari may still treat it as scroll/zoom pipeline
     e.preventDefault?.();
 
     const dx = e.clientX - startX;
@@ -129,7 +139,6 @@
     // Horizontal: discrete step rotation
     if (Math.abs(dx) >= DEADZONE_PX) {
       const step = Math.trunc((-dx / PX_PER_STEP) * ROT_DIR);
-
       if (step !== lastRotStep) {
         lastRotStep = step;
         targetRot = startRot + step;
@@ -166,6 +175,8 @@
   }
 
   // ===== Piece rotation CW =====
+  // CW rotation around origin: (x, y) -> (y, -x)
+  // Then normalize to keep minX/minY = 0 (no reflections here).
   function rotateCellsCW(cells) {
     const rotated = cells.map(({x,y}) => ({ x: y, y: -x }));
     let minX = Infinity, minY = Infinity;
@@ -177,11 +188,12 @@
 
   function rotatePieceCW() {
     if (!activePiece) return;
-    const newCells = rotateCellsCW(activePiece.cells);
 
+    const newCells = rotateCellsCW(activePiece.cells);
     const oldCells = activePiece.cells;
     activePiece.cells = newCells;
 
+    // If rotated shape collides, revert.
     if (!canPlaceAt(Math.floor(pieceY))) {
       activePiece.cells = oldCells;
     }
@@ -189,15 +201,24 @@
 
   // ===== Spawn / collision / lock =====
   function spawnPiece() {
-    const proto = PIECES[(Math.random() * PIECES.length) | 0];
+    const proto = PENTOMINOES[(Math.random() * PENTOMINOES.length) | 0];
+    // Clone cells so we can rotate without mutating prototypes.
     activePiece = { name: proto.name, cells: proto.cells.map(c => ({x:c.x, y:c.y})) };
+
     pieceY = H + 3;
     fallTimer = 0;
+
+    // Simple safety: if spawn is immediately blocked, reset field (MVP behavior).
+    if (!canPlaceAt(Math.floor(pieceY))) {
+      for (let y=0; y<H; y++) grid[y].fill(0);
+      killLevel = 0;
+    }
   }
 
   function canPlaceAt(y) {
     if (!activePiece) return false;
     const s0 = snappedRot();
+
     for (const c of activePiece.cells) {
       const cy = y + c.y;
       const cs = normSector(s0 + c.x);
@@ -423,7 +444,7 @@
     }
 
     document.getElementById('hud').textContent =
-      `N=${N} H=${H} rot=${rotFloat.toFixed(2)} (snap=${snappedRot()}) kill=${killLevel.toFixed(1)}/${H} ROT_DIR=${ROT_DIR}`;
+      `piece=${activePiece?.name ?? '-'}  N=${N} H=${H} rot=${rotFloat.toFixed(2)} (snap=${snappedRot()}) kill=${killLevel.toFixed(1)}/${H} ROT_DIR=${ROT_DIR}`;
   }
 
   // ===== Main loop =====
