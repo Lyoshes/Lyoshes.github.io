@@ -51,7 +51,7 @@
   // Rotation direction for the PIECE:
   // +1 = default "rotate right / clockwise" (as you requested)
   // -1 = rotate left / counter-clockwise
-  const ROTATE_DIR = 1;
+  const ROTATE_DIR = -1;
 
   // ===== Grid =====
   const grid = Array.from({length: H}, () => new Uint8Array(N));
@@ -242,6 +242,14 @@
     }
   }
 
+  function resetGame() {
+    for (let y=0; y<H; y++) grid[y].fill(0);
+    killLevel = 0;
+    rotFloat = targetRot = 0;
+    rotVel = 0;
+    spawnPiece();
+  }
+
   function lockPiece() {
     if (!activePiece) return;
 
@@ -250,10 +258,17 @@
     targetRot = s0;
     rotVel = 0;
 
+    let overflowedTop = false;
     for (const c of activePiece.cells) {
       const cy = Math.floor(pieceY) + c.y;
       const cs = normSector(s0 + c.x);
+      if (cy >= H) overflowedTop = true;
       if (cy >= 0 && cy < H) grid[cy][cs] = 1;
+    }
+
+    if (overflowedTop) {
+      resetGame();
+      return;
     }
 
     clearRings();
@@ -528,13 +543,7 @@
     last = now;
 
     killLevel += killRate * dt;
-    if (killLevel >= H) {
-      for (let y=0; y<H; y++) grid[y].fill(0);
-      killLevel = 0;
-      rotFloat = targetRot = 0;
-      rotVel = 0;
-      spawnPiece();
-    }
+    if (killLevel >= H) resetGame();
 
     rotFloat = targetRot;
     if (rotFloat >  1e6) rotFloat %= N;
