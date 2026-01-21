@@ -180,8 +180,8 @@
   canvas.style.touchAction = 'none';
 
   const TAU = Math.PI * 2;
-  const BLOCK_COLOR_FRONT = 'rgba(235,240,250,0.6)';
-  const BLOCK_COLOR_BACK = 'rgba(70,80,95,0.85)';
+  const BLOCK_COLOR_FRONT = 'rgb(235,240,250)';
+  const BLOCK_COLOR_BACK = 'rgb(55,62,75)';
   const ACTIVE_COLOR_FRONT = 'rgba(255,170,180,0.75)';
   const GHOST_COLOR_FRONT = 'rgba(110,255,150,0.28)';
 
@@ -280,7 +280,7 @@
   let lastTapTime = 0;
   let lastTapX = 0;
   let lastTapY = 0;
-  const APP_VERSION = '0.3.9';
+  const APP_VERSION = '0.3.10';
 
   // ===== Game state / scoring =====
   let gameState = 'intro'; // intro | playing | gameover
@@ -805,31 +805,49 @@
     ctx.lineTo(centerX, bottomY);
     ctx.stroke();
 
-    const blocks = [];
+    const backBlocks = [];
+    const frontBlocks = [];
     for (let y=0; y<H; y++) {
       const yScr = levelYToScreenY(topY, towerHeightPx, y + 0.5);
       for (let s=0; s<N; s++) {
         if (!grid[y][s]) continue;
         const p = sectorCenterXY(centerX, yScr, radiusX, radiusY, s, rotFloat);
-        blocks.push({y, s, yScr, p});
+        const depth = Math.sin(p.ang);
+        const block = {y, s, yScr, p, depth};
+        if (depth < -0.1) {
+          backBlocks.push(block);
+        } else {
+          frontBlocks.push(block);
+        }
       }
     }
-    blocks.sort((a,b) => (a.p.y - b.p.y));
-
-    for (const b of blocks) {
+    
+    // Draw back blocks first (sorted by depth, furthest first)
+    backBlocks.sort((a,b) => a.depth - b.depth);
+    for (const b of backBlocks) {
       const p0 = b.p;
       const p1 = sectorCenterXY(centerX, b.yScr, radiusX, radiusY, b.s+1, rotFloat);
       const p_1 = sectorCenterXY(centerX, b.yScr, radiusX, radiusY, b.s-1, rotFloat);
       const tx = (p1.x - p_1.x);
       const ty = (p1.y - p_1.y);
       const arcDist = Math.hypot(p1.x - p0.x, p1.y - p0.y);
-
       const bw = arcDist * 1.06;
       const bh = (towerHeightPx / H) * 0.90;
-
-      const isBackFace = Math.sin(p0.ang) < 0;
-      const blockColor = isBackFace ? BLOCK_COLOR_BACK : BLOCK_COLOR_FRONT;
-      drawOrientedBlock(p0.x, p0.y, tx, ty, bw, bh, blockColor, 1);
+      drawOrientedBlock(p0.x, p0.y, tx, ty, bw, bh, BLOCK_COLOR_BACK, 1);
+    }
+    
+    // Draw front blocks on top (sorted by depth, furthest first)
+    frontBlocks.sort((a,b) => a.depth - b.depth);
+    for (const b of frontBlocks) {
+      const p0 = b.p;
+      const p1 = sectorCenterXY(centerX, b.yScr, radiusX, radiusY, b.s+1, rotFloat);
+      const p_1 = sectorCenterXY(centerX, b.yScr, radiusX, radiusY, b.s-1, rotFloat);
+      const tx = (p1.x - p_1.x);
+      const ty = (p1.y - p_1.y);
+      const arcDist = Math.hypot(p1.x - p0.x, p1.y - p0.y);
+      const bw = arcDist * 1.06;
+      const bh = (towerHeightPx / H) * 0.90;
+      drawOrientedBlock(p0.x, p0.y, tx, ty, bw, bh, BLOCK_COLOR_FRONT, 1);
     }
 
     if (activePiece) {
