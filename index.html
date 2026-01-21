@@ -75,6 +75,30 @@
     }
     .help-btn:active { transform:translateY(1px); }
     .help-panel p { margin:6px 0; color:#b6c9e6; text-align:left; }
+    .controls-right {
+      position:fixed;
+      right:12px;
+      bottom:12px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      z-index:3;
+    }
+    .control-btn {
+      width:54px;
+      height:54px;
+      border-radius:14px;
+      border:1px solid rgba(160,190,220,0.35);
+      background:rgba(14,20,28,0.85);
+      color:#cfe0f3;
+      font:20px/1 system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      cursor:pointer;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      user-select:none;
+    }
+    .control-btn:active { transform:translateY(1px); }
   </style>
 </head>
 <body>
@@ -101,6 +125,10 @@
     <p>Double tap / click: rotate the piece.</p>
     <button id="helpClose">Close</button>
   </div>
+</div>
+<div class="controls-right">
+  <button class="control-btn" id="rotateBtn" aria-label="Rotate">⟳</button>
+  <button class="control-btn" id="dropBtn" aria-label="Drop">↓</button>
 </div>
 
 <script>
@@ -214,6 +242,9 @@
   const helpBtn = document.getElementById('helpBtn');
   const helpOverlay = document.getElementById('helpOverlay');
   const helpClose = document.getElementById('helpClose');
+  const rotateBtn = document.getElementById('rotateBtn');
+  const dropBtn = document.getElementById('dropBtn');
+  let dropHoldTimer = null;
 
   function normSector(s) {
     s %= N;
@@ -561,6 +592,41 @@
     dragging = false;
     canvas.releasePointerCapture(e.pointerId);
   }, { passive: false });
+
+  rotateBtn.addEventListener('click', () => {
+    if (gameState !== 'playing') return;
+    rotatePieceByDir();
+  });
+
+  function startDropHold() {
+    if (gameState !== 'playing') return;
+    if (dropHoldTimer) return;
+    tryMoveDown();
+    dropHoldTimer = setInterval(() => {
+      if (gameState !== 'playing') return;
+      tryMoveDown();
+    }, 60);
+  }
+
+  function stopDropHold() {
+    if (dropHoldTimer) {
+      clearInterval(dropHoldTimer);
+      dropHoldTimer = null;
+    }
+  }
+
+  dropBtn.addEventListener('pointerdown', (e) => {
+    e.preventDefault?.();
+    startDropHold();
+    dropBtn.setPointerCapture?.(e.pointerId);
+  }, { passive: false });
+  dropBtn.addEventListener('pointerup', (e) => {
+    e.preventDefault?.();
+    stopDropHold();
+    dropBtn.releasePointerCapture?.(e.pointerId);
+  }, { passive: false });
+  dropBtn.addEventListener('pointerleave', stopDropHold);
+  dropBtn.addEventListener('pointercancel', stopDropHold);
 
   // =========================
   // Rendering
