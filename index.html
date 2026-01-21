@@ -293,7 +293,7 @@
   let lastTapTime = 0;
   let lastTapX = 0;
   let lastTapY = 0;
-  const APP_VERSION = '0.4.0';
+  const APP_VERSION = '0.4.2';
 
   // ===== Game state / scoring =====
   let gameState = 'intro'; // intro | playing | gameover
@@ -387,9 +387,116 @@
       updateScoreHud();
       activeMagic = null;
       updateMagicBtns();
+      // Apply gravity after delay
+      setTimeout(() => applyGravity(), GRAVITY_DELAY_MS);
       return true;
     }
     return false;
+  }
+
+  // ===== Gravity system =====
+  const GRAVITY_DELAY_MS = 100; // delay before blocks fall
+
+  function getNeighbors(y, s) {
+    // Returns neighbors connected by edges (not diagonal)
+    const neighbors = [];
+    // Up
+    if (y + 1 < H) neighbors.push({ y: y + 1, s });
+    // Down
+    if (y - 1 >= 0) neighbors.push({ y: y - 1, s });
+    // Left (wrap around cylinder)
+    neighbors.push({ y, s: normSector(s - 1) });
+    // Right (wrap around cylinder)
+    neighbors.push({ y, s: normSector(s + 1) });
+    return neighbors;
+  }
+
+  function findConnectedComponents() {
+    const visited = Array.from({ length: H }, () => new Uint8Array(N));
+    const components = [];
+
+    for (let y = 0; y < H; y++) {
+      for (let s = 0; s < N; s++) {
+        if (!grid[y][s] || visited[y][s]) continue;
+
+        // BFS to find component
+        const component = [];
+        const queue = [{ y, s }];
+        visited[y][s] = 1;
+
+        while (queue.length > 0) {
+          const cell = queue.shift();
+          component.push(cell);
+
+          for (const neighbor of getNeighbors(cell.y, cell.s)) {
+            if (grid[neighbor.y][neighbor.s] && !visited[neighbor.y][neighbor.s]) {
+              visited[neighbor.y][neighbor.s] = 1;
+              queue.push(neighbor);
+            }
+          }
+        }
+
+        components.push(component);
+      }
+    }
+
+    return components;
+  }
+
+  function isGroundedComponent(component) {
+    // Check if any block in component touches row 0
+    return component.some(cell => cell.y === 0);
+  }
+
+  function dropComponent(component) {
+    // Remove component from grid
+    for (const cell of component) {
+      grid[cell.y][cell.s] = 0;
+    }
+
+    // Find how far it can drop
+    let dropDistance = H;
+    for (const cell of component) {
+      let maxDrop = cell.y; // can drop at most to row 0
+      for (let dy = 1; dy <= cell.y; dy++) {
+        const targetY = cell.y - dy;
+        // Check if target cell is occupied by something NOT in this component
+        if (grid[targetY][cell.s]) {
+          maxDrop = dy - 1;
+          break;
+        }
+      }
+      dropDistance = Math.min(dropDistance, maxDrop);
+    }
+
+    // Place component at new position
+    for (const cell of component) {
+      grid[cell.y - dropDistance][cell.s] = 1;
+    }
+
+    return dropDistance > 0;
+  }
+
+  function applyGravity() {
+    let changed = true;
+    while (changed) {
+      changed = false;
+      const components = findConnectedComponents();
+      
+      for (const component of components) {
+        if (!isGroundedComponent(component)) {
+          if (dropComponent(component)) {
+            changed = true;
+          }
+        }
+      }
+    }
+    // Check for completed rings after gravity settles
+    const cleared = clearRings();
+    if (cleared > 0) {
+      score += cleared * 500;
+      updateScoreHud();
+    }
   }
 
   function normSector(s) {
