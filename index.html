@@ -6,7 +6,6 @@
   <title>Ring Tetris MVP</title>
   <style>
     html, body { margin:0; padding:0; height:100%; background:#0b0f14; overflow:hidden; touch-action:none; }
-    /* IMPORTANT: touch-action must be on the element receiving pointer events (canvas) */
     canvas { display:block; width:100%; height:100%; touch-action:none; }
     .hint { position:fixed; left:10px; bottom:10px; color:#9fb2c7; font:12px/1.3 system-ui, -apple-system, Segoe UI, Roboto, Arial; opacity:.85; }
     .hud  { position:fixed; left:10px; top:10px; color:#cfe0f3; font:12px/1.3 system-ui, -apple-system, Segoe UI, Roboto, Arial; opacity:.9; }
@@ -15,14 +14,16 @@
 <body>
 <canvas id="c"></canvas>
 <div class="hud" id="hud"></div>
-<div class="hint">Свайп влево/вправо: вращение цилиндра (шагами). Свайп вниз: ускоряет падение. Двойной тап/клик: поворот фигуры по часовой. Падают 12 пентамино (без зеркальных версий).</div>
+<div class="hint">
+  Свайп влево/вправо: вращение цилиндра (шагами). Свайп вниз: ускоряет падение.
+  Двойной тап/клик: поворот фигуры по часовой. Падают 12 пентамино (без зеркал).
+  Есть "lock delay" как в тетрисе (настраивается).
+</div>
 
 <script>
 (() => {
   const canvas = document.getElementById('c');
   const ctx = canvas.getContext('2d');
-
-  // IMPORTANT: enforce touch-action on the actual target (helps iOS/Android)
   canvas.style.touchAction = 'none';
 
   const TAU = Math.PI * 2;
@@ -30,43 +31,51 @@
   // ===== Game params =====
   const N = 30;   // sectors around ring
   const H = 24;   // height in rows (0 bottom)
-  const ANG_OFFSET = Math.PI / 2; // "front" is the bottom point (closest to user)
+  const ANG_OFFSET = Math.PI / 2;
 
   // ===== Layout tuning =====
   const TOP_PAD_PX = 18;
-  const BOTTOM_PAD_PX = 90; // more bottom space
-
+  const BOTTOM_PAD_PX = 90;
   const MAX_RADIUS_X = 260;
   const RADIUS_X_FACTOR = 0.36;
+
+  // ===== Tetris-like lock delay (CONFIG) =====
+  // Time (seconds) the piece may still be adjusted after it first "touches down".
+  const LOCK_DELAY_SEC = 0.55;          // <-- tweak this
+  const LOCK_RESET_ON_MOVE = true;      // like modern tetris: reset delay on successful move/rotate
+  const LOCK_RESET_LIMIT = 12;          // 0 = unlimited; otherwise cap number of resets to avoid stalling forever
 
   // ===== Grid =====
   const grid = Array.from({length: H}, () => new Uint8Array(N));
 
   // ===== Pentomino set (12), NO MIRRORS =====
-  // Only one chirality for F/N/Z; rotation is allowed (double tap).
-  // Coordinates are in local piece space; (0,0) is bottom-left-ish reference.
   const PENTOMINOES = [
     { name:'F', cells:[ {x:1,y:0},{x:2,y:0},{x:0,y:1},{x:1,y:1},{x:1,y:2} ] },
     { name:'I', cells:[ {x:0,y:0},{x:1,y:0},{x:2,y:0},{x:3,y:0},{x:4,y:0} ] },
     { name:'L', cells:[ {x:0,y:0},{x:0,y:1},{x:0,y:2},{x:0,y:3},{x:1,y:0} ] },
     { name:'P', cells:[ {x:0,y:0},{x:1,y:0},{x:0,y:1},{x:1,y:1},{x:0,y:2} ] },
-    { name:'N', cells:[ {x:0,y:0},{x:0,y:1},{x:1,y:1},{x:1,y:2},{x:1,y:3} ] }, // one chirality (no mirror)
+    { name:'N', cells:[ {x:0,y:0},{x:0,y:1},{x:1,y:1},{x:1,y:2},{x:1,y:3} ] },
     { name:'T', cells:[ {x:0,y:0},{x:1,y:0},{x:2,y:0},{x:1,y:1},{x:1,y:2} ] },
     { name:'U', cells:[ {x:0,y:0},{x:2,y:0},{x:0,y:1},{x:1,y:1},{x:2,y:1} ] },
     { name:'V', cells:[ {x:0,y:0},{x:0,y:1},{x:0,y:2},{x:1,y:0},{x:2,y:0} ] },
     { name:'W', cells:[ {x:0,y:0},{x:1,y:0},{x:1,y:1},{x:2,y:1},{x:2,y:2} ] },
     { name:'X', cells:[ {x:1,y:0},{x:0,y:1},{x:1,y:1},{x:2,y:1},{x:1,y:2} ] },
     { name:'Y', cells:[ {x:0,y:0},{x:0,y:1},{x:0,y:2},{x:0,y:3},{x:1,y:1} ] },
-    { name:'Z', cells:[ {x:0,y:0},{x:1,y:0},{x:1,y:1},{x:1,y:2},{x:2,y:2} ] }, // one chirality (no mirror)
+    { name:'Z', cells:[ {x:0,y:0},{x:1,y:0},{x:1,y:1},{x:1,y:2},{x:2,y:2} ] },
   ];
 
-  // Active falling piece state
+  // ===== Falling piece state =====
   let activePiece = null;
-  let pieceY = H + 3;
+  let pieceY = H + 3;        // float, decreases
   let fallTimer = 0;
   let fallInterval = 0.45;
 
-  // ===== Killzone (visual only for now) =====
+  // ===== Lock delay runtime state =====
+  let lockTimer = 0;         // counts up while grounded
+  let isGrounded = false;    // true when can't move down
+  let lockResets = 0;        // number of delay resets used on this piece
+
+  // ===== Killzone (visual only) =====
   let killLevel = 0;
   let killRate  = 0.18;
 
@@ -88,7 +97,6 @@
   const PX_PER_DROP = 18;
 
   // Direction switch for cylinder rotation:
-  // +1 / -1
   const ROT_DIR = 1;
 
   // ===== Double tap / double click =====
@@ -101,7 +109,7 @@
   canvas.addEventListener('pointerdown', (e) => {
     e.preventDefault?.();
 
-    // --- double tap detector ---
+    // double tap
     const now = performance.now();
     const dt = now - lastTapTime;
     const dxTap = e.clientX - lastTapX;
@@ -136,7 +144,7 @@
 
     if (Math.abs(dx) < DEADZONE_PX && Math.abs(dy) < DEADZONE_PX) return;
 
-    // Horizontal: discrete step rotation
+    // Horizontal: rotate cylinder (step)
     if (Math.abs(dx) >= DEADZONE_PX) {
       const step = Math.trunc((-dx / PX_PER_STEP) * ROT_DIR);
       if (step !== lastRotStep) {
@@ -144,6 +152,9 @@
         targetRot = startRot + step;
         rotFloat = targetRot;
         rotVel = 0;
+
+        // If grounded, rotation change should allow "adjust", so reset lock delay
+        if (isGrounded) maybeResetLockDelay();
       }
     }
 
@@ -152,7 +163,7 @@
       const dropStep = Math.trunc(dy / PX_PER_DROP);
       if (dropStep > lastDropStep) {
         const steps = dropStep - lastDropStep;
-        for (let i = 0; i < steps; i++) tryMoveDown();
+        for (let i = 0; i < steps; i++) tryMoveDown(true);
         lastDropStep = dropStep;
       }
     }
@@ -175,8 +186,6 @@
   }
 
   // ===== Piece rotation CW =====
-  // CW rotation around origin: (x, y) -> (y, -x)
-  // Then normalize to keep minX/minY = 0 (no reflections here).
   function rotateCellsCW(cells) {
     const rotated = cells.map(({x,y}) => ({ x: y, y: -x }));
     let minX = Infinity, minY = Infinity;
@@ -193,22 +202,53 @@
     const oldCells = activePiece.cells;
     activePiece.cells = newCells;
 
-    // If rotated shape collides, revert.
     if (!canPlaceAt(Math.floor(pieceY))) {
       activePiece.cells = oldCells;
+      return;
     }
+
+    // successful rotate => reset lock delay if grounded
+    if (isGrounded) maybeResetLockDelay();
+  }
+
+  // ===== Lock delay helpers =====
+  function maybeResetLockDelay() {
+    if (!LOCK_RESET_ON_MOVE) return;
+    if (LOCK_RESET_LIMIT !== 0 && lockResets >= LOCK_RESET_LIMIT) return;
+    lockTimer = 0;
+    lockResets += 1;
+  }
+
+  function updateGroundedState() {
+    const nextY = Math.floor(pieceY) - 1;
+    const groundedNow = !canPlaceAt(nextY);
+    if (groundedNow && !isGrounded) {
+      // just touched ground
+      isGrounded = true;
+      lockTimer = 0;
+      lockResets = 0;
+    } else if (!groundedNow && isGrounded) {
+      // lifted off ground (e.g., after rotation or cylinder move gave space)
+      isGrounded = false;
+      lockTimer = 0;
+      lockResets = 0;
+    }
+    return groundedNow;
   }
 
   // ===== Spawn / collision / lock =====
   function spawnPiece() {
     const proto = PENTOMINOES[(Math.random() * PENTOMINOES.length) | 0];
-    // Clone cells so we can rotate without mutating prototypes.
     activePiece = { name: proto.name, cells: proto.cells.map(c => ({x:c.x, y:c.y})) };
 
     pieceY = H + 3;
     fallTimer = 0;
 
-    // Simple safety: if spawn is immediately blocked, reset field (MVP behavior).
+    // reset lock state
+    isGrounded = false;
+    lockTimer = 0;
+    lockResets = 0;
+
     if (!canPlaceAt(Math.floor(pieceY))) {
       for (let y=0; y<H; y++) grid[y].fill(0);
       killLevel = 0;
@@ -272,12 +312,23 @@
     }
   }
 
-  function tryMoveDown() {
+  // tryMoveDown(manual = true for soft drop)
+  function tryMoveDown(manual=false) {
     const nextY = Math.floor(pieceY) - 1;
     if (canPlaceAt(nextY)) {
       pieceY = nextY;
+
+      // if we moved down successfully, we are not grounded
+      isGrounded = false;
+      lockTimer = 0;
+      lockResets = 0;
+
+      return true;
     } else {
-      lockPiece();
+      // can't move down: start / continue lock delay
+      // (actual locking handled in tick via timer)
+      isGrounded = true;
+      return false;
     }
   }
 
@@ -444,7 +495,8 @@
     }
 
     document.getElementById('hud').textContent =
-      `piece=${activePiece?.name ?? '-'}  N=${N} H=${H} rot=${rotFloat.toFixed(2)} (snap=${snappedRot()}) kill=${killLevel.toFixed(1)}/${H} ROT_DIR=${ROT_DIR}`;
+      `piece=${activePiece?.name ?? '-'} rot=${rotFloat.toFixed(2)} snap=${snappedRot()} ` +
+      `grounded=${isGrounded?1:0} lock=${lockTimer.toFixed(2)}/${LOCK_DELAY_SEC} resets=${lockResets}/${LOCK_RESET_LIMIT||'∞'}`;
   }
 
   // ===== Main loop =====
@@ -453,6 +505,7 @@
     const dt = Math.min(0.05, Math.max(0.001, (now - last) / 1000));
     last = now;
 
+    // killzone
     killLevel += killRate * dt;
     if (killLevel >= H) {
       for (let y=0; y<H; y++) grid[y].fill(0);
@@ -462,14 +515,26 @@
       spawnPiece();
     }
 
+    // rotation: discrete stepping
     rotFloat = targetRot;
     if (rotFloat >  1e6) rotFloat %= N;
     if (rotFloat < -1e6) rotFloat %= N;
 
+    // gravity tick
     fallTimer += dt;
     if (fallTimer >= fallInterval) {
       fallTimer -= fallInterval;
-      tryMoveDown();
+      // try to fall one row; if can't, we become grounded
+      tryMoveDown(false);
+    }
+
+    // Update grounded state and apply lock delay
+    const groundedNow = updateGroundedState();
+    if (groundedNow) {
+      lockTimer += dt;
+      if (lockTimer >= LOCK_DELAY_SEC) {
+        lockPiece();
+      }
     }
 
     draw();
