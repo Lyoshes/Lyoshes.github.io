@@ -213,8 +213,10 @@
   let lastDropStep = 0;
   let dragInputSign = 1;
   let dragMode = null; // 'rotate' | 'drop'
+  let lastMoveX = 0;
   let lastMoveY = 0;
   let lastMoveTime = 0;
+  let rotAccumulator = 0;
 
   const PX_PER_STEP = 34;
   const DEADZONE_PX = 6;
@@ -223,6 +225,8 @@
   const SWIPE_SPEED_REF = 650;
   const MIN_DROP_PX = 6;
   const MAX_DROP_PX = 22;
+  const MIN_ROT_PX = 14;
+  const MAX_ROT_PX = 46;
 
   // ===== Double tap / double click =====
   const DOUBLE_TAP_MS = 280;
@@ -230,7 +234,7 @@
   let lastTapTime = 0;
   let lastTapX = 0;
   let lastTapY = 0;
-  const APP_VERSION = '0.3.6';
+  const APP_VERSION = '0.3.7';
 
   // ===== Game state / scoring =====
   let gameState = 'intro'; // intro | playing | gameover
@@ -547,8 +551,10 @@
     appliedRotStep = 0;
     lastDropStep = 0;
     dragMode = null;
+    lastMoveX = e.clientX;
     lastMoveY = e.clientY;
     lastMoveTime = performance.now();
+    rotAccumulator = 0;
     rotVel = 0;
     canvas.setPointerCapture(e.pointerId);
   }, { passive: false });
@@ -577,7 +583,19 @@
     }
 
     if (dragMode === 'rotate' && Math.abs(dx) >= DEADZONE_PX) {
-      const desiredStep = Math.trunc((-dx / PX_PER_STEP) * ROT_DIR * dragInputSign);
+      const dt = Math.max(1, now - lastMoveTime);
+      const dxStep = e.clientX - lastMoveX;
+      const v = Math.max(1, (Math.abs(dxStep) / dt) * 1000);
+      const scaledPxPerStep = Math.max(
+        MIN_ROT_PX,
+        Math.min(MAX_ROT_PX, PX_PER_STEP * (SWIPE_SPEED_REF / v))
+      );
+      rotAccumulator += (-dxStep / scaledPxPerStep) * ROT_DIR * dragInputSign;
+      const stepDelta = Math.trunc(rotAccumulator);
+      if (stepDelta !== 0) {
+        rotAccumulator -= stepDelta;
+      }
+      const desiredStep = appliedRotStep + stepDelta;
 
       if (desiredStep !== appliedRotStep) {
         const dir = Math.sign(desiredStep - appliedRotStep);
@@ -614,6 +632,7 @@
         lastDropStep = dropStep;
       }
     }
+    lastMoveX = e.clientX;
     lastMoveY = e.clientY;
     lastMoveTime = now;
   }, { passive: false });
