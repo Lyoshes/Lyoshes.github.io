@@ -180,6 +180,10 @@
   canvas.style.touchAction = 'none';
 
   const TAU = Math.PI * 2;
+  const BLOCK_COLOR_FRONT = 'rgba(235,240,250,0.6)';
+  const BLOCK_COLOR_BACK = 'rgba(70,80,95,0.85)';
+  const ACTIVE_COLOR_FRONT = 'rgba(255,170,180,0.75)';
+  const GHOST_COLOR_FRONT = 'rgba(110,255,150,0.28)';
 
   // ===== Game params =====
   const N = 30;   // sectors around ring
@@ -776,6 +780,7 @@
     const centerX = w * 0.5;
     const topY = TOP_PAD_PX;
     const bottomY = h - BOTTOM_PAD_PX;
+    const centerY = (topY + bottomY) * 0.5;
     const towerHeightPx = Math.max(1, bottomY - topY);
 
     const radiusX = Math.min(w * RADIUS_X_FACTOR, MAX_RADIUS_X);
@@ -822,7 +827,9 @@
       const bw = arcDist * 1.06;
       const bh = (towerHeightPx / H) * 0.90;
 
-      drawOrientedBlock(p0.x, p0.y, tx, ty, bw, bh, 'rgba(235,240,250,0.55)', 1);
+      const isBackFace = Math.sin(p0.ang) < 0;
+      const blockColor = isBackFace ? BLOCK_COLOR_BACK : BLOCK_COLOR_FRONT;
+      drawOrientedBlock(p0.x, p0.y, tx, ty, bw, bh, blockColor, 1);
     }
 
     if (activePiece) {
@@ -855,7 +862,7 @@
           const bw = arcDist * 1.06;
           const bh = (towerHeightPx / H) * 0.90;
 
-          drawOrientedBlock(p0.x, p0.y, tx, ty, bw, bh, 'rgba(110,255,150,0.28)', 1);
+      drawOrientedBlock(p0.x, p0.y, tx, ty, bw, bh, GHOST_COLOR_FRONT, 1);
         }
       }
     }
@@ -872,7 +879,7 @@
       const bw = arcDist * 1.06;
       const bh = (towerHeightPx / H) * 0.90;
 
-      ctx.fillStyle = 'rgba(255,170,180,0.75)';
+    ctx.fillStyle = ACTIVE_COLOR_FRONT;
       for (const c of activePiece.cells) {
         const cs = normSector(s0 + c.x);
         const cy = pieceY + c.y;
