@@ -6,7 +6,8 @@
   <title>Ring Tetris MVP</title>
   <style>
     html, body { margin:0; padding:0; height:100%; background:#0b0f14; overflow:hidden; touch-action:none; }
-    canvas { display:block; width:100%; height:100%; }
+    /* IMPORTANT: touch-action must be on the element receiving pointer events (canvas) */
+    canvas { display:block; width:100%; height:100%; touch-action:none; }
     .hint { position:fixed; left:10px; bottom:10px; color:#9fb2c7; font:12px/1.3 system-ui, -apple-system, Segoe UI, Roboto, Arial; opacity:.85; }
     .hud  { position:fixed; left:10px; top:10px; color:#cfe0f3; font:12px/1.3 system-ui, -apple-system, Segoe UI, Roboto, Arial; opacity:.9; }
   </style>
@@ -21,6 +22,9 @@
   const canvas = document.getElementById('c');
   const ctx = canvas.getContext('2d');
 
+  // IMPORTANT: enforce touch-action on the actual target (helps iOS/Android)
+  canvas.style.touchAction = 'none';
+
   const TAU = Math.PI * 2;
 
   // ===== Game params =====
@@ -29,14 +33,11 @@
   const ANG_OFFSET = Math.PI / 2; // "front" is the bottom point (closest to user)
 
   // ===== Layout tuning =====
-  // Extra space below the lowest ring so it doesn't go off-screen.
-  // Increase BOTTOM_PAD_PX if you want even more "platform air".
   const TOP_PAD_PX = 18;
-  const BOTTOM_PAD_PX = 90; // <-- main change: more bottom space
+  const BOTTOM_PAD_PX = 90; // more bottom space
 
-  // Optional: slightly reduce radii to help on short screens
   const MAX_RADIUS_X = 260;
-  const RADIUS_X_FACTOR = 0.36; // was 0.38
+  const RADIUS_X_FACTOR = 0.36;
 
   // ===== Grid =====
   const grid = Array.from({length: H}, () => new Uint8Array(N));
@@ -75,7 +76,8 @@
   const PX_PER_DROP = 18;
 
   // Direction switch for cylinder rotation:
-  const ROT_DIR = -1;
+  // +1 / -1
+  const ROT_DIR = 1;
 
   // ===== Double tap / double click =====
   const DOUBLE_TAP_MS = 280;
@@ -85,6 +87,9 @@
   let lastTapY = 0;
 
   canvas.addEventListener('pointerdown', (e) => {
+    // For touch: block browser gesture handling early
+    e.preventDefault?.();
+
     // --- double tap detector ---
     const now = performance.now();
     const dt = now - lastTapTime;
@@ -93,9 +98,8 @@
     const distTap = Math.hypot(dxTap, dyTap);
 
     if (dt <= DOUBLE_TAP_MS && distTap <= DOUBLE_TAP_MAX_DIST) {
-      e.preventDefault?.();
       rotatePieceCW();
-      lastTapTime = 0;
+      lastTapTime = 0; // reset to avoid triple-trigger
     } else {
       lastTapTime = now;
       lastTapX = e.clientX;
@@ -114,6 +118,8 @@
 
   canvas.addEventListener('pointermove', (e) => {
     if (!dragging) return;
+    // IMPORTANT: without this, iOS Safari may still treat it as scroll/zoom pipeline
+    e.preventDefault?.();
 
     const dx = e.clientX - startX;
     const dy = e.clientY - startY;
@@ -141,13 +147,13 @@
         lastDropStep = dropStep;
       }
     }
-  });
+  }, { passive: false });
 
   canvas.addEventListener('pointerup', (e) => {
     if (!dragging) return;
     dragging = false;
     canvas.releasePointerCapture(e.pointerId);
-  });
+  }, { passive: false });
 
   function normSector(s) {
     s %= N;
@@ -303,7 +309,6 @@
 
     const centerX = w * 0.5;
 
-    // ===== CHANGED: more space below =====
     const topY = TOP_PAD_PX;
     const bottomY = h - BOTTOM_PAD_PX;
     const towerHeightPx = Math.max(1, bottomY - topY);
