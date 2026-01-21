@@ -7,7 +7,6 @@
   <style>
     html, body { margin:0; padding:0; height:100%; background:#0b0f14; overflow:hidden; touch-action:none; }
     canvas { display:block; width:100%; height:100%; touch-action:none; }
-    .hint { position:fixed; left:10px; bottom:10px; color:#9fb2c7; font:12px/1.3 system-ui, -apple-system, Segoe UI, Roboto, Arial; opacity:.85; }
     .hud  { position:fixed; left:10px; top:10px; color:#cfe0f3; font:12px/1.3 system-ui, -apple-system, Segoe UI, Roboto, Arial; opacity:.9; }
     .hud-right {
       position:fixed;
@@ -61,6 +60,21 @@
       cursor:pointer;
     }
     .panel button:active { transform:translateY(1px); }
+    .help-btn {
+      position:fixed;
+      left:10px;
+      bottom:10px;
+      width:36px;
+      height:36px;
+      border-radius:999px;
+      border:1px solid rgba(160,190,220,0.35);
+      background:rgba(14,20,28,0.85);
+      color:#cfe0f3;
+      font:18px/1 system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      cursor:pointer;
+    }
+    .help-btn:active { transform:translateY(1px); }
+    .help-panel p { margin:6px 0; color:#b6c9e6; text-align:left; }
   </style>
 </head>
 <body>
@@ -78,10 +92,15 @@
     <button id="startBtn">Start</button>
   </div>
 </div>
-<div class="hint">
-  Свайп влево/вправо: вращение цилиндра (шагами, с коллизией — нельзя “проехать” в занятое).
-  Свайп вниз: ускоряет падение. Двойной тап/клик: поворот фигуры (RotateDir).
-  Падают 12 пентамино (без зеркал). Есть lock delay (настраивается).
+<button class="help-btn" id="helpBtn" aria-label="Help">i</button>
+<div class="overlay hidden" id="helpOverlay">
+  <div class="panel help-panel">
+    <h2>Controls</h2>
+    <p>Swipe left/right: rotate the cylinder in steps.</p>
+    <p>Swipe down: faster drop.</p>
+    <p>Double tap / click: rotate the piece.</p>
+    <button id="helpClose">Close</button>
+  </div>
 </div>
 
 <script>
@@ -190,6 +209,9 @@
   const scoreHud = document.getElementById('scoreHud');
   const nextCanvas = document.getElementById('nextCanvas');
   const nextCtx = nextCanvas.getContext('2d');
+  const helpBtn = document.getElementById('helpBtn');
+  const helpOverlay = document.getElementById('helpOverlay');
+  const helpClose = document.getElementById('helpClose');
 
   function normSector(s) {
     s %= N;
@@ -743,6 +765,15 @@
 
   startBtn.addEventListener('click', () => {
     if (gameState !== 'playing') startGame();
+  });
+  helpBtn.addEventListener('click', () => {
+    helpOverlay.classList.remove('hidden');
+  });
+  helpClose.addEventListener('click', () => {
+    helpOverlay.classList.add('hidden');
+  });
+  helpOverlay.addEventListener('click', (e) => {
+    if (e.target === helpOverlay) helpOverlay.classList.add('hidden');
   });
 
   updateOverlay();
