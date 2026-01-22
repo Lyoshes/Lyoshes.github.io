@@ -673,7 +673,7 @@
   let lastTapTime = 0;
   let lastTapX = 0;
   let lastTapY = 0;
-  const APP_VERSION = '0.9.1';
+  const APP_VERSION = '0.9.2';
 
   // ===== Game state / scoring =====
   let gameState = 'intro'; // intro | playing | gameover
@@ -2403,6 +2403,18 @@
       const bw = arcDist * 1.06;
       const bh = (towerHeightPx / H) * 0.90;
 
+      // Calculate lock progress color interpolation
+      let blockColor = ACTIVE_COLOR_FRONT;
+      if (isGrounded && lockTimer > 0) {
+        const progress = Math.min(1, lockTimer / LOCK_DELAY_SEC);
+        // Interpolate from rgba(255,170,180,0.75) to rgba(255,255,255,1.0)
+        const r = 255; // stays constant
+        const g = Math.round(170 + (255 - 170) * progress);
+        const b = Math.round(180 + (255 - 180) * progress);
+        const a = 0.75 + (1.0 - 0.75) * progress;
+        blockColor = `rgba(${r},${g},${b},${a})`;
+      }
+
       for (let i = 0; i < activePiece.cells.length; i++) {
         const c = activePiece.cells[i];
         const color = activePiece.colors[i];
@@ -2412,8 +2424,8 @@
         const yScr = levelYToScreenY(topY, towerHeightPx, cy + 0.5);
         const pc = sectorCenterXY(centerX, yScr, radiusX, radiusY, cs, rotSnap);
         
-        // Draw block
-        ctx.fillStyle = ACTIVE_COLOR_FRONT;
+        // Draw block with lock progress color
+        ctx.fillStyle = blockColor;
         ctx.fillRect(pc.x - bw/2, pc.y - bh/2, bw, bh);
         
         // Draw element color dot
