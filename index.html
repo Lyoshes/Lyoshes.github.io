@@ -655,7 +655,7 @@
   let lastTapTime = 0;
   let lastTapX = 0;
   let lastTapY = 0;
-  const APP_VERSION = '0.7.2';
+  const APP_VERSION = '0.7.5';
 
   // ===== Game state / scoring =====
   let gameState = 'intro'; // intro | playing | gameover
@@ -1136,11 +1136,20 @@
 
   // ===== Piece rotation (base CW) =====
   function rotateCellsWithColorsCW(cells, colors) {
-    // CW: (x,y)->(y,-x), then normalize to minX/minY = 0
+    // CW: (x,y)->(y,-x), then center horizontally and normalize y to 0
     const rotated = cells.map(({x,y}, i) => ({ x: y, y: -x, color: colors[i] }));
-    let minX = Infinity, minY = Infinity;
-    for (const c of rotated) { minX = Math.min(minX, c.x); minY = Math.min(minY, c.y); }
-    for (const c of rotated) { c.x -= minX; c.y -= minY; }
+    let minX = Infinity, maxX = -Infinity, minY = Infinity;
+    for (const c of rotated) { 
+      minX = Math.min(minX, c.x); 
+      maxX = Math.max(maxX, c.x);
+      minY = Math.min(minY, c.y); 
+    }
+    // Center horizontally, normalize y to 0
+    const centerX = Math.round((minX + maxX) / 2);
+    for (const c of rotated) { 
+      c.x -= centerX;  // center around 0
+      c.y -= minY;     // normalize y to start at 0
+    }
     rotated.sort((a,b) => (a.y - b.y) || (a.x - b.x));
     return {
       cells: rotated.map(c => ({ x: c.x, y: c.y })),
@@ -1463,6 +1472,18 @@
     const proto = PENTOMINOES[(Math.random() * PENTOMINOES.length) | 0];
     nextPiece = createPieceWithColors(proto);
     drawNextPreview();
+
+    // Center the piece horizontally by shifting cell x coordinates
+    let minX = Infinity, maxX = -Infinity;
+    for (const c of activePiece.cells) {
+      if (c.x < minX) minX = c.x;
+      if (c.x > maxX) maxX = c.x;
+    }
+    const centerX = (minX + maxX) / 2;
+    // Shift all cells so center is at x=0
+    for (const c of activePiece.cells) {
+      c.x = c.x - Math.round(centerX);
+    }
 
     pieceY = H + 3;
     fallTimer = 0;
