@@ -172,7 +172,7 @@
     <p>Swipe left/right: rotate the cylinder in steps.</p>
     <p>Swipe down: faster drop.</p>
     <p>Double tap / click: rotate the piece.</p>
-    <p><b>Magic:</b> Tap a color button to select element, then tap a block to destroy it. Each element has 3 charges per game.</p>
+    <p><b>Magic:</b> Tap a color button to select element, then tap a matching block to destroy it. Fire destroys red, Water destroys blue, etc. Each element has 3 charges.</p>
     <button id="helpClose">Close</button>
   </div>
 </div>
@@ -255,6 +255,12 @@
     4: '#47d16a',  // earth - green
   };
   const ELEMENT_NAMES = { 1: 'fire', 2: 'water', 3: 'lightning', 4: 'earth' };
+  const ELEMENT_TO_COLOR = { fire: 1, water: 2, lightning: 3, earth: 4 };
+  
+  // Magic targeting visual (CONFIG)
+  const MAGIC_DIM_DOT_ALPHA = 0.3;    // how dim non-target dots become
+  const MAGIC_DIM_DOT_SCALE = 0.5;    // how small non-target dots become
+  const MAGIC_TARGET_DOT_SCALE = 1.3; // how much to enlarge target dots
 
   // ===== Controls direction params =====
   // Direction switch for cylinder rotation (+1 / -1)
@@ -333,7 +339,7 @@
   let lastTapTime = 0;
   let lastTapX = 0;
   let lastTapY = 0;
-  const APP_VERSION = '0.6.1';
+  const APP_VERSION = '0.6.3';
 
   // ===== Game state / scoring =====
   let gameState = 'intro'; // intro | playing | gameover
@@ -395,6 +401,8 @@
     if (!activeMagic || magicCharges[activeMagic] <= 0) return false;
     if (isHighlighting) return false; // Don't shoot during animation
     
+    const targetColor = ELEMENT_TO_COLOR[activeMagic]; // Magic can only hit its own color
+    
     const w = canvas.clientWidth;
     const h = canvas.clientHeight;
     const centerX = w * 0.5;
@@ -404,14 +412,17 @@
     const radiusX = Math.min(w * RADIUS_X_FACTOR, MAX_RADIUS_X);
     const radiusY = radiusX * 0.28;
 
-    // Find which block was hit
+    // Find which block was hit (must match target color)
     let hitBlock = null;
     let hitDist = Infinity;
 
     for (let y = 0; y < H; y++) {
       const yScr = levelYToScreenY(topY, towerHeightPx, y + 0.5);
       for (let s = 0; s < N; s++) {
-        if (!grid[y][s]) continue;
+        const blockColor = grid[y][s];
+        if (!blockColor) continue;
+        if (blockColor !== targetColor) continue; // Only hit matching color
+        
         const p = sectorCenterXY(centerX, yScr, radiusX, radiusY, s, rotFloat);
         const depth = Math.sin(p.ang);
         // Only hit front-facing blocks
@@ -1362,7 +1373,7 @@
     };
   }
 
-  function drawOrientedBlock(px, py, tx, ty, w, h, fillStyle, alpha=1, elementColor=null, dotAlpha=1, strokeStyle=null, strokeWidth=0) {
+  function drawOrientedBlock(px, py, tx, ty, w, h, fillStyle, alpha=1, elementColor=null, dotAlpha=1, strokeStyle=null, strokeWidth=0, dotScale=1) {
     ctx.save();
     ctx.translate(px, py);
     const a = Math.atan2(ty, tx);
@@ -1380,7 +1391,7 @@
     
     // Draw element color dot in center
     if (elementColor) {
-      const dotRadius = Math.min(w, h) * 0.28;
+      const dotRadius = Math.min(w, h) * 0.28 * dotScale;
       ctx.globalAlpha = alpha * dotAlpha;
       ctx.fillStyle = elementColor;
       ctx.beginPath();
@@ -1447,6 +1458,11 @@
       }
     }
     
+    // Magic targeting mode: which color can be hit
+    const magicTargetColor = (activeMagic && magicCharges[activeMagic] > 0) 
+      ? ELEMENT_TO_COLOR[activeMagic] 
+      : null;
+
     // Compute shrink animation params for highlighted blocks
     let highlightSet = null;
     let blockScale = 1;
@@ -1493,8 +1509,20 @@
       const alpha = isHighlighted ? blockAlpha : 1;
       const scale = isHighlighted ? blockScale : 1;
       
-      // Back blocks: dim the element dot to reduce visual noise
-      drawOrientedBlock(p0.x, p0.y, tx, ty, bw * scale, bh * scale, BLOCK_COLOR_BACK, alpha, elemColor, 0.25);
+      // Magic targeting: only affect dots, not blocks
+      let dotAlpha = 0.25; // base dim for back blocks
+      let dotScale = 1;
+      if (magicTargetColor !== null) {
+        if (b.color === magicTargetColor) {
+          dotScale = MAGIC_TARGET_DOT_SCALE;
+          dotAlpha = 0.6; // make target dots more visible on back
+        } else {
+          dotAlpha *= MAGIC_DIM_DOT_ALPHA;
+          dotScale = MAGIC_DIM_DOT_SCALE;
+        }
+      }
+      
+      drawOrientedBlock(p0.x, p0.y, tx, ty, bw * scale, bh * scale, BLOCK_COLOR_BACK, alpha, elemColor, dotAlpha, null, 0, dotScale);
     }
 
     // Draw highlighted back blocks with dimmed blinking + shrink/fade (or just shrink for magic)
@@ -1557,7 +1585,21 @@
       const alpha = isHighlighted ? blockAlpha : 1;
       const scale = isHighlighted ? blockScale : 1;
       
-      drawOrientedBlock(p0.x, p0.y, tx, ty, bw * scale, bh * scale, BLOCK_COLOR_FRONT, alpha, elemColor);
+      // Magic targeting: only affect dots, blocks stay normal
+      let dotAlpha = 1;
+      let dotScale = 1;
+      if (magicTargetColor !== null) {
+        if (b.color === magicTargetColor) {
+          // Target color: enlarge dot
+          dotScale = MAGIC_TARGET_DOT_SCALE;
+        } else {
+          // Non-target: shrink and dim dot
+          dotAlpha = MAGIC_DIM_DOT_ALPHA;
+          dotScale = MAGIC_DIM_DOT_SCALE;
+        }
+      }
+      
+      drawOrientedBlock(p0.x, p0.y, tx, ty, bw * scale, bh * scale, BLOCK_COLOR_FRONT, alpha, elemColor, dotAlpha, null, 0, dotScale);
     }
 
     // Draw highlighted (matched) blocks with blinking + shrink/fade effect (skip for magic - it just shrinks)
