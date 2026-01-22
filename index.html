@@ -193,61 +193,30 @@
   canvas.style.touchAction = 'none';
 
   const TAU = Math.PI * 2;
-  const BLOCK_COLOR_FRONT = 'rgb(235,240,250)';
-  const BLOCK_COLOR_BACK = 'rgb(55,62,75)';
-  const ACTIVE_COLOR_FRONT = 'rgba(255,170,180,0.75)';
-  const GHOST_COLOR_FILL = 'rgba(110,255,150,0.15)';
-  const GHOST_COLOR_STROKE = 'rgba(110,255,150,0.85)';
-  const GHOST_STROKE_WIDTH = 2;
 
-  // ===== Game params =====
-  const N = 30;   // sectors around ring
-  const H = 24;   // height in rows (0 bottom)
-  const ANG_OFFSET = Math.PI / 2;
+  // ===== Grid params =====
+  const N = 30;                   // sectors around ring
+  const H = 24;                   // height in rows (0 = bottom)
+  const ANG_OFFSET = Math.PI / 2; // angular offset for rendering
 
-  // ===== Layout tuning =====
-  const TOP_PAD_PX = 18;
-  const BOTTOM_PAD_PX = 90;
-  const MAX_RADIUS_X = 260;
-  const RADIUS_X_FACTOR = 0.36;
+  // ===== Layout / Visual =====
+  const TOP_PAD_PX = 18;          // padding from top of screen
+  const BOTTOM_PAD_PX = 90;       // padding from bottom (UI buttons area)
+  const MAX_RADIUS_X = 260;       // max horizontal radius of cylinder
+  const RADIUS_X_FACTOR = 0.36;   // cylinder radius as fraction of screen width
 
-  // ===== Tetris-like lock delay (CONFIG) =====
-  const LOCK_DELAY_SEC = 0.58;
-  const LOCK_RESET_ON_MOVE = true;
-  const LOCK_RESET_LIMIT = 12;
+  // ===== Block colors =====
+  const BLOCK_COLOR_FRONT = 'rgb(235,240,250)';       // front-facing blocks
+  const BLOCK_COLOR_BACK = 'rgb(55,62,75)';           // back-facing blocks
+  const ACTIVE_COLOR_FRONT = 'rgba(255,170,180,0.75)'; // falling piece color
 
-  // ===== Killzone (CONFIG) =====
-  const KILL_RATE = 0.09;         // units per second (how fast KZ rises)
-  const KILL_RING_BONUS = 3.0;    // how much KZ drops when ring is cleared
+  // ===== Ghost piece =====
+  const GHOST_COLOR_FILL = 'rgba(110,255,150,0.15)';   // ghost fill (transparent)
+  const GHOST_COLOR_STROKE = 'rgba(110,255,150,0.85)'; // ghost outline
+  const GHOST_STROKE_WIDTH = 2;                        // ghost outline thickness
 
-  // ===== Piece fall speed (CONFIG) =====
-  const FALL_INTERVAL = 1;     // seconds per row (lower = faster)
-
-  // ===== Match-3 system (CONFIG) =====
-  const MATCH_3_CHARGES = 1;      // charges gained for 3-in-a-row
-  const MATCH_4_CHARGES = 2;      // charges gained for 4-in-a-row
-  const MATCH_5_CHARGES = 3;      // charges gained for 5-in-a-row
-  const MATCH_LINE_KZ_BONUS = 1;  // KZ drops per line combo
-  const MATCH_PAIR_KZ_BONUS = 2;  // KZ drops per pair combo
-  const MATCH_HIGHLIGHT_SEC = 2.0; // seconds to highlight matched blocks before destroying
-  const MATCH_SHRINK_PHASE = 0.3;  // last 30% of time is shrink+fade animation
-  const MAGIC_SHRINK_SEC = 0.5;    // seconds for magic hit shrink animation (no blink, just shrink)
-
-  // ===== Scoring system (CONFIG) =====
-  const SCORE_PIECE_PLACED = 10;      // points for placing a piece
-  const SCORE_RING_BASE = 500;        // base points per ring
-  const SCORE_RING_MULTI = [1.0, 1.25, 1.5, 1.75, 2.0]; // multiplier for 1, 2, 3, 4, 5 simultaneous rings
-  const SCORE_LINE_PER_BLOCK = 10;    // points per block in line (3 blocks = 30, 4 = 40, 5 = 50)
-  const SCORE_PAIR = 100;             // points for AABB pair
-  const SCORE_MAGIC_DESTROY = 25;     // points for destroying block with magic
-
-  // Combo multiplier: multiple combos in one wave (index = combo count - 1, capped at last value)
-  const COMBO_MULTIPLIERS = [1.0, 1.3, 1.6, 2.0]; // 1, 2, 3, 4+ combos
-
-  // Cascade multiplier: combos triggered after gravity (index = cascade level - 1, capped at last value)
-  const CASCADE_MULTIPLIERS = [1.0, 1.5, 2.0, 2.5]; // cascade 1, 2, 3, 4+
-
-  // Element colors: 1=fire(red), 2=water(blue), 3=lightning(yellow), 4=earth(green)
+  // ===== Element colors =====
+  // 1=fire(red), 2=water(blue), 3=lightning(yellow), 4=earth(green)
   const ELEMENT_COLORS = {
     1: '#ff4d4d',  // fire - red
     2: '#4da6ff',  // water - blue
@@ -256,20 +225,49 @@
   };
   const ELEMENT_NAMES = { 1: 'fire', 2: 'water', 3: 'lightning', 4: 'earth' };
   const ELEMENT_TO_COLOR = { fire: 1, water: 2, lightning: 3, earth: 4 };
-  
-  // Magic targeting visual (CONFIG)
-  const MAGIC_DIM_DOT_ALPHA = 0.3;    // how dim non-target dots become
-  const MAGIC_DIM_DOT_SCALE = 0.5;    // how small non-target dots become
-  const MAGIC_TARGET_DOT_SCALE = 1.3; // how much to enlarge target dots
 
-  // ===== Controls direction params =====
-  // Direction switch for cylinder rotation (+1 / -1)
-  const ROT_DIR = 1;
+  // ===== Piece fall & lock =====
+  const FALL_INTERVAL = 1;        // seconds per row (lower = faster)
+  const LOCK_DELAY_SEC = 0.58;    // seconds before piece locks when grounded
+  const LOCK_RESET_ON_MOVE = true; // reset lock timer on move/rotate
+  const LOCK_RESET_LIMIT = 12;    // max lock resets allowed
 
-  // Rotation direction for the PIECE:
-  // +1 = default "rotate right / clockwise" (as you requested)
-  // -1 = rotate left / counter-clockwise
-  const ROTATE_DIR = -1;
+  // ===== Killzone =====
+  const KILL_RATE = 0.09 * 2;         // units per second (how fast KZ rises)
+  const KILL_RING_BONUS = 4.0;    // how much KZ drops when ring is cleared
+
+  // ===== Match-3 system =====
+  const MATCH_3_CHARGES = 1;      // magic charges for 3-in-a-row
+  const MATCH_4_CHARGES = 2;      // magic charges for 4-in-a-row
+  const MATCH_5_CHARGES = 3;      // magic charges for 5-in-a-row
+  const MATCH_LINE_KZ_BONUS = 1;  // KZ drops per line combo
+  const MATCH_PAIR_KZ_BONUS = 2;  // KZ drops per pair combo
+
+  // ===== Match animation =====
+  const MATCH_HIGHLIGHT_SEC = 2.0; // seconds to highlight matched blocks
+  const MATCH_SHRINK_PHASE = 0.3;  // last 30% of time is shrink+fade
+  const MAGIC_SHRINK_SEC = 0.5;    // seconds for magic hit animation
+
+  // ===== Magic targeting visual =====
+  const MAGIC_DIM_DOT_ALPHA = 0.3;    // opacity of non-target dots
+  const MAGIC_DIM_DOT_SCALE = 0.5;    // scale of non-target dots
+  const MAGIC_TARGET_DOT_SCALE = 1.3; // scale of target dots
+
+  // ===== Scoring =====
+  const SCORE_PIECE_PLACED = 10;      // points for placing a piece
+  const SCORE_RING_BASE = 500;        // base points per ring
+  const SCORE_RING_MULTI = [1.0, 1.25, 1.5, 1.75, 2.0]; // multiplier for 1-5 rings
+  const SCORE_LINE_PER_BLOCK = 10;    // points per block in line (3=30, 4=40, 5=50)
+  const SCORE_PAIR = 100;             // points for AABB pair
+  const SCORE_MAGIC_DESTROY = 25;     // points for magic destroy
+
+  // ===== Scoring multipliers =====
+  const COMBO_MULTIPLIERS = [1.0, 1.3, 1.6, 2.0];   // 1, 2, 3, 4+ combos in one wave
+  const CASCADE_MULTIPLIERS = [1.0, 1.5, 2.0, 2.5]; // cascade level 1, 2, 3, 4+
+
+  // ===== Controls direction =====
+  const ROT_DIR = 1;      // cylinder rotation direction (+1 / -1)
+  const ROTATE_DIR = -1;  // piece rotation direction (+1=CW, -1=CCW)
 
   // ===== Grid =====
   const grid = Array.from({length: H}, () => new Uint8Array(N));
@@ -323,19 +321,20 @@
   let lastMoveTime = 0;
   let rotAccumulator = 0;
 
-  const PX_PER_STEP = 34;
-  const DEADZONE_PX = 6;
-  const PX_PER_DROP = 18;
-  const AXIS_DOMINANCE = 1.35;
-  const SWIPE_SPEED_REF = 650;
-  const MIN_DROP_PX = 6;
-  const MAX_DROP_PX = 22;
-  const MIN_ROT_PX = 5; // 14;
-  const MAX_ROT_PX = 46;  // 46;
+  // ===== Swipe mechanics =====
+  const PX_PER_STEP = 34;       // base pixels per rotation step
+  const DEADZONE_PX = 6;        // min drag distance before action
+  const PX_PER_DROP = 18;       // base pixels per drop step
+  const AXIS_DOMINANCE = 1.35;  // ratio to lock axis (horizontal vs vertical)
+  const SWIPE_SPEED_REF = 650;  // reference swipe speed for scaling
+  const MIN_DROP_PX = 6;        // min pixels per drop at fast swipe
+  const MAX_DROP_PX = 22;       // max pixels per drop at slow swipe
+  const MIN_ROT_PX = 5;         // min pixels per rotation at fast swipe
+  const MAX_ROT_PX = 46;        // max pixels per rotation at slow swipe
 
-  // ===== Double tap / double click =====
-  const DOUBLE_TAP_MS = 280;
-  const DOUBLE_TAP_MAX_DIST = 18;
+  // ===== Double tap =====
+  const DOUBLE_TAP_MS = 280;      // max time between taps
+  const DOUBLE_TAP_MAX_DIST = 18; // max distance between taps
   let lastTapTime = 0;
   let lastTapX = 0;
   let lastTapY = 0;
