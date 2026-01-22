@@ -314,7 +314,7 @@
   let lastTapTime = 0;
   let lastTapX = 0;
   let lastTapY = 0;
-  const APP_VERSION = '0.5.2';
+  const APP_VERSION = '0.5.3';
 
   // ===== Game state / scoring =====
   let gameState = 'intro'; // intro | playing | gameover
@@ -937,33 +937,44 @@
   function findMatches() {
     const lineMatches = []; // { color, length, cells }
     const pairMatches = []; // { cells } - 4 cells: AABB pattern
+    const foundHorizontal = new Set(); // track found matches to avoid duplicates
 
     // Find horizontal matches (along the ring) - lines of 3+
+    // Scan with wrap-around: check each position as potential start
     for (let y = 0; y < H; y++) {
-      let runStart = 0;
-      let runColor = grid[y][0];
-      let runLength = runColor ? 1 : 0;
-
-      for (let s = 1; s <= N; s++) {
-        const color = s < N ? grid[y][s] : 0;
-        if (color && color === runColor) {
-          runLength++;
-        } else {
-          if (runLength >= 3 && runColor) {
-            const cells = [];
-            for (let i = 0; i < runLength; i++) {
-              cells.push({ y, s: normSector(runStart + i) });
-            }
-            lineMatches.push({ color: runColor, length: runLength, cells });
+      for (let startS = 0; startS < N; startS++) {
+        const startColor = grid[y][startS];
+        if (!startColor) continue;
+        
+        // Count consecutive same-color cells
+        let runLength = 1;
+        for (let i = 1; i < N; i++) {
+          const s = (startS + i) % N;
+          if (grid[y][s] === startColor) {
+            runLength++;
+          } else {
+            break;
           }
-          runStart = s;
-          runColor = color;
-          runLength = color ? 1 : 0;
+        }
+        
+        if (runLength >= 3) {
+          // Create unique key to avoid duplicates
+          const cells = [];
+          const minS = Math.min(...Array.from({length: runLength}, (_, i) => (startS + i) % N));
+          const key = `${y},${minS},${runLength},${startColor}`;
+          
+          if (!foundHorizontal.has(key)) {
+            foundHorizontal.add(key);
+            for (let i = 0; i < runLength; i++) {
+              cells.push({ y, s: (startS + i) % N });
+            }
+            lineMatches.push({ color: startColor, length: runLength, cells });
+          }
         }
       }
     }
 
-    // Find vertical matches - lines of 3+
+    // Find vertical matches - lines of 3+ (no wrap-around vertically)
     for (let s = 0; s < N; s++) {
       let runStart = 0;
       let runColor = grid[0][s];
@@ -988,21 +999,21 @@
       }
     }
 
-    // Find pair combos (AABB pattern) - horizontal
+    // Find pair combos (AABB pattern) - horizontal (with wrap-around)
     for (let y = 0; y < H; y++) {
-      for (let s = 0; s < N - 3; s++) {
+      for (let s = 0; s < N; s++) {
         const c0 = grid[y][s];
-        const c1 = grid[y][s + 1];
-        const c2 = grid[y][s + 2];
-        const c3 = grid[y][s + 3];
+        const c1 = grid[y][(s + 1) % N];
+        const c2 = grid[y][(s + 2) % N];
+        const c3 = grid[y][(s + 3) % N];
         // Pattern: AA BB where A != B, both non-zero
         if (c0 && c0 === c1 && c2 && c2 === c3 && c0 !== c2) {
           pairMatches.push({
             cells: [
               { y, s: s },
-              { y, s: s + 1 },
-              { y, s: s + 2 },
-              { y, s: s + 3 }
+              { y, s: (s + 1) % N },
+              { y, s: (s + 2) % N },
+              { y, s: (s + 3) % N }
             ]
           });
         }
