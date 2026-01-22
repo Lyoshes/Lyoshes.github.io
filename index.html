@@ -1630,7 +1630,17 @@
     const radiusY = radiusX * 0.28;
 
     const killY = levelYToScreenY(topY, towerHeightPx, killLevel);
-    ctx.fillStyle = 'rgba(28,72,120,0.42)';
+    // KZ color: blue to red based on danger level (red starts at 70% height)
+    const dangerThreshold = 0.7;
+    const killProgress = killLevel / H;
+    let kzR = 28, kzG = 72, kzB = 120;
+    if (killProgress > dangerThreshold) {
+      const dangerProgress = (killProgress - dangerThreshold) / (1 - dangerThreshold);
+      kzR = Math.round(28 + (180 - 28) * dangerProgress);   // 28 -> 180
+      kzG = Math.round(72 + (40 - 72) * dangerProgress);    // 72 -> 40
+      kzB = Math.round(120 + (50 - 120) * dangerProgress);  // 120 -> 50
+    }
+    ctx.fillStyle = `rgba(${kzR},${kzG},${kzB},0.45)`;
     ctx.fillRect(0, killY, w, h - killY);
 
     ctx.strokeStyle = 'rgba(160,190,220,0.25)';
@@ -1641,12 +1651,6 @@
       ctx.ellipse(centerX, py, radiusX, radiusY, 0, 0, TAU);
       ctx.stroke();
     }
-
-    ctx.strokeStyle = 'rgba(255,220,140,0.55)';
-    ctx.beginPath();
-    ctx.moveTo(centerX, topY);
-    ctx.lineTo(centerX, bottomY);
-    ctx.stroke();
 
     const backBlocks = [];
     const frontBlocks = [];
