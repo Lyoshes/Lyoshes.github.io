@@ -216,6 +216,40 @@
     .toggle-switch.active::after {
       transform: translateX(20px);
     }
+    /* Bonus popups */
+    .bonus-popup {
+      position: fixed;
+      pointer-events: none;
+      font: bold 18px/1 system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.7), 0 0 4px rgba(0,0,0,0.5);
+      z-index: 100;
+      animation: bonusFloat 1.8s ease-out forwards;
+      white-space: nowrap;
+    }
+    .bonus-popup.score { color: #fff; }
+    .bonus-popup.time { color: #5ae08a; }
+    .bonus-popup.charge { color: #ffd84d; }
+    .bonus-popup.ring { color: #ff9f43; font-size: 24px; font-weight: 800; }
+    @keyframes bonusFloat {
+      0% {
+        opacity: 0;
+        transform: translateY(15px) scale(0.7);
+      }
+      12% {
+        opacity: 1;
+        transform: translateY(0) scale(1.15);
+      }
+      25% {
+        transform: translateY(-8px) scale(1);
+      }
+      65% {
+        opacity: 1;
+      }
+      100% {
+        opacity: 0;
+        transform: translateY(-50px);
+      }
+    }
     .controls-right {
       position:fixed;
       right:12px;
@@ -621,7 +655,7 @@
   let lastTapTime = 0;
   let lastTapX = 0;
   let lastTapY = 0;
-  const APP_VERSION = '0.6.9';
+  const APP_VERSION = '0.7.1';
 
   // ===== Game state / scoring =====
   let gameState = 'intro'; // intro | playing | gameover
@@ -641,6 +675,43 @@
   };
 
   const overlay = document.getElementById('overlay');
+
+  // Bonus popup system with random spread
+  let bonusPopupIndex = 0;
+  
+  function showBonus(text, type = 'score') {
+    const popup = document.createElement('div');
+    popup.className = `bonus-popup ${type}`;
+    popup.textContent = text;
+    
+    // Random spread around center
+    const centerX = window.innerWidth / 2;
+    const centerY = window.innerHeight / 2 - 40;
+    const spreadX = (Math.random() - 0.5) * 120; // -60 to +60 px
+    const spreadY = (Math.random() - 0.5) * 60 + bonusPopupIndex * 28; // stagger vertically
+    
+    popup.style.left = `${centerX + spreadX}px`;
+    popup.style.top = `${centerY + spreadY}px`;
+    popup.style.transform = 'translate(-50%, -50%)';
+    
+    document.body.appendChild(popup);
+    bonusPopupIndex++;
+    
+    // Reset index after a short delay
+    setTimeout(() => {
+      bonusPopupIndex = Math.max(0, bonusPopupIndex - 1);
+    }, 200);
+    
+    // Remove after animation completes
+    setTimeout(() => {
+      popup.remove();
+    }, 1800);
+  }
+  
+  function getElementIcon(element) {
+    const icons = { fire: '🔥', water: '💧', lightning: '⚡', earth: '🌿' };
+    return icons[element] || '✦';
+  }
   const overlayTitle = document.getElementById('overlayTitle');
   const overlayStats = document.getElementById('overlayStats');
   const startBtn = document.getElementById('startBtn');
@@ -743,6 +814,9 @@
       isMagicAnimation = true;
       pendingKzBonus = 0;
       pendingScore = SCORE_MAGIC_DESTROY;
+      
+      // Show magic bonus popup
+      showBonus(`+${SCORE_MAGIC_DESTROY}`, 'score');
       
       // Magic can trigger cascades too
       cascadeLevel = 0;
@@ -877,6 +951,8 @@
     const cellMap = new Map(); // key -> { y, s, color, isLine }
     let totalKzBonus = 0;
     let baseScore = 0;
+    let totalTimeBonus = 0;
+    let totalCharges = {};
 
     // Count total combos for combo multiplier
     const comboCount = lineMatches.length + pairMatches.length;
@@ -902,8 +978,10 @@
 
       if (element && magicCharges[element] !== undefined) {
         magicCharges[element] += charges;
+        totalCharges[element] = (totalCharges[element] || 0) + charges;
       }
       totalKzBonus += timeBonus * KILL_RATE; // convert seconds to KZ units
+      totalTimeBonus += timeBonus;
       baseScore += match.length * SCORE_LINE_PER_BLOCK;
 
       for (const cell of match.cells) {
@@ -918,6 +996,7 @@
     for (const match of pairMatches) {
       stats.pairs++;
       totalKzBonus += TIME_BONUS_PAIR * KILL_RATE; // convert seconds to KZ units
+      totalTimeBonus += TIME_BONUS_PAIR;
       baseScore += SCORE_PAIR;
 
       for (const cell of match.cells) {
@@ -932,6 +1011,23 @@
     const comboMulti = getMultiplier(COMBO_MULTIPLIERS, comboCount - 1);
     const cascadeMulti = getMultiplier(CASCADE_MULTIPLIERS, cascadeLevel);
     const totalScore = Math.round(baseScore * comboMulti * cascadeMulti);
+
+    // Show bonus popups
+    let popupDelay = 0;
+    if (totalScore > 0) {
+      setTimeout(() => showBonus(`+${totalScore}`, 'score'), popupDelay);
+      popupDelay += 120;
+    }
+    if (totalTimeBonus > 0) {
+      setTimeout(() => showBonus(`+${totalTimeBonus}s`, 'time'), popupDelay);
+      popupDelay += 120;
+    }
+    for (const [element, charges] of Object.entries(totalCharges)) {
+      if (charges > 0) {
+        setTimeout(() => showBonus(`+${charges}${getElementIcon(element)}`, 'charge'), popupDelay);
+        popupDelay += 120;
+      }
+    }
 
     // Start highlight phase
     highlightedCells = Array.from(cellMap.values());
@@ -990,6 +1086,12 @@
         const ringScore = Math.round(SCORE_RING_BASE * cleared * ringMulti);
         score += ringScore;
         updateScoreHud();
+        
+        // Show ring bonus popups
+        const ringText = cleared > 1 ? `${cleared}× RING!` : 'RING!';
+        showBonus(ringText, 'ring');
+        setTimeout(() => showBonus(`+${ringScore}`, 'score'), 150);
+        setTimeout(() => showBonus(`+${TIME_BONUS_RING * cleared}s`, 'time'), 300);
       }
       // Spawn next piece if we don't have one
       if (!activePiece && gameState === 'playing') {
@@ -1420,6 +1522,7 @@
 
     score += SCORE_PIECE_PLACED;
     updateScoreHud();
+    showBonus(`+${SCORE_PIECE_PLACED}`, 'score');
     
     // Clear active piece - new one spawns after match processing completes
     activePiece = null;
