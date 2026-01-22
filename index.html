@@ -655,7 +655,7 @@
   let lastTapTime = 0;
   let lastTapX = 0;
   let lastTapY = 0;
-  const APP_VERSION = '0.8.7';
+  const APP_VERSION = '0.8.8';
 
   // ===== Game state / scoring =====
   let gameState = 'intro'; // intro | playing | gameover
@@ -2087,8 +2087,8 @@
     ctx.ellipse(centerX, glassBottom, radiusX + 8, radiusY + 4, 0, 0, Math.PI);
     ctx.stroke();
     
-    // Fill the glass bottom (ellipse inside) with gray - full ellipse
-    ctx.fillStyle = 'rgba(60,70,80,0.8)';
+    // Fill the glass bottom (ellipse inside) with black - full ellipse
+    ctx.fillStyle = '#0b0f14';
     ctx.beginPath();
     ctx.ellipse(centerX, glassBottom, radiusX + 8, radiusY + 4, 0, 0, TAU);
     ctx.fill();
