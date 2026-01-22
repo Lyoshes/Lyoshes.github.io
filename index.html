@@ -317,7 +317,7 @@
   let lastTapTime = 0;
   let lastTapX = 0;
   let lastTapY = 0;
-  const APP_VERSION = '0.5.8';
+  const APP_VERSION = '0.5.9';
 
   // ===== Game state / scoring =====
   let gameState = 'intro'; // intro | playing | gameover
@@ -1319,7 +1319,7 @@
     };
   }
 
-  function drawOrientedBlock(px, py, tx, ty, w, h, fillStyle, alpha=1, elementColor=null) {
+  function drawOrientedBlock(px, py, tx, ty, w, h, fillStyle, alpha=1, elementColor=null, dotAlpha=1) {
     ctx.save();
     ctx.translate(px, py);
     const a = Math.atan2(ty, tx);
@@ -1331,6 +1331,7 @@
     // Draw element color dot in center
     if (elementColor) {
       const dotRadius = Math.min(w, h) * 0.28;
+      ctx.globalAlpha = alpha * dotAlpha;
       ctx.fillStyle = elementColor;
       ctx.beginPath();
       ctx.arc(0, 0, dotRadius, 0, TAU);
@@ -1442,7 +1443,8 @@
       const alpha = isHighlighted ? blockAlpha : 1;
       const scale = isHighlighted ? blockScale : 1;
       
-      drawOrientedBlock(p0.x, p0.y, tx, ty, bw * scale, bh * scale, BLOCK_COLOR_BACK, alpha, elemColor);
+      // Back blocks: dim the element dot to reduce visual noise
+      drawOrientedBlock(p0.x, p0.y, tx, ty, bw * scale, bh * scale, BLOCK_COLOR_BACK, alpha, elemColor, 0.25);
     }
 
     // Draw highlighted back blocks with dimmed blinking + shrink/fade (or just shrink for magic)
