@@ -9,7 +9,21 @@
   <meta name="theme-color" content="#0b0f14" />
   <title>Elemental Blocks MVP</title>
   <style>
-    html, body { margin:0; padding:0; height:100%; background:#0b0f14; overflow:hidden; touch-action:none; }
+    html, body { 
+      margin:0; 
+      padding:0; 
+      height:100%; 
+      background:#0b0f14; 
+      overflow:hidden; 
+      touch-action:none; 
+      user-select:none;
+      -webkit-user-select:none;
+      -webkit-touch-callout:none;
+    }
+    * { 
+      user-select:none;
+      -webkit-user-select:none;
+    }
     canvas { display:block; width:100%; height:100%; touch-action:none; }
     .hud  {
       position:fixed;
@@ -32,7 +46,7 @@
       text-align:right;
     }
     #scoreHud { font-size:16px; font-weight:600; }
-    #timeHud { font-size:12px; color:#b6c9e6; }
+    #timeHud { font-size:12px; color:#b6c9e6; font-weight:600; }
     .hud-right canvas {
       margin-top:6px;
       background:rgba(10,15,22,0.55);
@@ -262,7 +276,7 @@
     .control-btn {
       width:54px;
       height:54px;
-      border-radius:14px;
+      border-radius:50%;
       border:1px solid rgba(160,190,220,0.35);
       background:rgba(14,20,28,0.85);
       color:#cfe0f3;
@@ -422,7 +436,7 @@
   <div id="scoreHud">Score: 0</div>
   <div id="timeHud">Time: 0:00</div>
   <div id="nextLabel">Next</div>
-  <canvas id="nextCanvas" width="90" height="90"></canvas>
+  <canvas id="nextCanvas" width="72" height="72"></canvas>
 </div>
 <div class="overlay" id="overlay">
   <div class="panel">
@@ -503,6 +517,10 @@
   const canvas = document.getElementById('c');
   const ctx = canvas.getContext('2d');
   canvas.style.touchAction = 'none';
+
+  // Disable context menu (right-click / long-press menu)
+  document.addEventListener('contextmenu', (e) => e.preventDefault());
+  document.addEventListener('selectstart', (e) => e.preventDefault());
 
   const TAU = Math.PI * 2;
 
@@ -655,7 +673,7 @@
   let lastTapTime = 0;
   let lastTapX = 0;
   let lastTapY = 0;
-  const APP_VERSION = '0.8.8';
+  const APP_VERSION = '0.9.1';
 
   // ===== Game state / scoring =====
   let gameState = 'intro'; // intro | playing | gameover
@@ -2410,10 +2428,7 @@
       }
     }
 
-    hud.innerHTML =
-      `<div>rot=${rotFloat.toFixed(2)} snap=${snappedRot()}</div>` +
-      `<div>grounded=${isGrounded?1:0} lock=${lockTimer.toFixed(2)}/${LOCK_DELAY_SEC}</div>` +
-      `<div>resets=${lockResets}/${LOCK_RESET_LIMIT||'∞'}</div>`;
+    hud.innerHTML = '';
   }
 
   // =========================
