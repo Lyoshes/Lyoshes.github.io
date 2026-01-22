@@ -181,6 +181,76 @@
       color: #5a7090;
       margin-top: 8px;
     }
+    /* Intro screen */
+    .intro-survival {
+      font-size: 13px;
+      color: #8fa8c8;
+      margin-bottom: 10px;
+    }
+    .intro-box {
+      border: 1px solid rgba(160,190,220,0.25);
+      border-radius: 8px;
+      padding: 10px 14px;
+      background: rgba(30,40,55,0.5);
+    }
+    .intro-box-title {
+      font-size: 12px;
+      color: #7a9abc;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+    .intro-rules {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .rule-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .dots {
+      display: flex;
+      gap: 3px;
+      min-width: 70px;
+      justify-content: flex-end;
+    }
+    .dots.ring {
+      font-size: 16px;
+      color: #cfe0f3;
+    }
+    .dot {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .dot.r { background: #ff4d4d; }
+    .dot.b { background: #4da6ff; }
+    .dot.y { background: #ffd84d; }
+    .dot.g { background: #47d16a; }
+    .rule-text {
+      min-width: 75px;
+      text-align: left;
+      color: #cfe0f3;
+      font-size: 13px;
+    }
+    .rule-text small {
+      color: #6a8aac;
+      font-size: 10px;
+      margin-left: 3px;
+    }
+    .rule-time {
+      color: #5a9a7a;
+      font-size: 12px;
+      min-width: 35px;
+    }
+    .intro-version {
+      font-size: 11px;
+      color: #5a7090;
+      margin-top: 12px;
+    }
   </style>
 </head>
 <body>
@@ -267,15 +337,20 @@
   const LOCK_RESET_LIMIT = 12;    // max lock resets allowed
 
   // ===== Killzone =====
-  const KILL_RATE = 0.09 * 2;         // units per second (how fast KZ rises)
-  const KILL_RING_BONUS = 4.0;    // how much KZ drops when ring is cleared
+  const SURVIVAL_TIME_SEC = 120;      // seconds to game over without any action
+  const KILL_RATE = H / SURVIVAL_TIME_SEC; // calculated from survival time
 
   // ===== Match-3 system =====
   const MATCH_3_CHARGES = 1;      // magic charges for 3-in-a-row
   const MATCH_4_CHARGES = 2;      // magic charges for 4-in-a-row
   const MATCH_5_CHARGES = 3;      // magic charges for 5-in-a-row
-  const MATCH_LINE_KZ_BONUS = 1;  // KZ drops per line combo
-  const MATCH_PAIR_KZ_BONUS = 2;  // KZ drops per pair combo
+
+  // ===== Time bonuses (seconds) =====
+  const TIME_BONUS_LINE_3 = 5;    // seconds added for 3-in-a-row
+  const TIME_BONUS_LINE_4 = 8;    // seconds added for 4-in-a-row
+  const TIME_BONUS_LINE_5 = 10;   // seconds added for 5-in-a-row
+  const TIME_BONUS_PAIR = 15;     // seconds added for AABB pair
+  const TIME_BONUS_RING = 30;     // seconds added for completed ring
 
   // ===== Match animation =====
   const MATCH_HIGHLIGHT_SEC = 2.0; // seconds to highlight matched blocks
@@ -372,7 +447,7 @@
   let lastTapTime = 0;
   let lastTapX = 0;
   let lastTapY = 0;
-  const APP_VERSION = '0.6.5';
+  const APP_VERSION = '0.6.7';
 
   // ===== Game state / scoring =====
   let gameState = 'intro'; // intro | playing | gameover
@@ -635,21 +710,25 @@
     for (const match of lineMatches) {
       const element = ELEMENT_NAMES[match.color];
       let charges = 0;
+      let timeBonus = 0;
       if (match.length >= 5) {
         charges = MATCH_5_CHARGES;
+        timeBonus = TIME_BONUS_LINE_5;
         stats.lines5++;
       } else if (match.length === 4) {
         charges = MATCH_4_CHARGES;
+        timeBonus = TIME_BONUS_LINE_4;
         stats.lines4++;
       } else if (match.length === 3) {
         charges = MATCH_3_CHARGES;
+        timeBonus = TIME_BONUS_LINE_3;
         stats.lines3++;
       }
 
       if (element && magicCharges[element] !== undefined) {
         magicCharges[element] += charges;
       }
-      totalKzBonus += MATCH_LINE_KZ_BONUS;
+      totalKzBonus += timeBonus * KILL_RATE; // convert seconds to KZ units
       baseScore += match.length * SCORE_LINE_PER_BLOCK;
 
       for (const cell of match.cells) {
@@ -663,7 +742,7 @@
     // Process pair matches
     for (const match of pairMatches) {
       stats.pairs++;
-      totalKzBonus += MATCH_PAIR_KZ_BONUS;
+      totalKzBonus += TIME_BONUS_PAIR * KILL_RATE; // convert seconds to KZ units
       baseScore += SCORE_PAIR;
 
       for (const cell of match.cells) {
@@ -696,9 +775,9 @@
       grid[cell.y][cell.s] = 0;
     }
 
-    // Apply pending bonuses
+    // Apply pending bonuses (pendingKzBonus is already in KZ units)
     if (pendingKzBonus > 0) {
-      killLevel = Math.max(0, killLevel - pendingKzBonus * (KILL_RATE * 10));
+      killLevel = Math.max(0, killLevel - pendingKzBonus);
     }
     score += pendingScore;
     updateScoreHud();
@@ -867,7 +946,44 @@
     overlay.classList.remove('hidden');
     if (gameState === 'intro') {
       overlayTitle.textContent = 'Elemental Blocks';
-      overlayStats.innerHTML = `Push Start • v${APP_VERSION}`;
+      // Survival time from settings
+      const survivalMin = Math.floor(SURVIVAL_TIME_SEC / 60);
+      const survivalSec = SURVIVAL_TIME_SEC % 60;
+      
+      overlayStats.innerHTML = `
+        <div class="intro-survival">⏱ Survive: ${survivalMin}:${survivalSec.toString().padStart(2,'0')}</div>
+        <div class="intro-box">
+          <div class="intro-box-title">Combos</div>
+          <div class="intro-rules">
+            <div class="rule-row">
+              <span class="dots"><i class="dot r"></i><i class="dot r"></i><i class="dot r"></i></span>
+              <span class="rule-text">+30 <small>+1✦</small></span>
+              <span class="rule-time">+${TIME_BONUS_LINE_3}s</span>
+            </div>
+            <div class="rule-row">
+              <span class="dots"><i class="dot b"></i><i class="dot b"></i><i class="dot b"></i><i class="dot b"></i></span>
+              <span class="rule-text">+40 <small>+2✦</small></span>
+              <span class="rule-time">+${TIME_BONUS_LINE_4}s</span>
+            </div>
+            <div class="rule-row">
+              <span class="dots"><i class="dot y"></i><i class="dot y"></i><i class="dot y"></i><i class="dot y"></i><i class="dot y"></i></span>
+              <span class="rule-text">+50 <small>+3✦</small></span>
+              <span class="rule-time">+${TIME_BONUS_LINE_5}s</span>
+            </div>
+            <div class="rule-row">
+              <span class="dots"><i class="dot g"></i><i class="dot g"></i><i class="dot r"></i><i class="dot r"></i></span>
+              <span class="rule-text">+100</span>
+              <span class="rule-time">+${TIME_BONUS_PAIR}s</span>
+            </div>
+            <div class="rule-row">
+              <span class="dots ring">◯</span>
+              <span class="rule-text">+500</span>
+              <span class="rule-time">+${TIME_BONUS_RING}s</span>
+            </div>
+          </div>
+        </div>
+        <div class="intro-version">v${APP_VERSION}</div>
+      `;
       startBtn.textContent = 'Start';
     } else {
       overlayTitle.textContent = 'Game Over';
@@ -1099,7 +1215,7 @@
 
       y--;
       cleared += 1;
-      killLevel = Math.max(0, killLevel - KILL_RING_BONUS);
+      killLevel = Math.max(0, killLevel - TIME_BONUS_RING * KILL_RATE);
     }
     return cleared;
   }
