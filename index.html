@@ -233,6 +233,20 @@
   const MATCH_SHRINK_PHASE = 0.3;  // last 30% of time is shrink+fade animation
   const MAGIC_SHRINK_SEC = 0.5;    // seconds for magic hit shrink animation (no blink, just shrink)
 
+  // ===== Scoring system (CONFIG) =====
+  const SCORE_PIECE_PLACED = 10;      // points for placing a piece
+  const SCORE_RING_BASE = 500;        // base points per ring
+  const SCORE_RING_MULTI = [1.0, 1.25, 1.5, 1.75, 2.0]; // multiplier for 1, 2, 3, 4, 5 simultaneous rings
+  const SCORE_LINE_PER_BLOCK = 10;    // points per block in line (3 blocks = 30, 4 = 40, 5 = 50)
+  const SCORE_PAIR = 100;             // points for AABB pair
+  const SCORE_MAGIC_DESTROY = 25;     // points for destroying block with magic
+
+  // Combo multiplier: multiple combos in one wave (index = combo count - 1, capped at last value)
+  const COMBO_MULTIPLIERS = [1.0, 1.3, 1.6, 2.0]; // 1, 2, 3, 4+ combos
+
+  // Cascade multiplier: combos triggered after gravity (index = cascade level - 1, capped at last value)
+  const CASCADE_MULTIPLIERS = [1.0, 1.5, 2.0, 2.5]; // cascade 1, 2, 3, 4+
+
   // Element colors: 1=fire(red), 2=water(blue), 3=lightning(yellow), 4=earth(green)
   const ELEMENT_COLORS = {
     1: '#ff4d4d',  // fire - red
@@ -319,7 +333,7 @@
   let lastTapTime = 0;
   let lastTapX = 0;
   let lastTapY = 0;
-  const APP_VERSION = '0.6.0';
+  const APP_VERSION = '0.6.1';
 
   // ===== Game state / scoring =====
   let gameState = 'intro'; // intro | playing | gameover
@@ -360,6 +374,7 @@
   let isMagicAnimation = false; // true = shrink only (no blink), false = blink + shrink
   let pendingKzBonus = 0; // KZ bonus to apply after highlight ends
   let pendingScore = 0;   // Score to apply after highlight ends
+  let cascadeLevel = 0;   // current cascade depth (resets on piece placement)
 
   function updateMagicBtns() {
     for (const [element, btn] of Object.entries(magicBtns)) {
@@ -423,7 +438,10 @@
       isHighlighting = true;
       isMagicAnimation = true;
       pendingKzBonus = 0;
-      pendingScore = 25; // bonus for destroying block
+      pendingScore = SCORE_MAGIC_DESTROY;
+      
+      // Magic can trigger cascades too
+      cascadeLevel = 0;
       
       magicCharges[activeMagic]--;
       activeMagic = null;
@@ -544,11 +562,19 @@
     continueMatchProcessing();
   }
 
+  function getMultiplier(array, index) {
+    // Get multiplier from array, capped at last value
+    return array[Math.min(index, array.length - 1)];
+  }
+
   function startHighlight(lineMatches, pairMatches) {
     // Collect all cells to highlight
     const cellMap = new Map(); // key -> { y, s, color, isLine }
     let totalKzBonus = 0;
-    let totalScore = 0;
+    let baseScore = 0;
+
+    // Count total combos for combo multiplier
+    const comboCount = lineMatches.length + pairMatches.length;
 
     // Process line matches (3, 4, 5+)
     for (const match of lineMatches) {
@@ -562,7 +588,7 @@
         magicCharges[element] += charges;
       }
       totalKzBonus += MATCH_LINE_KZ_BONUS;
-      totalScore += match.length * 10;
+      baseScore += match.length * SCORE_LINE_PER_BLOCK;
 
       for (const cell of match.cells) {
         const key = `${cell.y},${cell.s}`;
@@ -575,7 +601,7 @@
     // Process pair matches
     for (const match of pairMatches) {
       totalKzBonus += MATCH_PAIR_KZ_BONUS;
-      totalScore += 5;
+      baseScore += SCORE_PAIR;
 
       for (const cell of match.cells) {
         const key = `${cell.y},${cell.s}`;
@@ -584,6 +610,11 @@
         }
       }
     }
+
+    // Apply multipliers
+    const comboMulti = getMultiplier(COMBO_MULTIPLIERS, comboCount - 1);
+    const cascadeMulti = getMultiplier(CASCADE_MULTIPLIERS, cascadeLevel);
+    const totalScore = Math.round(baseScore * comboMulti * cascadeMulti);
 
     // Start highlight phase
     highlightedCells = Array.from(cellMap.values());
@@ -616,6 +647,9 @@
     pendingKzBonus = 0;
     pendingScore = 0;
 
+    // Increment cascade level for next wave
+    cascadeLevel++;
+
     // Continue cascade: gravity -> check matches again
     continueMatchProcessing();
   }
@@ -627,13 +661,16 @@
     // Check for new matches
     const { lineMatches, pairMatches } = findMatches();
     if (lineMatches.length > 0 || pairMatches.length > 0) {
-      // Start new highlight phase
+      // Start new highlight phase (cascadeLevel already incremented)
       startHighlight(lineMatches, pairMatches);
     } else {
       // No more matches - check rings and finish
       const cleared = clearRings();
       if (cleared > 0) {
-        score += cleared * 500;
+        // Apply ring bonus with multiplier for multiple rings
+        const ringMulti = getMultiplier(SCORE_RING_MULTI, cleared - 1);
+        const ringScore = Math.round(SCORE_RING_BASE * cleared * ringMulti);
+        score += ringScore;
         updateScoreHud();
       }
       // Spawn next piece if we don't have one
@@ -854,6 +891,7 @@
     isMagicAnimation = false;
     pendingKzBonus = 0;
     pendingScore = 0;
+    cascadeLevel = 0;
     updateMagicBtns();
     updateScoreHud();
     updateTimeHud();
@@ -986,11 +1024,14 @@
       return;
     }
 
-    score += 50;
+    score += SCORE_PIECE_PLACED;
     updateScoreHud();
     
     // Clear active piece - new one spawns after match processing completes
     activePiece = null;
+    
+    // Reset cascade level for new piece
+    cascadeLevel = 0;
     
     // Process gravity, match combos, and ring clears (with cascade)
     applyGravity();
