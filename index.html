@@ -221,6 +221,22 @@
   // ===== Piece fall speed (CONFIG) =====
   const FALL_INTERVAL = 1;     // seconds per row (lower = faster)
 
+  // ===== Match-3 system (CONFIG) =====
+  const MATCH_3_CHARGES = 1;      // charges gained for 3-in-a-row
+  const MATCH_4_CHARGES = 2;      // charges gained for 4-in-a-row
+  const MATCH_5_CHARGES = 3;      // charges gained for 5-in-a-row
+  const MATCH_LINE_KZ_BONUS = 1;  // KZ drops per line combo
+  const MATCH_PAIR_KZ_BONUS = 2;  // KZ drops per pair combo
+
+  // Element colors: 1=fire(red), 2=water(blue), 3=lightning(yellow), 4=earth(green)
+  const ELEMENT_COLORS = {
+    1: '#ff4d4d',  // fire - red
+    2: '#4da6ff',  // water - blue
+    3: '#ffd84d',  // lightning - yellow
+    4: '#47d16a',  // earth - green
+  };
+  const ELEMENT_NAMES = { 1: 'fire', 2: 'water', 3: 'lightning', 4: 'earth' };
+
   // ===== Controls direction params =====
   // Direction switch for cylinder rotation (+1 / -1)
   const ROT_DIR = 1;
@@ -298,7 +314,7 @@
   let lastTapTime = 0;
   let lastTapX = 0;
   let lastTapY = 0;
-  const APP_VERSION = '0.4.4';
+  const APP_VERSION = '0.5.2';
 
   // ===== Game state / scoring =====
   let gameState = 'intro'; // intro | playing | gameover
@@ -454,6 +470,12 @@
   }
 
   function dropComponent(component) {
+    // Store colors before removing
+    const colorData = component.map(cell => ({
+      ...cell,
+      color: grid[cell.y][cell.s]
+    }));
+
     // Remove component from grid
     for (const cell of component) {
       grid[cell.y][cell.s] = 0;
@@ -474,15 +496,16 @@
       dropDistance = Math.min(dropDistance, maxDrop);
     }
 
-    // Place component at new position
-    for (const cell of component) {
-      grid[cell.y - dropDistance][cell.s] = 1;
+    // Place component at new position with colors preserved
+    for (const cell of colorData) {
+      grid[cell.y - dropDistance][cell.s] = cell.color;
     }
 
     return dropDistance > 0;
   }
 
-  function applyGravity() {
+  function applyGravityOnly() {
+    // Just apply gravity without checking matches
     let changed = true;
     while (changed) {
       changed = false;
@@ -496,12 +519,79 @@
         }
       }
     }
-    // Check for completed rings after gravity settles
+  }
+
+  function applyGravity() {
+    // Full cycle: gravity → matches → repeat until stable
+    let hadChanges = true;
+    while (hadChanges) {
+      hadChanges = false;
+      
+      // Apply gravity
+      applyGravityOnly();
+      
+      // Check for matches
+      const { lineMatches, pairMatches } = findMatches();
+      if (lineMatches.length > 0 || pairMatches.length > 0) {
+        hadChanges = true;
+        processMatchesOnce(lineMatches, pairMatches);
+      }
+    }
+    
+    // Check for completed rings after everything settles
     const cleared = clearRings();
     if (cleared > 0) {
       score += cleared * 500;
       updateScoreHud();
     }
+  }
+
+  function processMatchesOnce(lineMatches, pairMatches) {
+    let totalKzBonus = 0;
+    const toRemove = new Set();
+
+    // Process line matches (3, 4, 5+)
+    for (const match of lineMatches) {
+      const element = ELEMENT_NAMES[match.color];
+      let charges = 0;
+      if (match.length >= 5) charges = MATCH_5_CHARGES;
+      else if (match.length === 4) charges = MATCH_4_CHARGES;
+      else if (match.length === 3) charges = MATCH_3_CHARGES;
+
+      if (element && magicCharges[element] !== undefined) {
+        magicCharges[element] += charges;
+      }
+      totalKzBonus += MATCH_LINE_KZ_BONUS;
+      score += match.length * 10;
+
+      for (const cell of match.cells) {
+        toRemove.add(`${cell.y},${cell.s}`);
+      }
+    }
+
+    // Process pair matches
+    for (const match of pairMatches) {
+      totalKzBonus += MATCH_PAIR_KZ_BONUS;
+      score += 5;
+
+      for (const cell of match.cells) {
+        toRemove.add(`${cell.y},${cell.s}`);
+      }
+    }
+
+    // Remove matched cells
+    for (const key of toRemove) {
+      const [y, s] = key.split(',').map(Number);
+      grid[y][s] = 0;
+    }
+
+    // Apply KZ bonus
+    if (totalKzBonus > 0) {
+      killLevel = Math.max(0, killLevel - totalKzBonus * (KILL_RATE * 10));
+    }
+
+    updateMagicBtns();
+    updateScoreHud();
   }
 
   function normSector(s) {
@@ -534,14 +624,17 @@
   }
 
   // ===== Piece rotation (base CW) =====
-  function rotateCellsCW(cells) {
+  function rotateCellsWithColorsCW(cells, colors) {
     // CW: (x,y)->(y,-x), then normalize to minX/minY = 0
-    const rotated = cells.map(({x,y}) => ({ x: y, y: -x }));
+    const rotated = cells.map(({x,y}, i) => ({ x: y, y: -x, color: colors[i] }));
     let minX = Infinity, minY = Infinity;
     for (const c of rotated) { minX = Math.min(minX, c.x); minY = Math.min(minY, c.y); }
     for (const c of rotated) { c.x -= minX; c.y -= minY; }
     rotated.sort((a,b) => (a.y - b.y) || (a.x - b.x));
-    return rotated;
+    return {
+      cells: rotated.map(c => ({ x: c.x, y: c.y })),
+      colors: rotated.map(c => c.color)
+    };
   }
 
   function maybeResetLockDelay() {
@@ -555,21 +648,24 @@
     if (!activePiece) return;
 
     const oldCells = activePiece.cells;
+    const oldColors = activePiece.colors;
 
     // Apply CW once for +1, or CW three times for -1 (== CCW)
-    let newCells = oldCells;
+    let result = { cells: oldCells, colors: oldColors };
     if (ROTATE_DIR >= 0) {
-      newCells = rotateCellsCW(oldCells);
+      result = rotateCellsWithColorsCW(result.cells, result.colors);
     } else {
-      newCells = rotateCellsCW(oldCells);
-      newCells = rotateCellsCW(newCells);
-      newCells = rotateCellsCW(newCells);
+      result = rotateCellsWithColorsCW(result.cells, result.colors);
+      result = rotateCellsWithColorsCW(result.cells, result.colors);
+      result = rotateCellsWithColorsCW(result.cells, result.colors);
     }
 
-    activePiece.cells = newCells;
+    activePiece.cells = result.cells;
+    activePiece.colors = result.colors;
 
     if (!canPlaceAt(Math.floor(pieceY))) {
       activePiece.cells = oldCells;
+      activePiece.colors = oldColors;
       return;
     }
 
@@ -636,6 +732,7 @@
     if (!nextPiece) return;
 
     const cells = nextPiece.cells;
+    const colors = nextPiece.colors;
     let maxX = 0;
     let maxY = 0;
     for (const c of cells) {
@@ -655,11 +752,27 @@
     const offsetX = Math.floor((nextCanvas.width - gridW * cellSize) / 2);
     const offsetY = Math.floor((nextCanvas.height - gridH * cellSize) / 2);
 
-    nextCtx.fillStyle = 'rgba(255,170,180,0.85)';
-    for (const c of cells) {
+    for (let i = 0; i < cells.length; i++) {
+      const c = cells[i];
+      const color = colors[i];
       const x = offsetX + c.x * cellSize;
       const y = offsetY + c.y * cellSize;
+      
+      // Draw block
+      nextCtx.fillStyle = 'rgba(255,170,180,0.85)';
       nextCtx.fillRect(x + 1, y + 1, cellSize - 2, cellSize - 2);
+      
+      // Draw element color dot
+      const elemColor = ELEMENT_COLORS[color];
+      if (elemColor) {
+        const dotRadius = (cellSize - 2) * 0.32;
+        const cx = x + cellSize / 2;
+        const cy = y + cellSize / 2;
+        nextCtx.fillStyle = elemColor;
+        nextCtx.beginPath();
+        nextCtx.arc(cx, cy, dotRadius, 0, TAU);
+        nextCtx.fill();
+      }
     }
   }
 
@@ -697,13 +810,62 @@
     updateOverlay();
   }
 
+  function generatePieceColors(cells) {
+    // Generate random colors for each cell, avoiding built-in 3+ combos
+    const maxAttempts = 50;
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      const colors = cells.map(() => 1 + ((Math.random() * 4) | 0)); // 1-4
+      if (!hasBuiltInCombo(cells, colors)) {
+        return colors;
+      }
+    }
+    // Fallback: alternate colors to avoid combos
+    return cells.map((_, i) => 1 + (i % 4));
+  }
+
+  function hasBuiltInCombo(cells, colors) {
+    // Check if 3+ cells of same color form a line within the piece
+    // Build a map of cell positions
+    const cellMap = new Map();
+    cells.forEach((c, i) => cellMap.set(`${c.x},${c.y}`, colors[i]));
+
+    for (let i = 0; i < cells.length; i++) {
+      const c = cells[i];
+      const color = colors[i];
+      
+      // Check horizontal line (3 in a row)
+      let hCount = 1;
+      for (let dx = 1; dx <= 2; dx++) {
+        if (cellMap.get(`${c.x + dx},${c.y}`) === color) hCount++;
+        else break;
+      }
+      if (hCount >= 3) return true;
+
+      // Check vertical line (3 in a row)
+      let vCount = 1;
+      for (let dy = 1; dy <= 2; dy++) {
+        if (cellMap.get(`${c.x},${c.y + dy}`) === color) vCount++;
+        else break;
+      }
+      if (vCount >= 3) return true;
+    }
+    return false;
+  }
+
+  function createPieceWithColors(proto) {
+    const cells = proto.cells.map(c => ({ x: c.x, y: c.y }));
+    const colors = generatePieceColors(cells);
+    return { name: proto.name, cells, colors };
+  }
+
   function spawnPiece() {
     if (!nextPiece) {
-      nextPiece = PENTOMINOES[(Math.random() * PENTOMINOES.length) | 0];
+      const proto = PENTOMINOES[(Math.random() * PENTOMINOES.length) | 0];
+      nextPiece = createPieceWithColors(proto);
     }
-    const proto = nextPiece;
-    nextPiece = PENTOMINOES[(Math.random() * PENTOMINOES.length) | 0];
-    activePiece = { name: proto.name, cells: proto.cells.map(c => ({x:c.x, y:c.y})) };
+    activePiece = nextPiece;
+    const proto = PENTOMINOES[(Math.random() * PENTOMINOES.length) | 0];
+    nextPiece = createPieceWithColors(proto);
     drawNextPreview();
 
     pieceY = H + 3;
@@ -748,11 +910,13 @@
     rotVel = 0;
 
     let overflowedTop = false;
-    for (const c of activePiece.cells) {
+    for (let i = 0; i < activePiece.cells.length; i++) {
+      const c = activePiece.cells[i];
+      const color = activePiece.colors[i];
       const cy = Math.floor(pieceY) + c.y;
       const cs = normSector(s0 + c.x);
       if (cy >= H) overflowedTop = true;
-      if (cy >= 0 && cy < H) grid[cy][cs] = 1;
+      if (cy >= 0 && cy < H) grid[cy][cs] = color; // Store color (1-4) instead of 1
     }
 
     if (overflowedTop) {
@@ -761,11 +925,114 @@
     }
 
     score += 50;
-    const cleared = clearRings();
-    if (cleared > 0) score += cleared * 500;
+    
+    // Process gravity, match combos, and ring clears (with cascade)
+    applyGravity();
+    
     updateScoreHud();
     spawnPiece();
   }
+
+  // ===== Match-3 combo system =====
+  function findMatches() {
+    const lineMatches = []; // { color, length, cells }
+    const pairMatches = []; // { cells } - 4 cells: AABB pattern
+
+    // Find horizontal matches (along the ring) - lines of 3+
+    for (let y = 0; y < H; y++) {
+      let runStart = 0;
+      let runColor = grid[y][0];
+      let runLength = runColor ? 1 : 0;
+
+      for (let s = 1; s <= N; s++) {
+        const color = s < N ? grid[y][s] : 0;
+        if (color && color === runColor) {
+          runLength++;
+        } else {
+          if (runLength >= 3 && runColor) {
+            const cells = [];
+            for (let i = 0; i < runLength; i++) {
+              cells.push({ y, s: normSector(runStart + i) });
+            }
+            lineMatches.push({ color: runColor, length: runLength, cells });
+          }
+          runStart = s;
+          runColor = color;
+          runLength = color ? 1 : 0;
+        }
+      }
+    }
+
+    // Find vertical matches - lines of 3+
+    for (let s = 0; s < N; s++) {
+      let runStart = 0;
+      let runColor = grid[0][s];
+      let runLength = runColor ? 1 : 0;
+
+      for (let y = 1; y <= H; y++) {
+        const color = y < H ? grid[y][s] : 0;
+        if (color && color === runColor) {
+          runLength++;
+        } else {
+          if (runLength >= 3 && runColor) {
+            const cells = [];
+            for (let i = 0; i < runLength; i++) {
+              cells.push({ y: runStart + i, s });
+            }
+            lineMatches.push({ color: runColor, length: runLength, cells });
+          }
+          runStart = y;
+          runColor = color;
+          runLength = color ? 1 : 0;
+        }
+      }
+    }
+
+    // Find pair combos (AABB pattern) - horizontal
+    for (let y = 0; y < H; y++) {
+      for (let s = 0; s < N - 3; s++) {
+        const c0 = grid[y][s];
+        const c1 = grid[y][s + 1];
+        const c2 = grid[y][s + 2];
+        const c3 = grid[y][s + 3];
+        // Pattern: AA BB where A != B, both non-zero
+        if (c0 && c0 === c1 && c2 && c2 === c3 && c0 !== c2) {
+          pairMatches.push({
+            cells: [
+              { y, s: s },
+              { y, s: s + 1 },
+              { y, s: s + 2 },
+              { y, s: s + 3 }
+            ]
+          });
+        }
+      }
+    }
+
+    // Find pair combos (AABB pattern) - vertical
+    for (let s = 0; s < N; s++) {
+      for (let y = 0; y < H - 3; y++) {
+        const c0 = grid[y][s];
+        const c1 = grid[y + 1][s];
+        const c2 = grid[y + 2][s];
+        const c3 = grid[y + 3][s];
+        // Pattern: AA BB where A != B, both non-zero
+        if (c0 && c0 === c1 && c2 && c2 === c3 && c0 !== c2) {
+          pairMatches.push({
+            cells: [
+              { y: y, s },
+              { y: y + 1, s },
+              { y: y + 2, s },
+              { y: y + 3, s }
+            ]
+          });
+        }
+      }
+    }
+
+    return { lineMatches, pairMatches };
+  }
+
 
   function tryMoveDown() {
     const nextY = Math.floor(pieceY) - 1;
@@ -976,7 +1243,7 @@
     };
   }
 
-  function drawOrientedBlock(px, py, tx, ty, w, h, fillStyle, alpha=1) {
+  function drawOrientedBlock(px, py, tx, ty, w, h, fillStyle, alpha=1, elementColor=null) {
     ctx.save();
     ctx.translate(px, py);
     const a = Math.atan2(ty, tx);
@@ -984,6 +1251,16 @@
     ctx.globalAlpha = alpha;
     ctx.fillStyle = fillStyle;
     ctx.fillRect(-w/2, -h/2, w, h);
+    
+    // Draw element color dot in center
+    if (elementColor) {
+      const dotRadius = Math.min(w, h) * 0.28;
+      ctx.fillStyle = elementColor;
+      ctx.beginPath();
+      ctx.arc(0, 0, dotRadius, 0, TAU);
+      ctx.fill();
+    }
+    
     ctx.restore();
     ctx.globalAlpha = 1;
   }
@@ -1030,10 +1307,11 @@
     for (let y=0; y<H; y++) {
       const yScr = levelYToScreenY(topY, towerHeightPx, y + 0.5);
       for (let s=0; s<N; s++) {
-        if (!grid[y][s]) continue;
+        const color = grid[y][s];
+        if (!color) continue;
         const p = sectorCenterXY(centerX, yScr, radiusX, radiusY, s, rotFloat);
         const depth = Math.sin(p.ang);
-        const block = {y, s, yScr, p, depth};
+        const block = {y, s, yScr, p, depth, color};
         if (depth < -0.1) {
           backBlocks.push(block);
         } else {
@@ -1053,7 +1331,8 @@
       const arcDist = Math.hypot(p1.x - p0.x, p1.y - p0.y);
       const bw = arcDist * 1.06;
       const bh = (towerHeightPx / H) * 0.90;
-      drawOrientedBlock(p0.x, p0.y, tx, ty, bw, bh, BLOCK_COLOR_BACK, 1);
+      const elemColor = ELEMENT_COLORS[b.color] || null;
+      drawOrientedBlock(p0.x, p0.y, tx, ty, bw, bh, BLOCK_COLOR_BACK, 1, elemColor);
     }
     
     // Draw front blocks on top (sorted by depth, furthest first)
@@ -1067,7 +1346,8 @@
       const arcDist = Math.hypot(p1.x - p0.x, p1.y - p0.y);
       const bw = arcDist * 1.06;
       const bh = (towerHeightPx / H) * 0.90;
-      drawOrientedBlock(p0.x, p0.y, tx, ty, bw, bh, BLOCK_COLOR_FRONT, 1);
+      const elemColor = ELEMENT_COLORS[b.color] || null;
+      drawOrientedBlock(p0.x, p0.y, tx, ty, bw, bh, BLOCK_COLOR_FRONT, 1, elemColor);
     }
 
     if (activePiece) {
@@ -1077,14 +1357,16 @@
         const rotSnap = s0;
 
         const ghostCells = [];
-        for (const c of activePiece.cells) {
+        for (let i = 0; i < activePiece.cells.length; i++) {
+          const c = activePiece.cells[i];
+          const color = activePiece.colors[i];
           const cy = ghostY + c.y;
           const cs = normSector(s0 + c.x);
           if (cy < 0 || cy >= H) continue;
 
           const yScr = levelYToScreenY(topY, towerHeightPx, cy + 0.5);
           const p0 = sectorCenterXY(centerX, yScr, radiusX, radiusY, cs, rotSnap);
-          ghostCells.push({cy, cs, yScr, p0});
+          ghostCells.push({cy, cs, yScr, p0, color});
         }
 
         ghostCells.sort((a,b) => (a.p0.y - b.p0.y));
@@ -1099,8 +1381,9 @@
 
           const bw = arcDist * 1.06;
           const bh = (towerHeightPx / H) * 0.90;
+          const elemColor = ELEMENT_COLORS[g.color] || null;
 
-      drawOrientedBlock(p0.x, p0.y, tx, ty, bw, bh, GHOST_COLOR_FRONT, 1);
+          drawOrientedBlock(p0.x, p0.y, tx, ty, bw, bh, GHOST_COLOR_FRONT, 1, elemColor);
         }
       }
     }
@@ -1110,22 +1393,35 @@
       const rotSnap = s0;
 
       const yScrRef = levelYToScreenY(topY, towerHeightPx, pieceY + 0.5);
-      const p0 = sectorCenterXY(centerX, yScrRef, radiusX, radiusY, s0, rotSnap);
-      const p1 = sectorCenterXY(centerX, yScrRef, radiusX, radiusY, s0 + 1, rotSnap);
-      const arcDist = Math.hypot(p1.x - p0.x, p1.y - p0.y);
+      const p0ref = sectorCenterXY(centerX, yScrRef, radiusX, radiusY, s0, rotSnap);
+      const p1ref = sectorCenterXY(centerX, yScrRef, radiusX, radiusY, s0 + 1, rotSnap);
+      const arcDist = Math.hypot(p1ref.x - p0ref.x, p1ref.y - p0ref.y);
 
       const bw = arcDist * 1.06;
       const bh = (towerHeightPx / H) * 0.90;
 
-    ctx.fillStyle = ACTIVE_COLOR_FRONT;
-      for (const c of activePiece.cells) {
+      for (let i = 0; i < activePiece.cells.length; i++) {
+        const c = activePiece.cells[i];
+        const color = activePiece.colors[i];
         const cs = normSector(s0 + c.x);
         const cy = pieceY + c.y;
 
         const yScr = levelYToScreenY(topY, towerHeightPx, cy + 0.5);
         const pc = sectorCenterXY(centerX, yScr, radiusX, radiusY, cs, rotSnap);
-
+        
+        // Draw block
+        ctx.fillStyle = ACTIVE_COLOR_FRONT;
         ctx.fillRect(pc.x - bw/2, pc.y - bh/2, bw, bh);
+        
+        // Draw element color dot
+        const elemColor = ELEMENT_COLORS[color];
+        if (elemColor) {
+          const dotRadius = Math.min(bw, bh) * 0.28;
+          ctx.fillStyle = elemColor;
+          ctx.beginPath();
+          ctx.arc(pc.x, pc.y, dotRadius, 0, TAU);
+          ctx.fill();
+        }
       }
     }
 
