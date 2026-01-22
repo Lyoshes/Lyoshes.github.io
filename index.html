@@ -431,15 +431,15 @@
   let rotAccumulator = 0;
 
   // ===== Swipe mechanics =====
-  const PX_PER_STEP = 34;       // base pixels per rotation step
-  const DEADZONE_PX = 6;        // min drag distance before action
+  const PX_PER_STEP = 24;       // base pixels per rotation step (lower = more responsive)
+  const DEADZONE_PX = 4;        // min drag distance before action
   const PX_PER_DROP = 18;       // base pixels per drop step
-  const AXIS_DOMINANCE = 1.35;  // ratio to lock axis (horizontal vs vertical)
+  const AXIS_DOMINANCE = 1.2;   // ratio to lock axis (horizontal vs vertical)
   const SWIPE_SPEED_REF = 650;  // reference swipe speed for scaling
   const MIN_DROP_PX = 6;        // min pixels per drop at fast swipe
   const MAX_DROP_PX = 22;       // max pixels per drop at slow swipe
-  const MIN_ROT_PX = 5;         // min pixels per rotation at fast swipe
-  const MAX_ROT_PX = 46;        // max pixels per rotation at slow swipe
+  const MIN_ROT_PX = 4;         // min pixels per rotation at fast swipe
+  const MAX_ROT_PX = 32;        // max pixels per rotation at slow swipe
 
   // ===== Double tap =====
   const DOUBLE_TAP_MS = 280;      // max time between taps
