@@ -655,7 +655,7 @@
   let lastTapTime = 0;
   let lastTapX = 0;
   let lastTapY = 0;
-  const APP_VERSION = '0.7.5';
+  const APP_VERSION = '0.8.3';
 
   // ===== Game state / scoring =====
   let gameState = 'intro'; // intro | playing | gameover
@@ -2023,8 +2023,69 @@
       kzG = Math.round(72 + (40 - 72) * dangerProgress);    // 72 -> 40
       kzB = Math.round(120 + (50 - 120) * dangerProgress);  // 120 -> 50
     }
-    ctx.fillStyle = `rgba(${kzR},${kzG},${kzB},0.45)`;
+    
+    // Glass container walls
+    const glassLeft = centerX - radiusX - 8;
+    const glassRight = centerX + radiusX + 8;
+    const glassTop = topY - 10;
+    const glassBottom = bottomY + 5;
+    
+    // Draw kill zone (water) OUTSIDE the glass, rising from bottom
+    const kzColor = `rgba(${kzR},${kzG},${kzB},0.45)`;
+    
+    // Glass curve parameters
+    const curveRadiusX = radiusX + 8;
+    const curveRadiusY = radiusY + 4;
+    
+    // Step 1: Fill the entire kill zone area (full width, from killY to bottom)
+    ctx.fillStyle = kzColor;
     ctx.fillRect(0, killY, w, h - killY);
+    
+    // Step 2: "Cut out" the inside of the glass with black background
+    ctx.fillStyle = '#0b0f14';
+    ctx.beginPath();
+    // Start at top-left of glass interior
+    ctx.moveTo(glassLeft, 0);
+    // Go down left wall to where curve starts
+    ctx.lineTo(glassLeft, glassBottom);
+    // Draw the TOP arc of the ellipse (inside of glass bottom)
+    ctx.ellipse(centerX, glassBottom, curveRadiusX, curveRadiusY, 0, Math.PI, 0, false);
+    // Go up right wall
+    ctx.lineTo(glassRight, 0);
+    // Close across the top
+    ctx.closePath();
+    ctx.fill();
+    
+    // Draw glass container walls
+    ctx.strokeStyle = 'rgba(100,180,255,0.6)';
+    ctx.lineWidth = 3;
+    ctx.lineCap = 'round';
+    // Left wall
+    ctx.beginPath();
+    ctx.moveTo(glassLeft, glassTop);
+    ctx.lineTo(glassLeft, glassBottom);
+    ctx.stroke();
+    // Right wall
+    ctx.beginPath();
+    ctx.moveTo(glassRight, glassTop);
+    ctx.lineTo(glassRight, glassBottom);
+    ctx.stroke();
+    // Bottom curve (ellipse arc)
+    ctx.beginPath();
+    ctx.ellipse(centerX, glassBottom, radiusX + 8, radiusY + 4, 0, 0, Math.PI);
+    ctx.stroke();
+    
+    // Water surface line on the sides
+    if (killLevel > 0.5) {
+      ctx.strokeStyle = `rgba(${Math.min(255, kzR + 60)},${Math.min(255, kzG + 40)},${Math.min(255, kzB + 40)},0.6)`;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(0, killY);
+      ctx.lineTo(glassLeft, killY);
+      ctx.moveTo(glassRight, killY);
+      ctx.lineTo(w, killY);
+      ctx.stroke();
+    }
 
     ctx.strokeStyle = 'rgba(160,190,220,0.3)';
     ctx.lineWidth = 1;
