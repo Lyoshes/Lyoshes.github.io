@@ -190,6 +190,32 @@
       font-size: 11px;
       margin-top: 8px;
     }
+    .toggle-switch {
+      position: relative;
+      width: 44px;
+      height: 24px;
+      background: rgba(60,70,85,0.8);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .toggle-switch.active {
+      background: rgba(60,120,180,0.7);
+    }
+    .toggle-switch::after {
+      content: '';
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 20px;
+      height: 20px;
+      background: #cfe0f3;
+      border-radius: 50%;
+      transition: transform 0.2s;
+    }
+    .toggle-switch.active::after {
+      transform: translateX(20px);
+    }
     .controls-right {
       position:fixed;
       right:12px;
@@ -387,6 +413,10 @@
       <p><b>Double tap:</b> rotate piece</p>
       <p><b>Button ⟳:</b> rotate piece</p>
       <p style="margin-top:10px"><b>Magic:</b> Tap an element button, then tap a block of the same color. Fire→red, Water→blue, etc. 3 charges per element.</p>
+      <div class="settings-row" style="margin-top:14px; border-top:1px solid rgba(160,190,220,0.15); padding-top:14px;">
+        <span class="settings-label">Invert swipe direction</span>
+        <div class="toggle-switch" id="invertSwipeToggle"></div>
+      </div>
     </div>
     
     <div class="tab-content" id="tab-view">
@@ -519,7 +549,7 @@
   const CASCADE_MULTIPLIERS = [1.0, 1.5, 2.0, 2.5]; // cascade level 1, 2, 3, 4+
 
   // ===== Controls direction =====
-  const ROT_DIR = 1;      // cylinder rotation direction (+1 / -1)
+  let rotDir = 1;         // cylinder rotation direction (+1 / -1), can be toggled
   const ROTATE_DIR = -1;  // piece rotation direction (+1=CW, -1=CCW)
 
   // ===== Grid =====
@@ -591,7 +621,7 @@
   let lastTapTime = 0;
   let lastTapX = 0;
   let lastTapY = 0;
-  const APP_VERSION = '0.6.8';
+  const APP_VERSION = '0.6.9';
 
   // ===== Game state / scoring =====
   let gameState = 'intro'; // intro | playing | gameover
@@ -1605,7 +1635,7 @@
         MIN_ROT_PX,
         Math.min(MAX_ROT_PX, PX_PER_STEP * (SWIPE_SPEED_REF / v))
       );
-      rotAccumulator += (-dxStep / scaledPxPerStep) * ROT_DIR * dragInputSign;
+      rotAccumulator += (-dxStep / scaledPxPerStep) * rotDir * dragInputSign;
       const stepDelta = Math.trunc(rotAccumulator);
       if (stepDelta !== 0) {
         rotAccumulator -= stepDelta;
@@ -1728,6 +1758,13 @@
   
   document.addEventListener('fullscreenchange', updateFullscreenBtn);
   document.addEventListener('webkitfullscreenchange', updateFullscreenBtn);
+
+  // Invert swipe toggle
+  const invertSwipeToggle = document.getElementById('invertSwipeToggle');
+  invertSwipeToggle.addEventListener('click', () => {
+    invertSwipeToggle.classList.toggle('active');
+    rotDir = invertSwipeToggle.classList.contains('active') ? -1 : 1;
+  });
 
   // Difficulty buttons (only easy is active for now)
   const diffBtns = document.querySelectorAll('.diff-btn');
