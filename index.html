@@ -172,7 +172,7 @@
     <p>Swipe left/right: rotate the cylinder in steps.</p>
     <p>Swipe down: faster drop.</p>
     <p>Double tap / click: rotate the piece.</p>
-    <p><b>Magic:</b> Tap a color button to select element, then double tap a block to destroy it. Each element has 3 charges per game.</p>
+    <p><b>Magic:</b> Tap a color button to select element, then tap a block to destroy it. Each element has 3 charges per game.</p>
     <button id="helpClose">Close</button>
   </div>
 </div>
@@ -227,7 +227,9 @@
   const MATCH_5_CHARGES = 3;      // charges gained for 5-in-a-row
   const MATCH_LINE_KZ_BONUS = 1;  // KZ drops per line combo
   const MATCH_PAIR_KZ_BONUS = 2;  // KZ drops per pair combo
-  const MATCH_HIGHLIGHT_SEC = 1.6; // seconds to highlight matched blocks before destroying
+  const MATCH_HIGHLIGHT_SEC = 2.0; // seconds to highlight matched blocks before destroying
+  const MATCH_SHRINK_PHASE = 0.3;  // last 30% of time is shrink+fade animation
+  const MAGIC_SHRINK_SEC = 0.5;    // seconds for magic hit shrink animation (no blink, just shrink)
 
   // Element colors: 1=fire(red), 2=water(blue), 3=lightning(yellow), 4=earth(green)
   const ELEMENT_COLORS = {
@@ -315,7 +317,7 @@
   let lastTapTime = 0;
   let lastTapX = 0;
   let lastTapY = 0;
-  const APP_VERSION = '0.5.4';
+  const APP_VERSION = '0.5.8';
 
   // ===== Game state / scoring =====
   let gameState = 'intro'; // intro | playing | gameover
@@ -350,9 +352,10 @@
   let activeMagic = null; // currently selected element
 
   // ===== Match highlight state =====
-  let highlightedCells = []; // { y, s, color, isLine } - cells currently highlighted
+  let highlightedCells = []; // { y, s, color, isLine, isMagic } - cells currently highlighted
   let highlightStartTime = 0;
   let isHighlighting = false;
+  let isMagicAnimation = false; // true = shrink only (no blink), false = blink + shrink
   let pendingKzBonus = 0; // KZ bonus to apply after highlight ends
   let pendingScore = 0;   // Score to apply after highlight ends
 
@@ -373,6 +376,7 @@
 
   function shootMagic(screenX, screenY) {
     if (!activeMagic || magicCharges[activeMagic] <= 0) return false;
+    if (isHighlighting) return false; // Don't shoot during animation
     
     const w = canvas.clientWidth;
     const h = canvas.clientHeight;
@@ -410,14 +414,18 @@
     }
 
     if (hitBlock) {
-      grid[hitBlock.y][hitBlock.s] = 0;
+      // Start shrink animation for magic hit
+      const color = grid[hitBlock.y][hitBlock.s];
+      highlightedCells = [{ y: hitBlock.y, s: hitBlock.s, color, isLine: false, isMagic: true }];
+      highlightStartTime = performance.now();
+      isHighlighting = true;
+      isMagicAnimation = true;
+      pendingKzBonus = 0;
+      pendingScore = 25; // bonus for destroying block
+      
       magicCharges[activeMagic]--;
-      score += 25; // bonus for destroying block
-      updateScoreHud();
       activeMagic = null;
       updateMagicBtns();
-      // Apply gravity after delay
-      setTimeout(() => applyGravity(), GRAVITY_DELAY_MS);
       return true;
     }
     return false;
@@ -579,6 +587,7 @@
     highlightedCells = Array.from(cellMap.values());
     highlightStartTime = performance.now();
     isHighlighting = true;
+    isMagicAnimation = false; // combo = blink + shrink
     pendingKzBonus = totalKzBonus;
     pendingScore = totalScore;
 
@@ -601,6 +610,7 @@
     // Clear highlight state
     highlightedCells = [];
     isHighlighting = false;
+    isMagicAnimation = false;
     pendingKzBonus = 0;
     pendingScore = 0;
 
@@ -839,6 +849,7 @@
     // Reset highlight state
     highlightedCells = [];
     isHighlighting = false;
+    isMagicAnimation = false;
     pendingKzBonus = 0;
     pendingScore = 0;
     updateMagicBtns();
@@ -1117,7 +1128,14 @@
     if (gameState !== 'playing') return;
     e.preventDefault?.();
 
-    // double tap
+    // If magic is active, try to shoot immediately (single tap)
+    if (activeMagic && magicCharges[activeMagic] > 0) {
+      if (shootMagic(e.clientX, e.clientY)) {
+        return; // Shot fired, don't start drag
+      }
+    }
+
+    // double tap for rotate
     const now = performance.now();
     const dt = now - lastTapTime;
     const dxTap = e.clientX - lastTapX;
@@ -1125,12 +1143,7 @@
     const distTap = Math.hypot(dxTap, dyTap);
 
     if (dt <= DOUBLE_TAP_MS && distTap <= DOUBLE_TAP_MAX_DIST) {
-      // If magic is active, try to shoot; otherwise rotate piece
-      if (activeMagic && magicCharges[activeMagic] > 0) {
-        shootMagic(e.clientX, e.clientY);
-      } else {
-        rotatePieceByDir();
-      }
+      rotatePieceByDir();
       lastTapTime = 0;
     } else {
       lastTapTime = now;
@@ -1383,6 +1396,34 @@
       }
     }
     
+    // Compute shrink animation params for highlighted blocks
+    let highlightSet = null;
+    let blockScale = 1;
+    let blockAlpha = 1;
+    let inShrinkPhaseGlobal = false;
+    if (isHighlighting && highlightedCells.length > 0) {
+      highlightSet = new Set(highlightedCells.map(c => `${c.y},${c.s}`));
+      const elapsed = (performance.now() - highlightStartTime) / 1000;
+      
+      if (isMagicAnimation) {
+        // Magic: shrink over MAGIC_SHRINK_SEC (no blink phase)
+        const progress = Math.min(1, elapsed / MAGIC_SHRINK_SEC);
+        blockScale = 1 - progress * 0.85;
+        blockAlpha = 1 - progress * 0.9;
+        inShrinkPhaseGlobal = true;
+      } else {
+        // Combo: blink phase then shrink phase
+        const progress = Math.min(1, elapsed / MATCH_HIGHLIGHT_SEC);
+        const shrinkStart = 1 - MATCH_SHRINK_PHASE;
+        if (progress > shrinkStart) {
+          const shrinkProgress = (progress - shrinkStart) / MATCH_SHRINK_PHASE;
+          blockScale = 1 - shrinkProgress * 0.85;
+          blockAlpha = 1 - shrinkProgress * 0.9;
+          inShrinkPhaseGlobal = true;
+        }
+      }
+    }
+
     // Draw back blocks first (sorted by depth, furthest first)
     backBlocks.sort((a,b) => a.depth - b.depth);
     for (const b of backBlocks) {
@@ -1392,18 +1433,33 @@
       const tx = (p1.x - p_1.x);
       const ty = (p1.y - p_1.y);
       const arcDist = Math.hypot(p1.x - p0.x, p1.y - p0.y);
-      const bw = arcDist * 1.06;
-      const bh = (towerHeightPx / H) * 0.90;
+      let bw = arcDist * 1.06;
+      let bh = (towerHeightPx / H) * 0.90;
       const elemColor = ELEMENT_COLORS[b.color] || null;
-      drawOrientedBlock(p0.x, p0.y, tx, ty, bw, bh, BLOCK_COLOR_BACK, 1, elemColor);
+      
+      // Apply shrink animation to highlighted blocks
+      const isHighlighted = highlightSet && highlightSet.has(`${b.y},${b.s}`);
+      const alpha = isHighlighted ? blockAlpha : 1;
+      const scale = isHighlighted ? blockScale : 1;
+      
+      drawOrientedBlock(p0.x, p0.y, tx, ty, bw * scale, bh * scale, BLOCK_COLOR_BACK, alpha, elemColor);
     }
 
-    // Draw highlighted back blocks with dimmed blinking
-    if (isHighlighting && highlightedCells.length > 0) {
+    // Draw highlighted back blocks with dimmed blinking + shrink/fade (or just shrink for magic)
+    if (isHighlighting && highlightedCells.length > 0 && !isMagicAnimation) {
       const elapsed = (performance.now() - highlightStartTime) / 1000;
-      const blinkFreq = 4 + (elapsed / MATCH_HIGHLIGHT_SEC) * 8;
+      const progress = Math.min(1, elapsed / MATCH_HIGHLIGHT_SEC);
+      const shrinkStart = 1 - MATCH_SHRINK_PHASE;
+      
+      const inShrinkPhase = progress > shrinkStart;
+      const shrinkProgress = inShrinkPhase ? (progress - shrinkStart) / MATCH_SHRINK_PHASE : 0;
+      
+      const blinkFreq = 4 + (progress / shrinkStart) * 10;
       const blinkPhase = Math.sin(elapsed * blinkFreq * TAU);
-      const blinkAlpha = 0.3 + blinkPhase * 0.3; // dimmer for back blocks
+      const blinkAlpha = inShrinkPhase ? 1 : (0.3 + blinkPhase * 0.3); // dimmer for back
+      
+      const scale = inShrinkPhase ? 1 - shrinkProgress * 0.8 : 1;
+      const fadeAlpha = inShrinkPhase ? 1 - shrinkProgress : 1;
 
       for (const cell of highlightedCells) {
         const yScr = levelYToScreenY(topY, towerHeightPx, cell.y + 0.5);
@@ -1421,11 +1477,13 @@
         const bw = arcDist * 1.06;
         const bh = (towerHeightPx / H) * 0.90;
 
+        const alpha = blinkAlpha * fadeAlpha;
         const highlightColor = cell.isLine ? 
-          `rgba(255, 255, 255, ${blinkAlpha * 0.5})` : 
-          `rgba(255, 220, 100, ${blinkAlpha * 0.4})`;
+          `rgba(255, 255, 255, ${alpha * 0.5})` : 
+          `rgba(255, 220, 100, ${alpha * 0.4})`;
         
-        drawOrientedBlock(p0.x, p0.y, tx, ty, bw * 1.1, bh * 1.1, highlightColor, 1, null);
+        const sizeMultiplier = inShrinkPhase ? scale : 1.1;
+        drawOrientedBlock(p0.x, p0.y, tx, ty, bw * sizeMultiplier, bh * sizeMultiplier, highlightColor, 1, null);
       }
     }
     
@@ -1438,19 +1496,37 @@
       const tx = (p1.x - p_1.x);
       const ty = (p1.y - p_1.y);
       const arcDist = Math.hypot(p1.x - p0.x, p1.y - p0.y);
-      const bw = arcDist * 1.06;
-      const bh = (towerHeightPx / H) * 0.90;
+      let bw = arcDist * 1.06;
+      let bh = (towerHeightPx / H) * 0.90;
       const elemColor = ELEMENT_COLORS[b.color] || null;
-      drawOrientedBlock(p0.x, p0.y, tx, ty, bw, bh, BLOCK_COLOR_FRONT, 1, elemColor);
+      
+      // Apply shrink animation to highlighted blocks
+      const isHighlighted = highlightSet && highlightSet.has(`${b.y},${b.s}`);
+      const alpha = isHighlighted ? blockAlpha : 1;
+      const scale = isHighlighted ? blockScale : 1;
+      
+      drawOrientedBlock(p0.x, p0.y, tx, ty, bw * scale, bh * scale, BLOCK_COLOR_FRONT, alpha, elemColor);
     }
 
-    // Draw highlighted (matched) blocks with blinking effect
-    if (isHighlighting && highlightedCells.length > 0) {
+    // Draw highlighted (matched) blocks with blinking + shrink/fade effect (skip for magic - it just shrinks)
+    if (isHighlighting && highlightedCells.length > 0 && !isMagicAnimation) {
       const elapsed = (performance.now() - highlightStartTime) / 1000;
-      // Blink frequency: faster as time runs out
-      const blinkFreq = 4 + (elapsed / MATCH_HIGHLIGHT_SEC) * 8; // 4Hz to 12Hz
+      const progress = Math.min(1, elapsed / MATCH_HIGHLIGHT_SEC);
+      const shrinkStart = 1 - MATCH_SHRINK_PHASE;
+      
+      // Phase 1: Blinking (0% to 70%)
+      // Phase 2: Shrink + Fade (70% to 100%)
+      const inShrinkPhase = progress > shrinkStart;
+      const shrinkProgress = inShrinkPhase ? (progress - shrinkStart) / MATCH_SHRINK_PHASE : 0;
+      
+      // Blink frequency: faster as time runs out (during blink phase)
+      const blinkFreq = 4 + (progress / shrinkStart) * 10; // 4Hz to 14Hz
       const blinkPhase = Math.sin(elapsed * blinkFreq * TAU);
-      const blinkAlpha = 0.5 + blinkPhase * 0.5; // 0 to 1
+      const blinkAlpha = inShrinkPhase ? 1 : (0.5 + blinkPhase * 0.5);
+      
+      // Shrink and fade during final phase
+      const scale = inShrinkPhase ? 1 - shrinkProgress * 0.8 : 1; // shrink to 20%
+      const fadeAlpha = inShrinkPhase ? 1 - shrinkProgress : 1;
 
       for (const cell of highlightedCells) {
         const yScr = levelYToScreenY(topY, towerHeightPx, cell.y + 0.5);
@@ -1469,11 +1545,13 @@
         const bh = (towerHeightPx / H) * 0.90;
 
         // Draw highlight overlay - white flash for lines, yellow for pairs
+        const alpha = blinkAlpha * fadeAlpha;
         const highlightColor = cell.isLine ? 
-          `rgba(255, 255, 255, ${blinkAlpha * 0.7})` : 
-          `rgba(255, 220, 100, ${blinkAlpha * 0.6})`;
+          `rgba(255, 255, 255, ${alpha * 0.7})` : 
+          `rgba(255, 220, 100, ${alpha * 0.6})`;
         
-        drawOrientedBlock(p0.x, p0.y, tx, ty, bw * 1.15, bh * 1.15, highlightColor, 1, null);
+        const sizeMultiplier = inShrinkPhase ? scale : 1.15;
+        drawOrientedBlock(p0.x, p0.y, tx, ty, bw * sizeMultiplier, bh * sizeMultiplier, highlightColor, 1, null);
       }
     }
 
@@ -1575,7 +1653,8 @@
       // Check highlight timer
       if (isHighlighting) {
         const highlightElapsed = (now - highlightStartTime) / 1000;
-        if (highlightElapsed >= MATCH_HIGHLIGHT_SEC) {
+        const duration = isMagicAnimation ? MAGIC_SHRINK_SEC : MATCH_HIGHLIGHT_SEC;
+        if (highlightElapsed >= duration) {
           finishHighlight();
         }
       }
