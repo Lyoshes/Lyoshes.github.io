@@ -196,7 +196,9 @@
   const BLOCK_COLOR_FRONT = 'rgb(235,240,250)';
   const BLOCK_COLOR_BACK = 'rgb(55,62,75)';
   const ACTIVE_COLOR_FRONT = 'rgba(255,170,180,0.75)';
-  const GHOST_COLOR_FRONT = 'rgba(110,255,150,0.28)';
+  const GHOST_COLOR_FILL = 'rgba(110,255,150,0.15)';
+  const GHOST_COLOR_STROKE = 'rgba(110,255,150,0.85)';
+  const GHOST_STROKE_WIDTH = 2;
 
   // ===== Game params =====
   const N = 30;   // sectors around ring
@@ -317,7 +319,7 @@
   let lastTapTime = 0;
   let lastTapX = 0;
   let lastTapY = 0;
-  const APP_VERSION = '0.5.9';
+  const APP_VERSION = '0.6.0';
 
   // ===== Game state / scoring =====
   let gameState = 'intro'; // intro | playing | gameover
@@ -1319,7 +1321,7 @@
     };
   }
 
-  function drawOrientedBlock(px, py, tx, ty, w, h, fillStyle, alpha=1, elementColor=null, dotAlpha=1) {
+  function drawOrientedBlock(px, py, tx, ty, w, h, fillStyle, alpha=1, elementColor=null, dotAlpha=1, strokeStyle=null, strokeWidth=0) {
     ctx.save();
     ctx.translate(px, py);
     const a = Math.atan2(ty, tx);
@@ -1327,6 +1329,13 @@
     ctx.globalAlpha = alpha;
     ctx.fillStyle = fillStyle;
     ctx.fillRect(-w/2, -h/2, w, h);
+    
+    // Draw stroke/outline if specified
+    if (strokeStyle && strokeWidth > 0) {
+      ctx.strokeStyle = strokeStyle;
+      ctx.lineWidth = strokeWidth;
+      ctx.strokeRect(-w/2, -h/2, w, h);
+    }
     
     // Draw element color dot in center
     if (elementColor) {
@@ -1590,7 +1599,8 @@
           const bh = (towerHeightPx / H) * 0.90;
           const elemColor = ELEMENT_COLORS[g.color] || null;
 
-          drawOrientedBlock(p0.x, p0.y, tx, ty, bw, bh, GHOST_COLOR_FRONT, 1, elemColor);
+          // Ghost with outline stroke for better visibility
+          drawOrientedBlock(p0.x, p0.y, tx, ty, bw, bh, GHOST_COLOR_FILL, 1, elemColor, 0.5, GHOST_COLOR_STROKE, GHOST_STROKE_WIDTH);
         }
       }
     }
