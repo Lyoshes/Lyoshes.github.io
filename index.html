@@ -72,7 +72,7 @@
       cursor:pointer;
     }
     .panel button:active { transform:translateY(1px); }
-    .help-btn {
+    .settings-btn {
       position:fixed;
       left:10px;
       top:10px;
@@ -82,12 +82,91 @@
       border:1px solid rgba(160,190,220,0.35);
       background:rgba(14,20,28,0.85);
       color:#cfe0f3;
-      font:18px/1 system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      font:20px/1 system-ui, -apple-system, Segoe UI, Roboto, Arial;
       cursor:pointer;
       z-index:4;
     }
-    .help-btn:active { transform:translateY(1px); }
-    .help-panel p { margin:6px 0; color:#b6c9e6; text-align:left; }
+    .settings-btn:active { transform:translateY(1px); }
+    .settings-panel { min-width: 280px; }
+    .settings-panel h2 { margin-bottom: 12px; }
+    .settings-tabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 14px;
+      border-bottom: 1px solid rgba(160,190,220,0.2);
+      padding-bottom: 8px;
+    }
+    .tab-btn {
+      flex: 1;
+      padding: 8px 6px;
+      border: 1px solid rgba(160,190,220,0.25);
+      border-radius: 6px;
+      background: rgba(30,40,55,0.5);
+      color: #8fa8c8;
+      font: 12px/1 system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .tab-btn:hover { background: rgba(50,65,85,0.6); }
+    .tab-btn.active {
+      background: rgba(60,100,180,0.4);
+      color: #e6f0ff;
+      border-color: rgba(100,150,220,0.5);
+    }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    .tab-content p { margin: 6px 0; color: #b6c9e6; text-align: left; font-size: 13px; }
+    .settings-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(160,190,220,0.1);
+    }
+    .settings-row:last-child { border-bottom: none; }
+    .settings-label { color: #b6c9e6; font-size: 13px; }
+    .fullscreen-btn {
+      padding: 8px 16px;
+      border-radius: 6px;
+      border: 1px solid rgba(100,180,100,0.4);
+      background: rgba(60,120,80,0.3);
+      color: #8fd9a8;
+      font: 13px/1 system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      cursor: pointer;
+    }
+    .fullscreen-btn:hover { background: rgba(70,140,90,0.4); }
+    .fullscreen-btn:active { transform: translateY(1px); }
+    .difficulty-options {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .diff-btn {
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: 1px solid rgba(160,190,220,0.25);
+      background: rgba(30,40,55,0.5);
+      color: #b6c9e6;
+      font: 13px/1 system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      cursor: pointer;
+      text-align: left;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .diff-btn:hover:not(.locked) { background: rgba(50,65,85,0.6); }
+    .diff-btn.active {
+      background: rgba(60,100,180,0.4);
+      border-color: rgba(100,150,220,0.5);
+      color: #e6f0ff;
+    }
+    .diff-btn.locked {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .diff-btn .lock-icon { font-size: 14px; }
+    .diff-btn .check-icon { color: #8fd9a8; }
     .controls-right {
       position:fixed;
       right:12px;
@@ -269,15 +348,51 @@
     <button id="startBtn">Start</button>
   </div>
 </div>
-<button class="help-btn" id="helpBtn" aria-label="Help">i</button>
-<div class="overlay hidden" id="helpOverlay">
-  <div class="panel help-panel">
-    <h2>Controls</h2>
-    <p>Swipe left/right: rotate the cylinder in steps.</p>
-    <p>Swipe down: faster drop.</p>
-    <p>Double tap / click: rotate the piece.</p>
-    <p><b>Magic:</b> Tap a color button to select element, then tap a matching block to destroy it. Fire destroys red, Water destroys blue, etc. Each element has 3 charges.</p>
-    <button id="helpClose">Close</button>
+<button class="settings-btn" id="settingsBtn" aria-label="Settings">⚙</button>
+<div class="overlay hidden" id="settingsOverlay">
+  <div class="panel settings-panel">
+    <h2>Settings</h2>
+    <div class="settings-tabs">
+      <button class="tab-btn active" data-tab="controls">Controls</button>
+      <button class="tab-btn" data-tab="view">View</button>
+      <button class="tab-btn" data-tab="game">Game</button>
+    </div>
+    
+    <div class="tab-content active" id="tab-controls">
+      <p><b>Swipe left/right:</b> rotate the cylinder</p>
+      <p><b>Swipe down:</b> faster drop</p>
+      <p><b>Double tap:</b> rotate piece</p>
+      <p><b>Button ⟳:</b> rotate piece</p>
+      <p style="margin-top:10px"><b>Magic:</b> Tap an element button, then tap a block of the same color. Fire→red, Water→blue, etc. 3 charges per element.</p>
+    </div>
+    
+    <div class="tab-content" id="tab-view">
+      <div class="settings-row">
+        <span class="settings-label">Fullscreen mode</span>
+        <button class="fullscreen-btn" id="fullscreenBtn">Enable</button>
+      </div>
+    </div>
+    
+    <div class="tab-content" id="tab-game">
+      <p style="margin-bottom:10px; color:#8fa8c8;">Difficulty:</p>
+      <div class="difficulty-options">
+        <button class="diff-btn active" data-diff="easy">
+          <span>🌱 Easy</span>
+          <span class="check-icon">✓</span>
+        </button>
+        <button class="diff-btn locked" data-diff="medium">
+          <span>⚔️ Medium</span>
+          <span class="lock-icon">🔒</span>
+        </button>
+        <button class="diff-btn locked" data-diff="hard">
+          <span>💀 Hard</span>
+          <span class="lock-icon">🔒</span>
+        </button>
+      </div>
+      <p style="margin-top:12px; font-size:11px; color:#6a8aac;">Unlock new levels by scoring more points!</p>
+    </div>
+    
+    <button id="settingsClose" style="margin-top:14px;">Close</button>
   </div>
 </div>
 <div class="controls-right">
@@ -475,9 +590,10 @@
   const timeHud = document.getElementById('timeHud');
   const nextCanvas = document.getElementById('nextCanvas');
   const nextCtx = nextCanvas.getContext('2d');
-  const helpBtn = document.getElementById('helpBtn');
-  const helpOverlay = document.getElementById('helpOverlay');
-  const helpClose = document.getElementById('helpClose');
+  const settingsBtn = document.getElementById('settingsBtn');
+  const settingsOverlay = document.getElementById('settingsOverlay');
+  const settingsClose = document.getElementById('settingsClose');
+  const fullscreenBtn = document.getElementById('fullscreenBtn');
   const rotateBtn = document.getElementById('rotateBtn');
   let pausedFromState = null;
 
@@ -1527,24 +1643,79 @@
     });
   }
 
-  helpBtn.addEventListener('click', () => {
+  // Settings panel tabs
+  const tabBtns = document.querySelectorAll('.tab-btn');
+  const tabContents = document.querySelectorAll('.tab-content');
+  
+  tabBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tabId = btn.dataset.tab;
+      tabBtns.forEach(b => b.classList.remove('active'));
+      tabContents.forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('tab-' + tabId).classList.add('active');
+    });
+  });
+
+  // Fullscreen toggle
+  function updateFullscreenBtn() {
+    const isFs = document.fullscreenElement || document.webkitFullscreenElement;
+    fullscreenBtn.textContent = isFs ? 'Disable' : 'Enable';
+  }
+  
+  fullscreenBtn.addEventListener('click', () => {
+    const isFs = document.fullscreenElement || document.webkitFullscreenElement;
+    if (!isFs) {
+      const el = document.documentElement;
+      if (el.requestFullscreen) el.requestFullscreen();
+      else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+    } else {
+      if (document.exitFullscreen) document.exitFullscreen();
+      else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+    }
+  });
+  
+  document.addEventListener('fullscreenchange', updateFullscreenBtn);
+  document.addEventListener('webkitfullscreenchange', updateFullscreenBtn);
+
+  // Difficulty buttons (only easy is active for now)
+  const diffBtns = document.querySelectorAll('.diff-btn');
+  diffBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (btn.classList.contains('locked')) return;
+      diffBtns.forEach(b => {
+        b.classList.remove('active');
+        const check = b.querySelector('.check-icon');
+        if (check) check.remove();
+      });
+      btn.classList.add('active');
+      if (!btn.querySelector('.check-icon')) {
+        const check = document.createElement('span');
+        check.className = 'check-icon';
+        check.textContent = '✓';
+        btn.appendChild(check);
+      }
+    });
+  });
+
+  settingsBtn.addEventListener('click', () => {
     if (gameState === 'playing') {
       pausedFromState = 'playing';
       gameState = 'paused';
     }
-    helpOverlay.classList.remove('hidden');
+    settingsOverlay.classList.remove('hidden');
   });
-  helpClose.addEventListener('click', () => {
-    helpOverlay.classList.add('hidden');
+  settingsClose.addEventListener('click', () => {
+    settingsOverlay.classList.add('hidden');
     if (pausedFromState === 'playing') {
       pausedFromState = null;
       gameState = 'playing';
       last = performance.now();
     }
   });
-  helpOverlay.addEventListener('click', (e) => {
-    if (e.target === helpOverlay) {
-      helpOverlay.classList.add('hidden');
+  settingsOverlay.addEventListener('click', (e) => {
+    if (e.target === settingsOverlay) {
+      settingsOverlay.classList.add('hidden');
       if (pausedFromState === 'playing') {
         pausedFromState = null;
         gameState = 'playing';
