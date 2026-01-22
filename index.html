@@ -147,6 +147,40 @@
       position:absolute;
       z-index:1;
     }
+    /* Game Over stats */
+    .go-score {
+      font-size: 32px;
+      font-weight: 700;
+      color: #fff;
+      margin: 4px 0;
+    }
+    .go-time {
+      font-size: 14px;
+      color: #8fa8c8;
+      margin-bottom: 12px;
+    }
+    .go-stats {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px 14px;
+      margin: 12px 0;
+      font-size: 14px;
+    }
+    .go-stats span {
+      background: rgba(60,80,100,0.5);
+      padding: 4px 10px;
+      border-radius: 6px;
+      color: #cfe0f3;
+    }
+    .go-stats span:hover {
+      background: rgba(80,100,120,0.6);
+    }
+    .go-version {
+      font-size: 11px;
+      color: #5a7090;
+      margin-top: 8px;
+    }
   </style>
 </head>
 <body>
@@ -338,7 +372,7 @@
   let lastTapTime = 0;
   let lastTapX = 0;
   let lastTapY = 0;
-  const APP_VERSION = '0.6.4';
+  const APP_VERSION = '0.6.5';
 
   // ===== Game state / scoring =====
   let gameState = 'intro'; // intro | playing | gameover
@@ -346,6 +380,16 @@
   let startTime = 0;
   let elapsedMs = 0;
   let nextPiece = null;
+
+  // ===== Game statistics =====
+  let stats = {
+    lines3: 0,    // 3-in-a-row combos
+    lines4: 0,    // 4-in-a-row combos
+    lines5: 0,    // 5+ in-a-row combos
+    pairs: 0,     // AABB pairs
+    rings: 0,     // completed rings
+    magicUsed: 0, // magic shots fired
+  };
 
   const overlay = document.getElementById('overlay');
   const overlayTitle = document.getElementById('overlayTitle');
@@ -454,6 +498,7 @@
       cascadeLevel = 0;
       
       magicCharges[activeMagic]--;
+      stats.magicUsed++;
       activeMagic = null;
       updateMagicBtns();
       return true;
@@ -590,9 +635,16 @@
     for (const match of lineMatches) {
       const element = ELEMENT_NAMES[match.color];
       let charges = 0;
-      if (match.length >= 5) charges = MATCH_5_CHARGES;
-      else if (match.length === 4) charges = MATCH_4_CHARGES;
-      else if (match.length === 3) charges = MATCH_3_CHARGES;
+      if (match.length >= 5) {
+        charges = MATCH_5_CHARGES;
+        stats.lines5++;
+      } else if (match.length === 4) {
+        charges = MATCH_4_CHARGES;
+        stats.lines4++;
+      } else if (match.length === 3) {
+        charges = MATCH_3_CHARGES;
+        stats.lines3++;
+      }
 
       if (element && magicCharges[element] !== undefined) {
         magicCharges[element] += charges;
@@ -610,6 +662,7 @@
 
     // Process pair matches
     for (const match of pairMatches) {
+      stats.pairs++;
       totalKzBonus += MATCH_PAIR_KZ_BONUS;
       baseScore += SCORE_PAIR;
 
@@ -677,6 +730,7 @@
       // No more matches - check rings and finish
       const cleared = clearRings();
       if (cleared > 0) {
+        stats.rings += cleared;
         // Apply ring bonus with multiplier for multiple rings
         const ringMulti = getMultiplier(SCORE_RING_MULTI, cleared - 1);
         const ringScore = Math.round(SCORE_RING_BASE * cleared * ringMulti);
@@ -813,11 +867,25 @@
     overlay.classList.remove('hidden');
     if (gameState === 'intro') {
       overlayTitle.textContent = 'Elemental Blocks';
-      overlayStats.textContent = `Push Start • v${APP_VERSION}`;
+      overlayStats.innerHTML = `Push Start • v${APP_VERSION}`;
       startBtn.textContent = 'Start';
     } else {
       overlayTitle.textContent = 'Game Over';
-      overlayStats.textContent = `Score: ${score} • Time: ${formatElapsed(elapsedMs)} • v${APP_VERSION}`;
+      // Build stats display with icons
+      const statsHtml = `
+        <div class="go-score">${score.toLocaleString()}</div>
+        <div class="go-time">⏱ ${formatElapsed(elapsedMs)}</div>
+        <div class="go-stats">
+          <span title="3 in a row">③ ${stats.lines3}</span>
+          <span title="4 in a row">④ ${stats.lines4}</span>
+          <span title="5+ in a row">⑤ ${stats.lines5}</span>
+          <span title="Pairs">❚❚ ${stats.pairs}</span>
+          <span title="Rings">◯ ${stats.rings}</span>
+          <span title="Magic used">✦ ${stats.magicUsed}</span>
+        </div>
+        <div class="go-version">v${APP_VERSION}</div>
+      `;
+      overlayStats.innerHTML = statsHtml;
       startBtn.textContent = 'Play again';
     }
   }
@@ -902,6 +970,13 @@
     pendingKzBonus = 0;
     pendingScore = 0;
     cascadeLevel = 0;
+    // Reset statistics
+    stats.lines3 = 0;
+    stats.lines4 = 0;
+    stats.lines5 = 0;
+    stats.pairs = 0;
+    stats.rings = 0;
+    stats.magicUsed = 0;
     updateMagicBtns();
     updateScoreHud();
     updateTimeHud();
