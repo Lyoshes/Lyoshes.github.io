@@ -339,7 +339,7 @@
   let lastTapTime = 0;
   let lastTapX = 0;
   let lastTapY = 0;
-  const APP_VERSION = '0.6.3';
+  const APP_VERSION = '0.6.4';
 
   // ===== Game state / scoring =====
   let gameState = 'intro'; // intro | playing | gameover
@@ -935,7 +935,7 @@
   }
 
   function hasBuiltInCombo(cells, colors) {
-    // Check if 3+ cells of same color form a line within the piece
+    // Check if cells form a line (3+) or pair (AABB) within the piece
     // Build a map of cell positions
     const cellMap = new Map();
     cells.forEach((c, i) => cellMap.set(`${c.x},${c.y}`, colors[i]));
@@ -959,6 +959,24 @@
         else break;
       }
       if (vCount >= 3) return true;
+      
+      // Check horizontal AABB pair pattern (4 cells: AA BB)
+      const h0 = color;
+      const h1 = cellMap.get(`${c.x + 1},${c.y}`);
+      const h2 = cellMap.get(`${c.x + 2},${c.y}`);
+      const h3 = cellMap.get(`${c.x + 3},${c.y}`);
+      if (h0 && h1 && h2 && h3 && h0 === h1 && h2 === h3 && h0 !== h2) {
+        return true;
+      }
+      
+      // Check vertical AABB pair pattern (4 cells: AA BB)
+      const v0 = color;
+      const v1 = cellMap.get(`${c.x},${c.y + 1}`);
+      const v2 = cellMap.get(`${c.x},${c.y + 2}`);
+      const v3 = cellMap.get(`${c.x},${c.y + 3}`);
+      if (v0 && v1 && v2 && v3 && v0 === v1 && v2 === v3 && v0 !== v2) {
+        return true;
+      }
     }
     return false;
   }
