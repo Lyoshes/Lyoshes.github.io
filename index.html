@@ -655,7 +655,7 @@
   let lastTapTime = 0;
   let lastTapX = 0;
   let lastTapY = 0;
-  const APP_VERSION = '0.8.3';
+  const APP_VERSION = '0.8.7';
 
   // ===== Game state / scoring =====
   let gameState = 'intro'; // intro | playing | gameover
@@ -2030,29 +2030,41 @@
     const glassTop = topY - 10;
     const glassBottom = bottomY + 5;
     
-    // Draw kill zone (water) OUTSIDE the glass, rising from bottom
+    // Draw kill zone (water) OUTSIDE the glass ONLY - never touch inside
     const kzColor = `rgba(${kzR},${kzG},${kzB},0.45)`;
+    ctx.fillStyle = kzColor;
     
     // Glass curve parameters
     const curveRadiusX = radiusX + 8;
     const curveRadiusY = radiusY + 4;
     
-    // Step 1: Fill the entire kill zone area (full width, from killY to bottom)
-    ctx.fillStyle = kzColor;
-    ctx.fillRect(0, killY, w, h - killY);
+    // Left side - from water level to bottom
+    ctx.fillRect(0, killY, glassLeft, h - killY);
     
-    // Step 2: "Cut out" the inside of the glass with black background
-    ctx.fillStyle = '#0b0f14';
+    // Right side - from water level to bottom
+    ctx.fillRect(glassRight, killY, w - glassRight, h - killY);
+    
+    // Bottom area - ONLY below the glass curve, following its shape
+    // Use a path that goes around the outside of the ellipse
     ctx.beginPath();
-    // Start at top-left of glass interior
-    ctx.moveTo(glassLeft, 0);
-    // Go down left wall to where curve starts
-    ctx.lineTo(glassLeft, glassBottom);
-    // Draw the TOP arc of the ellipse (inside of glass bottom)
-    ctx.ellipse(centerX, glassBottom, curveRadiusX, curveRadiusY, 0, Math.PI, 0, false);
-    // Go up right wall
-    ctx.lineTo(glassRight, 0);
-    // Close across the top
+    // Start at left wall, at the higher of killY or glassBottom
+    const bottomStartY = Math.max(killY, glassBottom);
+    ctx.moveTo(glassLeft, bottomStartY);
+    
+    // If water is high enough, draw along the bottom curve of the ellipse
+    if (killY <= glassBottom + curveRadiusY) {
+      // Draw the bottom arc of the ellipse (from left to right, going through the bottom)
+      ctx.ellipse(centerX, glassBottom, curveRadiusX, curveRadiusY, 0, Math.PI, 0, false);
+    } else {
+      // Water is below the curve, just draw straight across
+      ctx.lineTo(glassRight, bottomStartY);
+    }
+    
+    // Continue to bottom right corner
+    ctx.lineTo(glassRight, h);
+    // Go left along the bottom edge
+    ctx.lineTo(glassLeft, h);
+    // Close back to start
     ctx.closePath();
     ctx.fill();
     
@@ -2074,6 +2086,12 @@
     ctx.beginPath();
     ctx.ellipse(centerX, glassBottom, radiusX + 8, radiusY + 4, 0, 0, Math.PI);
     ctx.stroke();
+    
+    // Fill the glass bottom (ellipse inside) with gray - full ellipse
+    ctx.fillStyle = 'rgba(60,70,80,0.8)';
+    ctx.beginPath();
+    ctx.ellipse(centerX, glassBottom, radiusX + 8, radiusY + 4, 0, 0, TAU);
+    ctx.fill();
     
     // Water surface line on the sides
     if (killLevel > 0.5) {
