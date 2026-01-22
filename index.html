@@ -2,7 +2,11 @@
 <html lang="ru">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="theme-color" content="#0b0f14" />
   <title>Elemental Blocks MVP</title>
   <style>
     html, body { margin:0; padding:0; height:100%; background:#0b0f14; overflow:hidden; touch-action:none; }
@@ -167,6 +171,25 @@
     }
     .diff-btn .lock-icon { font-size: 14px; }
     .diff-btn .check-icon { color: #8fd9a8; }
+    .ios-hint {
+      margin-top: 10px;
+      padding: 10px;
+      background: rgba(60,80,100,0.3);
+      border-radius: 6px;
+      font-size: 12px;
+      color: #8fa8c8;
+      line-height: 1.4;
+    }
+    .ios-hint b { color: #b6c9e6; }
+    .standalone-badge {
+      display: inline-block;
+      padding: 4px 8px;
+      background: rgba(80,160,80,0.3);
+      border-radius: 4px;
+      color: #8fd9a8;
+      font-size: 11px;
+      margin-top: 8px;
+    }
     .controls-right {
       position:fixed;
       right:12px;
@@ -371,6 +394,12 @@
         <span class="settings-label">Fullscreen mode</span>
         <button class="fullscreen-btn" id="fullscreenBtn">Enable</button>
       </div>
+      <div id="iosHint" class="ios-hint" style="display:none;">
+        <b>📱 iOS Safari:</b> Tap <b>Share</b> → <b>Add to Home Screen</b> to run in fullscreen mode.
+      </div>
+      <div id="standaloneBadge" class="standalone-badge" style="display:none;">
+        ✓ Running in standalone mode
+      </div>
     </div>
     
     <div class="tab-content" id="tab-game">
@@ -562,7 +591,7 @@
   let lastTapTime = 0;
   let lastTapX = 0;
   let lastTapY = 0;
-  const APP_VERSION = '0.6.7';
+  const APP_VERSION = '0.6.8';
 
   // ===== Game state / scoring =====
   let gameState = 'intro'; // intro | playing | gameover
@@ -1658,12 +1687,34 @@
   });
 
   // Fullscreen toggle
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const isStandalone = window.navigator.standalone === true || 
+    window.matchMedia('(display-mode: standalone)').matches;
+  const iosHint = document.getElementById('iosHint');
+  const standaloneBadge = document.getElementById('standaloneBadge');
+  
   function updateFullscreenBtn() {
     const isFs = document.fullscreenElement || document.webkitFullscreenElement;
     fullscreenBtn.textContent = isFs ? 'Disable' : 'Enable';
   }
   
+  // Show iOS hint or standalone badge
+  if (isIOS) {
+    if (isStandalone) {
+      standaloneBadge.style.display = 'block';
+      fullscreenBtn.style.display = 'none';
+    } else {
+      iosHint.style.display = 'block';
+      fullscreenBtn.textContent = 'Not supported';
+      fullscreenBtn.style.opacity = '0.5';
+      fullscreenBtn.style.cursor = 'default';
+    }
+  }
+  
   fullscreenBtn.addEventListener('click', () => {
+    if (isIOS && !isStandalone) return; // iOS without standalone - do nothing
+    
     const isFs = document.fullscreenElement || document.webkitFullscreenElement;
     if (!isFs) {
       const el = document.documentElement;
