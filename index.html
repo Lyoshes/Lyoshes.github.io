@@ -1643,14 +1643,25 @@
     ctx.fillStyle = `rgba(${kzR},${kzG},${kzB},0.45)`;
     ctx.fillRect(0, killY, w, h - killY);
 
-    ctx.strokeStyle = 'rgba(160,190,220,0.25)';
+    ctx.strokeStyle = 'rgba(160,190,220,0.3)';
     ctx.lineWidth = 1;
+    // Dashed lines that rotate with the cylinder
+    // Use 10 dashes (not N) so rotation is visible
+    const circumference = TAU * radiusX;
+    const numDashes = 10;
+    const dashLen = circumference / numDashes * 0.7;
+    const gapLen = circumference / numDashes * 0.3;
+    ctx.setLineDash([dashLen, gapLen]);
+    // Offset based on rotation
+    const sectorLen = circumference / N;
+    ctx.lineDashOffset = rotFloat * sectorLen;
     for (let y=0; y<=H; y++) {
       const py = levelYToScreenY(topY, towerHeightPx, y);
       ctx.beginPath();
       ctx.ellipse(centerX, py, radiusX, radiusY, 0, 0, TAU);
       ctx.stroke();
     }
+    ctx.setLineDash([]); // reset to solid
 
     const backBlocks = [];
     const frontBlocks = [];
