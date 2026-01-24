@@ -59,10 +59,12 @@
       display:flex;
       align-items:center;
       justify-content:center;
-      background:rgba(7,10,14,0.78);
+      background:rgba(7,10,14,0.98);
       color:#e6f0ff;
       font:16px/1.4 system-ui, -apple-system, Segoe UI, Roboto, Arial;
       text-align:center;
+      z-index:10000;
+      backdrop-filter: blur(4px);
     }
     .overlay.hidden { display:none; }
     .panel {
@@ -77,6 +79,42 @@
       margin:0 0 8px 0;
       font-size:20px;
       font-weight:600;
+    }
+    .panel h2#overlayTitle {
+      font-size: 48px;
+      font-weight: 900;
+      margin: 0 0 20px 0;
+      line-height: 1.1;
+      letter-spacing: 3px;
+    }
+    .title-elemental {
+      display: inline-block;
+      background: linear-gradient(90deg, 
+        #ff4d4d 0%, 
+        #ff4d4d 20%,
+        #4da6ff 30%,
+        #4da6ff 50%,
+        #ffd84d 60%,
+        #ffd84d 80%,
+        #47d16a 90%,
+        #47d16a 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 0 8px rgba(255,255,255,0.4)) drop-shadow(0 2px 4px rgba(0,0,0,0.6));
+      text-shadow: 0 0 30px rgba(255,255,255,0.2);
+    }
+    .title-blocks {
+      display: inline-block;
+      color: #fff;
+      text-shadow: 
+        0 0 15px rgba(255,255,255,0.9),
+        0 0 30px rgba(160,190,220,0.7),
+        0 0 45px rgba(100,150,220,0.5),
+        0 3px 6px rgba(0,0,0,0.9);
+      font-weight: 900;
+      letter-spacing: 4px;
+      margin-left: 8px;
     }
     .panel p { margin:6px 0; color:#b6c9e6; }
     .panel button {
@@ -229,6 +267,30 @@
     }
     .toggle-switch.active::after {
       transform: translateX(20px);
+    }
+    .volume-control {
+      display: flex;
+      gap: 4px;
+    }
+    .volume-btn {
+      width: 32px;
+      height: 28px;
+      border-radius: 4px;
+      border: 1px solid rgba(160,190,220,0.25);
+      background: rgba(30,40,55,0.5);
+      color: #8fa8c8;
+      font: 12px/1 system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .volume-btn:hover {
+      background: rgba(50,65,85,0.6);
+    }
+    .volume-btn.active {
+      background: rgba(60,120,180,0.6);
+      border-color: rgba(100,150,220,0.5);
+      color: #e6f0ff;
+      font-weight: 600;
     }
     /* Bonus popups */
     .bonus-popup {
@@ -483,6 +545,18 @@
       color: #5a7090;
       margin-top: 12px;
     }
+    .intro-highscore {
+      font-size: 14px;
+      color: #ffd84d;
+      font-weight: 600;
+      margin-bottom: 8px;
+      text-shadow: 0 0 8px rgba(255,216,77,0.5);
+    }
+    .intro-highscore small {
+      font-size: 11px;
+      color: #8fa8c8;
+      font-weight: 400;
+    }
   </style>
 </head>
 <body>
@@ -509,6 +583,7 @@
       <button class="tab-btn active" data-tab="controls">Controls</button>
       <button class="tab-btn" data-tab="view">View</button>
       <button class="tab-btn" data-tab="game">Game</button>
+      <button class="tab-btn" data-tab="sounds">Sounds</button>
     </div>
     
     <div class="tab-content active" id="tab-controls">
@@ -553,6 +628,37 @@
         </button>
       </div>
       <p style="margin-top:12px; font-size:11px; color:#6a8aac;">Unlock new levels by scoring more points!</p>
+    </div>
+    
+    <div class="tab-content" id="tab-sounds">
+      <div class="settings-row">
+        <span class="settings-label">Sounds</span>
+        <div class="toggle-switch" id="soundsToggle"></div>
+      </div>
+      <div class="settings-row">
+        <span class="settings-label">Music</span>
+        <div class="toggle-switch" id="musicToggle"></div>
+      </div>
+      <div class="settings-row" style="border-top:1px solid rgba(160,190,220,0.15); padding-top:14px; margin-top:8px;">
+        <span class="settings-label">Sound Volume</span>
+        <div class="volume-control">
+          <button class="volume-btn" data-volume="0" id="soundVol0">0</button>
+          <button class="volume-btn" data-volume="1" id="soundVol1">1</button>
+          <button class="volume-btn" data-volume="2" id="soundVol2">2</button>
+          <button class="volume-btn" data-volume="3" id="soundVol3">3</button>
+          <button class="volume-btn" data-volume="4" id="soundVol4">4</button>
+        </div>
+      </div>
+      <div class="settings-row">
+        <span class="settings-label">Music Volume</span>
+        <div class="volume-control">
+          <button class="volume-btn" data-volume="0" id="musicVol0">0</button>
+          <button class="volume-btn" data-volume="1" id="musicVol1">1</button>
+          <button class="volume-btn" data-volume="2" id="musicVol2">2</button>
+          <button class="volume-btn" data-volume="3" id="musicVol3">3</button>
+          <button class="volume-btn" data-volume="4" id="musicVol4">4</button>
+        </div>
+      </div>
     </div>
     
     <button id="settingsClose" style="margin-top:14px;">Close</button>
