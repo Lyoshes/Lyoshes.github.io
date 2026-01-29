@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="theme-color" content="#0b0f14" />
+  <title>Elemental Blocks MVP</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" href="favicon.ico" />
+</head>
+<body>
+<canvas id="c"></canvas>
+<div class="hud" id="hud"></div>
+<div class="hud-right">
+  <div id="scoreHud">Score: 0</div>
+  <div id="timeHud">Time: 0:00</div>
+  <div id="nextLabel">Next</div>
+  <canvas id="nextCanvas" width="72" height="72"></canvas>
+</div>
+<div class="overlay" id="overlay">
+  <div class="panel">
+    <h2 id="overlayTitle">Elemental Blocks</h2>
+    <p id="overlayStats"></p>
+    <button id="startBtn">Start</button>
+  </div>
+</div>
+<button class="settings-btn" id="settingsBtn" aria-label="Settings">⚙</button>
+<div class="overlay hidden" id="settingsOverlay">
+  <div class="panel settings-panel">
+    <h2>Settings</h2>
+    <div class="settings-tabs">
+      <button class="tab-btn active" data-tab="controls">Controls</button>
+      <button class="tab-btn" data-tab="view">View</button>
+      <button class="tab-btn" data-tab="game">Game</button>
+      <button class="tab-btn" data-tab="sounds">Sounds</button>
+    </div>
+    
+    <div class="tab-content active" id="tab-controls">
+      <p><b>Swipe left/right:</b> rotate the cylinder</p>
+      <p><b>Swipe down:</b> faster drop</p>
+      <p><b>Double tap:</b> rotate piece</p>
+      <p><b>Button ⟳:</b> rotate piece</p>
+      <p style="margin-top:10px"><b>Magic:</b> Tap an element button, then tap a block of the same color. Fire→red, Water→blue, etc. 3 charges per element.</p>
+      <div class="settings-row" style="margin-top:14px; border-top:1px solid rgba(160,190,220,0.15); padding-top:14px;">
+        <span class="settings-label">Invert swipe direction</span>
+        <div class="toggle-switch" id="invertSwipeToggle"></div>
+      </div>
+    </div>
+    
+    <div class="tab-content" id="tab-view">
+      <div class="settings-row">
+        <span class="settings-label">Fullscreen mode</span>
+        <button class="fullscreen-btn" id="fullscreenBtn">Enable</button>
+      </div>
+      <div id="iosHint" class="ios-hint" style="display:none;">
+        <b>📱 iOS Safari:</b> Tap <b>Share</b> → <b>Add to Home Screen</b> to run in fullscreen mode.
+      </div>
+      <div id="standaloneBadge" class="standalone-badge" style="display:none;">
+        ✓ Running in standalone mode
+      </div>
+    </div>
+    
+    <div class="tab-content" id="tab-game">
+      <p style="margin-bottom:10px; color:#8fa8c8;">Difficulty:</p>
+      <div class="difficulty-options">
+        <button class="diff-btn active" data-diff="easy">
+          <span>🌱 Easy</span>
+          <span class="check-icon">✓</span>
+        </button>
+        <button class="diff-btn locked" data-diff="medium">
+          <span>⚔️ Medium</span>
+          <span class="lock-icon">🔒</span>
+        </button>
+        <button class="diff-btn locked" data-diff="hard">
+          <span>💀 Hard</span>
+          <span class="lock-icon">🔒</span>
+        </button>
+      </div>
+      <p style="margin-top:12px; font-size:11px; color:#6a8aac;">Unlock new levels by scoring more points!</p>
+    </div>
+    
+    <div class="tab-content" id="tab-sounds">
+      <div class="settings-row">
+        <span class="settings-label">Sounds</span>
+        <div class="toggle-switch" id="soundsToggle"></div>
+      </div>
+      <div class="settings-row">
+        <span class="settings-label">Music</span>
+        <div class="toggle-switch" id="musicToggle"></div>
+      </div>
+      <div class="settings-row" style="border-top:1px solid rgba(160,190,220,0.15); padding-top:14px; margin-top:8px;">
+        <span class="settings-label">Sound Volume</span>
+        <div class="volume-control">
+          <button class="volume-btn" data-volume="0" id="soundVol0">0</button>
+          <button class="volume-btn" data-volume="1" id="soundVol1">1</button>
+          <button class="volume-btn" data-volume="2" id="soundVol2">2</button>
+          <button class="volume-btn" data-volume="3" id="soundVol3">3</button>
+          <button class="volume-btn" data-volume="4" id="soundVol4">4</button>
+        </div>
+      </div>
+      <div class="settings-row">
+        <span class="settings-label">Music Volume</span>
+        <div class="volume-control">
+          <button class="volume-btn" data-volume="0" id="musicVol0">0</button>
+          <button class="volume-btn" data-volume="1" id="musicVol1">1</button>
+          <button class="volume-btn" data-volume="2" id="musicVol2">2</button>
+          <button class="volume-btn" data-volume="3" id="musicVol3">3</button>
+          <button class="volume-btn" data-volume="4" id="musicVol4">4</button>
+        </div>
+      </div>
+    </div>
+    
+    <button id="settingsClose" style="margin-top:14px;">Close</button>
+  </div>
+</div>
+<div class="controls-right">
+  <button class="control-btn" id="dropBtn" aria-label="Drop">▼</button>
+  <button class="control-btn" id="rotateBtn" aria-label="Rotate">⟳</button>
+</div>
+<div class="color-row" aria-label="Magic">
+  <button class="color-btn" id="magicRed" data-element="fire" style="background:radial-gradient(circle, #ff4d4d 40%, rgba(14,20,28,0.85) 70%);"><span class="charges">3</span></button>
+  <button class="color-btn" id="magicBlue" data-element="water" style="background:radial-gradient(circle, #4da6ff 40%, rgba(14,20,28,0.85) 70%);"><span class="charges">3</span></button>
+  <button class="color-btn" id="magicYellow" data-element="lightning" style="background:radial-gradient(circle, #ffd84d 40%, rgba(14,20,28,0.85) 70%);"><span class="charges">3</span></button>
+  <button class="color-btn" id="magicGreen" data-element="earth" style="background:radial-gradient(circle, #47d16a 40%, rgba(14,20,28,0.85) 70%);"><span class="charges">3</span></button>
+</div>
+
+<script src="bundle.js"></script>
+</body>
+</html>
