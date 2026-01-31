@@ -112,11 +112,44 @@
     <div class="start-version" id="startVersion">v0.12.2</div>
   </div>
 
-  <!-- Game Over panel (separate, simpler) -->
+  <!-- Game Over panel (styled like pause) -->
   <div class="panel gameover-panel hidden" id="gameoverPanel">
-    <h2 id="overlayTitle">Game Over</h2>
-    <p id="overlayStats"></p>
-    <button class="panel-btn" id="playAgainBtn">Play again</button>
+    <div class="menu-aura" aria-hidden="true"></div>
+    <div class="ringlines" aria-hidden="true"></div>
+    
+    <div class="gameover-content">
+      <div class="gameover-title">GAME OVER</div>
+      
+      <div class="gameover-score-grid">
+        <!-- Final score card -->
+        <div class="gameover-score-card final">
+          <div class="gameover-score-top">
+            <div class="gameover-label">Score</div>
+            <div class="gameover-pill">⏱ <span id="goTime">0:00</span></div>
+          </div>
+          <div class="gameover-big-score" id="goScore">0</div>
+          <div class="gameover-record hidden" id="goNewRecord">🏆 NEW RECORD!</div>
+        </div>
+        
+        <!-- Matches card -->
+        <div class="gameover-score-card stats">
+          <div class="gameover-stats-title">MATCHES</div>
+          <div class="gameover-stats-grid" id="goMatches"></div>
+        </div>
+        
+        <!-- Bonuses card -->
+        <div class="gameover-score-card stats">
+          <div class="gameover-stats-title">BONUSES</div>
+          <div class="gameover-stats-grid" id="goBonuses"></div>
+        </div>
+      </div>
+      
+      <!-- Bottom action buttons -->
+      <div class="gameover-actions">
+        <button class="gameover-action-btn" id="goRestartBtn" aria-label="Restart" title="Restart">↻</button>
+        <button class="gameover-action-btn" id="goExitBtn" aria-label="Exit to Menu" title="Exit to Menu">←</button>
+      </div>
+    </div>
   </div>
 </div>
 <!-- Pause button (replaces settings button during game) -->
@@ -128,42 +161,11 @@
     <div class="menu-aura" aria-hidden="true"></div>
     <div class="ringlines" aria-hidden="true"></div>
     
-    <!-- Close / Resume button (X) top-right -->
-    <button class="pause-close-btn" id="resumeBtn" aria-label="Resume" title="Resume">
-      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
-      </svg>
-    </button>
-    
-    <!-- Left side buttons -->
+    <!-- Left side buttons (settings, sound, music) -->
     <div class="pause-side-btns">
-      <button class="pause-circle" id="pauseSoundBtn" aria-label="Sound" title="Sound">
-        <svg viewBox="0 0 24 24" fill="none">
-          <path d="M11 5 7.5 8H4v8h3.5L11 19V5Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
-          <path d="M15 9a4 4 0 0 1 0 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-        </svg>
-      </button>
-      <button class="pause-circle" id="pauseMusicBtn" aria-label="Music" title="Music">
-        <svg viewBox="0 0 24 24" fill="none">
-          <path d="M9 18a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z" stroke="currentColor" stroke-width="2"/>
-          <path d="M19 16a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z" stroke="currentColor" stroke-width="2"/>
-          <path d="M11 14V6l10-2v8" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
-        </svg>
-      </button>
-      <button class="pause-circle" id="pauseSettingsBtn" aria-label="Settings" title="Settings">
-        <svg viewBox="0 0 24 24" fill="none">
-          <path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z" stroke="currentColor" stroke-width="2"/>
-          <path d="M19.4 15a7.8 7.8 0 0 0 .1-1l2-1.2-2-3.4-2.3.6a7.7 7.7 0 0 0-1.7-1L15 4h-4l-.5 2.4a7.7 7.7 0 0 0-1.7 1l-2.3-.6-2 3.4 2 1.2a7.8 7.8 0 0 0 .1 1 7.8 7.8 0 0 0-.1 1l-2 1.2 2 3.4 2.3-.6a7.7 7.7 0 0 0 1.7 1L11 20h4l.5-2.4a7.7 7.7 0 0 0 1.7-1l2.3.6 2-3.4-2-1.2a7.8 7.8 0 0 0-.1-1Z"
-                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      </button>
-      <button class="pause-circle" id="exitToMenuBtn" aria-label="Exit to Main Menu" title="Exit to Main Menu">
-        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path d="M10 7l-5 5 5 5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M5 12h9" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
-          <path d="M14 5h5v14h-5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" opacity=".9"/>
-        </svg>
-      </button>
+      <button class="pause-circle" id="pauseSettingsBtn" aria-label="Settings" title="Settings">⚙</button>
+      <button class="pause-circle" id="pauseSoundBtn" aria-label="Sound" title="Sound">🔊</button>
+      <button class="pause-circle" id="pauseMusicBtn" aria-label="Music" title="Music">🎵</button>
     </div>
     
     <!-- Content -->
@@ -195,9 +197,23 @@
           </div>
         </div>
       </div>
-      
-      <div class="pause-hint">
-        Tip: <span>Press X to resume, or use the left icons for audio/settings/exit.</span>
+    </div>
+    
+    <!-- Bottom action buttons (positioned absolute to panel) -->
+    <div class="pause-actions">
+      <button class="pause-action-btn" id="resumeBtn" aria-label="Resume" title="Resume">▶</button>
+      <button class="pause-action-btn" id="restartBtn" aria-label="Restart" title="Restart">↻</button>
+      <button class="pause-action-btn" id="exitToMenuBtn" aria-label="Exit to Menu" title="Exit to Menu">←</button>
+    </div>
+    
+    <!-- Confirmation dialog -->
+    <div class="confirm-dialog hidden" id="confirmDialog">
+      <div class="confirm-box">
+        <div class="confirm-text" id="confirmText">Are you sure?</div>
+        <div class="confirm-buttons">
+          <button class="confirm-btn cancel" id="confirmCancel" aria-label="Cancel">✕</button>
+          <button class="confirm-btn ok" id="confirmOk" aria-label="Confirm">✓</button>
+        </div>
       </div>
     </div>
   </div>
