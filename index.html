@@ -12,14 +12,31 @@
   <link rel="icon" href="favicon.ico" />
 </head>
 <body>
-<canvas id="c"></canvas>
-<div class="hud" id="hud"></div>
-<div id="remainingHud">Left: 2:00</div>
-<div class="hud-right">
-  <div id="scoreHud">Score: 0</div>
-  <div id="timeHud">Time: 0:00</div>
-  <div id="nextLabel">Next</div>
-  <canvas id="nextCanvas" width="72" height="72"></canvas>
+<!-- Game container (sized like other panels on desktop) -->
+<div class="game-container" id="gameContainer">
+  <canvas id="c"></canvas>
+  <div class="hud" id="hud"></div>
+  <div id="remainingHud">Left: 2:00</div>
+  <div class="hud-right">
+    <div id="scoreHud">Score: 0</div>
+    <div id="timeHud">Time: 0:00</div>
+    <div id="nextLabel">Next</div>
+    <canvas id="nextCanvas" width="72" height="72"></canvas>
+  </div>
+  <!-- Pause button (replaces settings button during game) -->
+  <button class="pause-btn hidden" id="pauseBtn" aria-label="Pause">⏸</button>
+  <!-- Control buttons -->
+  <div class="controls-right">
+    <button class="control-btn" id="dropBtn" aria-label="Drop">▼</button>
+    <button class="control-btn" id="rotateBtn" aria-label="Rotate">⟳</button>
+  </div>
+  <!-- Magic buttons -->
+  <div class="color-row" aria-label="Magic">
+    <button class="color-btn" id="magicRed" data-element="fire" style="background:radial-gradient(circle, #ff4d4d 40%, rgba(14,20,28,0.85) 70%);"><span class="charges">3</span></button>
+    <button class="color-btn" id="magicBlue" data-element="water" style="background:radial-gradient(circle, #4da6ff 40%, rgba(14,20,28,0.85) 70%);"><span class="charges">3</span></button>
+    <button class="color-btn" id="magicYellow" data-element="lightning" style="background:radial-gradient(circle, #ffd84d 40%, rgba(14,20,28,0.85) 70%);"><span class="charges">3</span></button>
+    <button class="color-btn" id="magicGreen" data-element="earth" style="background:radial-gradient(circle, #47d16a 40%, rgba(14,20,28,0.85) 70%);"><span class="charges">3</span></button>
+  </div>
 </div>
 <div class="overlay" id="overlay">
   <div class="panel start-panel" id="startPanel">
@@ -59,7 +76,7 @@
     <!-- Mode selection -->
     <div class="section-title">Choose tower</div>
     <div class="mode-grid" id="modeGrid">
-      <button class="mode-btn active" data-mode="16_20" style="--accRGB:255,216,77">
+      <button class="mode-btn active" data-mode="25_20" style="--accRGB:255,216,77">
         <div class="mode-glow" aria-hidden="true"></div>
         <div class="mode-top">
           <div class="mode-name">Quick Tower</div>
@@ -135,8 +152,6 @@
     </div>
   </div>
 </div>
-<!-- Pause button (replaces settings button during game) -->
-<button class="pause-btn hidden" id="pauseBtn" aria-label="Pause">⏸</button>
 
 <!-- Pause overlay -->
 <div class="overlay hidden" id="pauseOverlay">
@@ -275,16 +290,6 @@
       <button class="settings-action-circle" id="settingsClose" aria-label="Close" title="Close">✕</button>
     </div>
   </div>
-</div>
-<div class="controls-right">
-  <button class="control-btn" id="dropBtn" aria-label="Drop">▼</button>
-  <button class="control-btn" id="rotateBtn" aria-label="Rotate">⟳</button>
-</div>
-<div class="color-row" aria-label="Magic">
-  <button class="color-btn" id="magicRed" data-element="fire" style="background:radial-gradient(circle, #ff4d4d 40%, rgba(14,20,28,0.85) 70%);"><span class="charges">3</span></button>
-  <button class="color-btn" id="magicBlue" data-element="water" style="background:radial-gradient(circle, #4da6ff 40%, rgba(14,20,28,0.85) 70%);"><span class="charges">3</span></button>
-  <button class="color-btn" id="magicYellow" data-element="lightning" style="background:radial-gradient(circle, #ffd84d 40%, rgba(14,20,28,0.85) 70%);"><span class="charges">3</span></button>
-  <button class="color-btn" id="magicGreen" data-element="earth" style="background:radial-gradient(circle, #47d16a 40%, rgba(14,20,28,0.85) 70%);"><span class="charges">3</span></button>
 </div>
 
 <script src="bundle.js"></script>
