@@ -201,9 +201,9 @@
     
     <!-- Bottom action buttons (positioned absolute to panel) -->
     <div class="pause-actions">
-      <button class="pause-action-btn" id="resumeBtn" aria-label="Resume" title="Resume">▶</button>
-      <button class="pause-action-btn" id="restartBtn" aria-label="Restart" title="Restart">↻</button>
       <button class="pause-action-btn" id="exitToMenuBtn" aria-label="Exit to Menu" title="Exit to Menu">←</button>
+      <button class="pause-action-btn" id="restartBtn" aria-label="Restart" title="Restart">↻</button>
+      <button class="pause-action-btn" id="resumeBtn" aria-label="Resume" title="Resume">▶</button>
     </div>
     
     <!-- Confirmation dialog -->
@@ -222,65 +222,74 @@
 <!-- Settings overlay -->
 <div class="overlay hidden" id="settingsOverlay">
   <div class="panel settings-panel">
-    <div class="settings-panel-aura" aria-hidden="true"></div>
-    <button class="settings-close-btn" id="settingsClose" aria-label="Close"></button>
-    <h2 class="settings-title">Settings</h2>
-    <div class="settings-tabs">
-      <button class="tab-btn active" data-tab="controls">Controls</button>
-      <button class="tab-btn" data-tab="sounds">Sounds</button>
-    </div>
+    <div class="menu-aura" aria-hidden="true"></div>
+    <div class="ringlines" aria-hidden="true"></div>
+    
+    <div class="settings-content">
+      <div class="settings-title">SETTINGS</div>
+      
+      <div class="settings-tabs">
+        <button class="tab-btn active" data-tab="controls">Controls</button>
+        <button class="tab-btn" data-tab="sounds">Sounds</button>
+      </div>
 
-    <div class="tab-content active" id="tab-controls">
-      <p class="settings-desc"><b>Swipe left/right:</b> rotate the cylinder</p>
-      <p class="settings-desc"><b>Swipe down:</b> faster drop</p>
-      <p class="settings-desc"><b>Double tap:</b> rotate piece</p>
-      <p class="settings-desc"><b>Button ⟳:</b> rotate piece</p>
-      <p class="settings-desc"><b>Magic:</b> Tap an element button, then tap a block of the same color. Fire→red, Water→blue, etc. 3 charges per element.</p>
-      <div class="settings-row">
-        <span class="settings-label">Invert swipe direction</span>
-        <div class="toggle-switch" id="invertSwipeToggle"></div>
-      </div>
-      <div class="settings-row">
-        <span class="settings-label">Fullscreen mode</span>
-        <button class="settings-action-btn" id="fullscreenBtn">Enable</button>
-      </div>
-      <div id="iosHint" class="ios-hint" style="display:none;">
-        <b>📱 iOS Safari:</b> Tap <b>Share</b> → <b>Add to Home Screen</b> to run in fullscreen mode.
-      </div>
-      <div id="standaloneBadge" class="standalone-badge" style="display:none;">
-        ✓ Running in standalone mode
-      </div>
-    </div>
-
-    <div class="tab-content" id="tab-sounds">
-      <div class="settings-row">
-        <span class="settings-label">Sounds</span>
-        <div class="toggle-switch" id="soundsToggle"></div>
-      </div>
-      <div class="settings-row">
-        <span class="settings-label">Music</span>
-        <div class="toggle-switch" id="musicToggle"></div>
-      </div>
-      <div class="settings-row settings-row-sep">
-        <span class="settings-label">Sound Volume</span>
-        <div class="volume-control">
-          <button class="volume-btn" data-volume="0" id="soundVol0">0</button>
-          <button class="volume-btn" data-volume="1" id="soundVol1">1</button>
-          <button class="volume-btn" data-volume="2" id="soundVol2">2</button>
-          <button class="volume-btn" data-volume="3" id="soundVol3">3</button>
-          <button class="volume-btn" data-volume="4" id="soundVol4">4</button>
+      <div class="tab-content active" id="tab-controls">
+        <p class="settings-desc"><b>Swipe left/right:</b> rotate the cylinder</p>
+        <p class="settings-desc"><b>Swipe down:</b> faster drop</p>
+        <p class="settings-desc"><b>Double tap:</b> rotate piece</p>
+        <p class="settings-desc"><b>Button ⟳:</b> rotate piece</p>
+        <p class="settings-desc"><b>Magic:</b> Tap an element button, then tap a block of the same color. Fire→red, Water→blue, etc.</p>
+        <div class="settings-row">
+          <span class="settings-label">Invert swipe direction</span>
+          <div class="toggle-switch" id="invertSwipeToggle"></div>
+        </div>
+        <div class="settings-row">
+          <span class="settings-label">Fullscreen mode</span>
+          <button class="settings-action-btn" id="fullscreenBtn">Enable</button>
+        </div>
+        <div id="iosHint" class="ios-hint" style="display:none;">
+          <b>📱 iOS Safari:</b> Tap <b>Share</b> → <b>Add to Home Screen</b> to run in fullscreen mode.
+        </div>
+        <div id="standaloneBadge" class="standalone-badge" style="display:none;">
+          ✓ Running in standalone mode
         </div>
       </div>
-      <div class="settings-row">
-        <span class="settings-label">Music Volume</span>
-        <div class="volume-control">
-          <button class="volume-btn" data-volume="0" id="musicVol0">0</button>
-          <button class="volume-btn" data-volume="1" id="musicVol1">1</button>
-          <button class="volume-btn" data-volume="2" id="musicVol2">2</button>
-          <button class="volume-btn" data-volume="3" id="musicVol3">3</button>
-          <button class="volume-btn" data-volume="4" id="musicVol4">4</button>
+
+      <div class="tab-content" id="tab-sounds">
+        <div class="settings-row">
+          <span class="settings-label">Sounds</span>
+          <div class="toggle-switch" id="soundsToggle"></div>
+        </div>
+        <div class="settings-row">
+          <span class="settings-label">Music</span>
+          <div class="toggle-switch" id="musicToggle"></div>
+        </div>
+        <div class="settings-row settings-row-sep">
+          <span class="settings-label">Sound Volume</span>
+          <div class="volume-control">
+            <button class="volume-btn" data-volume="0" id="soundVol0">0</button>
+            <button class="volume-btn" data-volume="1" id="soundVol1">1</button>
+            <button class="volume-btn" data-volume="2" id="soundVol2">2</button>
+            <button class="volume-btn" data-volume="3" id="soundVol3">3</button>
+            <button class="volume-btn" data-volume="4" id="soundVol4">4</button>
+          </div>
+        </div>
+        <div class="settings-row">
+          <span class="settings-label">Music Volume</span>
+          <div class="volume-control">
+            <button class="volume-btn" data-volume="0" id="musicVol0">0</button>
+            <button class="volume-btn" data-volume="1" id="musicVol1">1</button>
+            <button class="volume-btn" data-volume="2" id="musicVol2">2</button>
+            <button class="volume-btn" data-volume="3" id="musicVol3">3</button>
+            <button class="volume-btn" data-volume="4" id="musicVol4">4</button>
+          </div>
         </div>
       </div>
+    </div>
+    
+    <!-- Close button at bottom -->
+    <div class="settings-actions">
+      <button class="settings-action-circle" id="settingsClose" aria-label="Close" title="Close">✕</button>
     </div>
   </div>
 </div>
