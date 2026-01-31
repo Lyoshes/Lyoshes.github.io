@@ -16,6 +16,7 @@
 <div class="hud" id="hud"></div>
 <div class="hud-right">
   <div id="scoreHud">Score: 0</div>
+  <div id="remainingHud">Left: 2:00</div>
   <div id="timeHud">Time: 0:00</div>
   <div id="nextLabel">Next</div>
   <canvas id="nextCanvas" width="72" height="72"></canvas>
@@ -76,18 +77,7 @@
     <!-- Mode selection -->
     <div class="section-title">Choose tower</div>
     <div class="mode-grid" id="modeGrid">
-      <button class="mode-btn active" data-mode="30_24" style="--accRGB:77,166,255">
-        <div class="mode-glow" aria-hidden="true"></div>
-        <div class="mode-top">
-          <div class="mode-name">High Tower</div>
-        </div>
-        <div class="mode-sub">
-          <span class="mode-tag acc">More space</span>
-          <span class="mode-tag">Long run</span>
-          <span class="mode-tag">Safer planning</span>
-        </div>
-      </button>
-      <button class="mode-btn" data-mode="16_20" style="--accRGB:255,216,77">
+      <button class="mode-btn active" data-mode="16_20" style="--accRGB:255,216,77">
         <div class="mode-glow" aria-hidden="true"></div>
         <div class="mode-top">
           <div class="mode-name">Quick Tower</div>
@@ -96,6 +86,17 @@
           <span class="mode-tag acc">Tight ring</span>
           <span class="mode-tag">Fast decisions</span>
           <span class="mode-tag">High risk</span>
+        </div>
+      </button>
+      <button class="mode-btn" data-mode="30_24" style="--accRGB:77,166,255">
+        <div class="mode-glow" aria-hidden="true"></div>
+        <div class="mode-top">
+          <div class="mode-name">High Tower</div>
+        </div>
+        <div class="mode-sub">
+          <span class="mode-tag acc">More space</span>
+          <span class="mode-tag">Long run</span>
+          <span class="mode-tag">Safer planning</span>
         </div>
       </button>
     </div>
@@ -109,7 +110,7 @@
     </div>
 
     <!-- Version -->
-    <div class="start-version" id="startVersion">v0.12.2</div>
+    <div class="start-version" id="startVersion">v0.13.0</div>
   </div>
 
   <!-- Game Over panel (styled like pause) -->
