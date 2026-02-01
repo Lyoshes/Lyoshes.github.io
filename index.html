@@ -38,7 +38,6 @@
     <button class="color-btn" id="magicBlue" data-element="water" style="background:radial-gradient(circle, #4da6ff 40%, rgba(14,20,28,0.85) 70%);"><span class="charges">3</span></button>
     <button class="color-btn" id="magicYellow" data-element="lightning" style="background:radial-gradient(circle, #ffd84d 40%, rgba(14,20,28,0.85) 70%);"><span class="charges">3</span></button>
     <button class="color-btn" id="magicGreen" data-element="earth" style="background:radial-gradient(circle, #47d16a 40%, rgba(14,20,28,0.85) 70%);"><span class="charges">3</span></button>
-    <div class="spell-divider"></div>
     <button class="spell-btn" id="spellBtn" aria-label="Water Spell">
       <div class="spell-progress"></div>
       <span class="spell-icon">💧</span>
@@ -72,12 +71,11 @@
         <span class="stat-icon">🏆</span>
         <span class="stat-label best-label">Best:</span>
         <span class="stat-value best-value" id="bestScore">0</span>
-        <small class="stat-extra" id="bestExtra"></small>
       </div>
       <div class="stat-row">
         <span class="stat-icon">⏱</span>
-        <span class="stat-label">Survive:</span>
-        <span class="stat-value" id="surviveVal">2:00</span>
+        <span class="stat-label">Survived:</span>
+        <span class="stat-value" id="bestTimeVal">0:00</span>
       </div>
     </div>
 
@@ -91,7 +89,7 @@
         </div>
         <div class="mode-sub">
           <span class="mode-tag acc">25×20</span>
-          <span class="mode-tag">Narrow</span>
+          <span class="mode-tag">2 min</span>
           <span class="mode-tag">Classic</span>
         </div>
       </button>
@@ -102,27 +100,38 @@
         </div>
         <div class="mode-sub">
           <span class="mode-tag acc">30×24</span>
-          <span class="mode-tag">Wide</span>
+          <span class="mode-tag">2 min</span>
           <span class="mode-tag">Magic</span>
         </div>
         <div class="spell-select">
-          <button class="spell-select-btn active" data-spell="ice" title="Water">
+          <button class="spell-select-btn active" data-spell="ice" data-unlock="0" title="Water">
             <span class="spell-select-icon">💧</span>
           </button>
-          <button class="spell-select-btn locked" data-spell="earth" title="Earth (Locked)" disabled>
+          <button class="spell-select-btn locked" data-spell="earth" data-unlock="10" title="Earth">
             <span class="spell-select-icon">🌿</span>
             <span class="spell-lock">🔒</span>
           </button>
-          <button class="spell-select-btn locked" data-spell="air" title="Air (Locked)" disabled>
-            <span class="spell-select-icon">💨</span>
+          <button class="spell-select-btn locked" data-spell="air" data-unlock="30" title="Lightning">
+            <span class="spell-select-icon">⚡</span>
             <span class="spell-lock">🔒</span>
           </button>
-          <button class="spell-select-btn locked" data-spell="fire" title="Fire (Locked)" disabled>
+          <button class="spell-select-btn locked" data-spell="fire" data-unlock="40" title="Fire">
             <span class="spell-select-icon">🔥</span>
             <span class="spell-lock">🔒</span>
           </button>
         </div>
-        <div class="spell-desc" id="spellDesc">Lowers kill zone</div>
+        <div class="spell-progress-bar">
+          <div class="spell-progress-track">
+            <div class="spell-progress-fill" id="spellProgressFill"></div>
+          </div>
+          <div class="spell-progress-markers" id="spellProgressMarkers">
+            <!-- Markers generated dynamically from SPELL_UNLOCK_THRESHOLDS -->
+          </div>
+        </div>
+        <div class="spell-hint">Close rings to unlock spells</div>
+        <div class="spell-info">
+          <div class="spell-desc" id="spellDesc">Lowers kill zone</div>
+        </div>
       </div>
     </div>
 
