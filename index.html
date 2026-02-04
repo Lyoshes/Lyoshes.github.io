@@ -33,7 +33,7 @@
     <button class="control-btn" id="rotateBtn" aria-label="Rotate">⟳</button>
   </div>
   <!-- Magic buttons -->
-  <div class="color-row" aria-label="Magic">
+  <div class="color-row" id="magicRow" aria-label="Magic">
     <button class="color-btn" id="magicRed" data-element="fire" style="background:radial-gradient(circle, #ff4d4d 40%, rgba(14,20,28,0.85) 70%);"><span class="charges">3</span></button>
     <button class="color-btn" id="magicBlue" data-element="water" style="background:radial-gradient(circle, #4da6ff 40%, rgba(14,20,28,0.85) 70%);"><span class="charges">3</span></button>
     <button class="color-btn" id="magicYellow" data-element="lightning" style="background:radial-gradient(circle, #ffd84d 40%, rgba(14,20,28,0.85) 70%);"><span class="charges">3</span></button>
@@ -278,6 +278,10 @@
         <p class="settings-desc"><b>Double tap:</b> rotate piece</p>
         <p class="settings-desc"><b>Button ⟳:</b> rotate piece</p>
         <p class="settings-desc"><b>Magic:</b> Tap an element button, then tap a block of the same color. Fire→red, Water→blue, etc.</p>
+        <div class="settings-row">
+          <span class="settings-label">Magic enabled</span>
+          <div class="toggle-switch" id="magicToggle"></div>
+        </div>
         <div class="settings-row">
           <span class="settings-label">Invert swipe direction</span>
           <div class="toggle-switch" id="invertSwipeToggle"></div>
