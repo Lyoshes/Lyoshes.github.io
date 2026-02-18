@@ -27,8 +27,12 @@
         // On iOS standalone, --nav-bottom = 0 (env(safe-area-inset-bottom) handles it via CSS)
         // On Android fullscreen, --nav-bottom = screen gap behind nav buttons
         if(!isIOS){
-          // Android: screen.availHeight or screen.height vs innerHeight
-          var gap = screen.height - window.innerHeight;
+          // Android fullscreen: screen.height may equal innerHeight even when
+          // system nav bar overlays content. Use visualViewport if available.
+          var visH = (window.visualViewport) ? window.visualViewport.height : window.innerHeight;
+          var gap = window.innerHeight - visH;
+          // If visualViewport doesn't help, detect standalone and add safe fallback
+          if(gap <= 0 && isStandalone) gap = 48;
           root.style.setProperty('--nav-bottom', (gap > 0 ? gap : 0) + 'px');
         }
         var gc = document.getElementById('gameContainer');
