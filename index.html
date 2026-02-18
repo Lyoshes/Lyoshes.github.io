@@ -9,31 +9,36 @@
   <meta name="theme-color" content="#0b0f14" />
   <link rel="manifest" href="manifest.json" />
   <script>
-    // Fix iOS standalone PWA viewport height
+    // Fix iOS standalone PWA viewport + Android fullscreen nav bar
     (function(){
       var isStandalone = (window.navigator.standalone === true) || window.matchMedia('(display-mode: standalone)').matches;
       var isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
-      var logs = [];
       function getH(){
-        // iOS standalone: innerHeight is wrong on first load (761 instead of 812)
-        // Use screen.height for portrait, screen.width for landscape in standalone mode
         if(isIOS && isStandalone){
           var isPortrait = window.innerHeight > window.innerWidth;
           return isPortrait ? screen.height : screen.width;
         }
         return window.innerHeight;
       }
-      function vh(){
+      function update(){
         var h = getH();
-        document.documentElement.style.setProperty('--vh', h*0.01+'px');
+        var root = document.documentElement;
+        root.style.setProperty('--vh', h*0.01+'px');
+        // On iOS standalone, --nav-bottom = 0 (env(safe-area-inset-bottom) handles it via CSS)
+        // On Android fullscreen, --nav-bottom = screen gap behind nav buttons
+        if(!isIOS){
+          // Android: screen.availHeight or screen.height vs innerHeight
+          var gap = screen.height - window.innerHeight;
+          root.style.setProperty('--nav-bottom', (gap > 0 ? gap : 0) + 'px');
+        }
         var gc = document.getElementById('gameContainer');
         if(gc) gc.style.height = h + 'px';
       }
-      vh();
-      window.addEventListener('resize', vh);
-      if(window.visualViewport) window.visualViewport.addEventListener('resize', vh);
-      setTimeout(vh,50);setTimeout(vh,150);
-      document.addEventListener('DOMContentLoaded', vh);
+      update();
+      window.addEventListener('resize', update);
+      if(window.visualViewport) window.visualViewport.addEventListener('resize', update);
+      setTimeout(update,50);setTimeout(update,150);
+      document.addEventListener('DOMContentLoaded', update);
     })();
   </script>
   <title>Elemental Blocks MVP</title>
