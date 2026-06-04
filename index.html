@@ -58,18 +58,19 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
+      padding-bottom: 10vh;
       gap: 0;
       transition: opacity 0.5s ease;
     }
     #splash-screen.fade-out { opacity: 0; pointer-events: none; }
 
     #splash-icon {
-      width: 200px;
-      height: 200px;
-      border-radius: 28px;
+      width: clamp(180px, 48vw, 260px);
+      height: clamp(180px, 48vw, 260px);
+      border-radius: clamp(24px, 6vw, 36px);
       object-fit: cover;
-      filter: drop-shadow(0 0 32px rgba(77,166,255,0.45));
-      margin-bottom: 28px;
+      filter: drop-shadow(0 0 40px rgba(77,166,255,0.50));
+      margin-bottom: clamp(24px, 5vh, 40px);
       opacity: 0;
       transition: opacity 0.35s ease;
     }
@@ -85,19 +86,19 @@
       margin-bottom: 36px;
     }
     #splash-bar-wrap {
-      width: 220px;
+      width: clamp(200px, 58vw, 280px);
       height: 4px;
       background: rgba(255,255,255,0.1);
       border-radius: 2px;
       overflow: hidden;
-      margin-bottom: 24px;
+      margin-bottom: 20px;
     }
     #splash-bar {
       height: 100%;
       width: 0%;
       border-radius: 2px;
       background: linear-gradient(90deg, #4da6ff, #47d16a, #ffd84d, #ff4d4d);
-      background-size: 220px 100%;
+      background-size: 280px 100%;
       animation: splash-fill 3.9s cubic-bezier(0.4, 0, 0.2, 1) forwards;
     }
     @keyframes splash-fill {
@@ -120,7 +121,7 @@
   <img id="splash-icon" src="" alt="" />
   <div id="splash-title">Elemental Blocks</div>
   <div id="splash-bar-wrap"><div id="splash-bar"></div></div>
-  <div id="splash-version">v0.21.3</div>
+  <div id="splash-version">v0.21.4</div>
 </div>
 <script>
   (function() {
