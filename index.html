@@ -170,18 +170,6 @@
         <div class="hud-center-panel">
           <canvas id="currentPieceCanvas" width="110" height="110"></canvas>
         </div>
-        <div class="hud-bottom-ears">
-          <div class="hud-buf-ear">
-            <button class="buf-btn change-btn" id="changePieceBtn" aria-label="Change piece" title="Change piece">
-              <span class="buf-btn-icon">↻</span><span class="buf-btn-charges" id="changeChargesDisplay">3</span>
-            </button>
-          </div>
-          <div class="hud-buf-ear">
-            <button class="buf-btn shuffle-btn" id="shuffleColorsBtn" aria-label="Shuffle colors" title="Shuffle colors">
-              <span class="buf-btn-icon">⇄</span><span class="buf-btn-charges" id="shuffleChargesDisplay">3</span>
-            </button>
-          </div>
-        </div>
       </div>
       <div class="hud-panel hud-ear hud-ear-right">
         <div class="ear-content ear-score">
@@ -192,6 +180,17 @@
         </div>
       </div>
     </div>
+  </div>
+  <!-- Buffer action buttons — sides of screen, above magic row -->
+  <div class="buf-side-wrap buf-side-left">
+    <button class="buf-btn change-btn" id="changePieceBtn" aria-label="Change piece" title="Change piece">
+      <span class="buf-btn-charges" id="changeChargesDisplay">3</span>
+    </button>
+  </div>
+  <div class="buf-side-wrap buf-side-right">
+    <button class="buf-btn shuffle-btn" id="shuffleColorsBtn" aria-label="Shuffle colors" title="Shuffle colors">
+      <span class="buf-btn-charges" id="shuffleChargesDisplay">3</span>
+    </button>
   </div>
   <!-- Pause button (replaces settings button during game) -->
   <button class="pause-btn hidden" id="pauseBtn" aria-label="Pause"></button>
@@ -453,9 +452,9 @@
       </div>
 
       <div class="tab-content active" id="tab-controls">
-        <div class="settings-row">
+        <div class="settings-row" style="display:none">
           <span class="settings-label">Show control buttons</span>
-          <div class="toggle-switch active" id="showControlsToggle"></div>
+          <div class="toggle-switch" id="showControlsToggle"></div>
         </div>
         <div class="settings-row">
           <span class="settings-label">Single tap to rotate block</span>
