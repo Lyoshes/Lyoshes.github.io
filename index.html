@@ -186,11 +186,23 @@
     <button class="buf-btn change-btn" id="changePieceBtn" aria-label="Change piece" title="Change piece">
       <span class="buf-btn-charges" id="changeChargesDisplay">3</span>
     </button>
+    <div class="buf-dots" id="changeDots">
+      <span class="buf-dot"></span>
+      <span class="buf-dot"></span>
+      <span class="buf-dot"></span>
+      <span class="buf-dot"></span>
+    </div>
   </div>
   <div class="buf-side-wrap buf-side-right">
     <button class="buf-btn shuffle-btn" id="shuffleColorsBtn" aria-label="Shuffle colors" title="Shuffle colors">
       <span class="buf-btn-charges" id="shuffleChargesDisplay">3</span>
     </button>
+    <div class="buf-dots" id="shuffleDots">
+      <span class="buf-dot"></span>
+      <span class="buf-dot"></span>
+      <span class="buf-dot"></span>
+      <span class="buf-dot"></span>
+    </div>
   </div>
   <!-- Pause button (replaces settings button during game) -->
   <button class="pause-btn hidden" id="pauseBtn" aria-label="Pause"></button>
@@ -202,21 +214,20 @@
   <!-- KZ Drop booster (standalone killzone-lowering, all modes) -->
   <div class="kzdrop-wrap">
     <button class="kzdrop-btn empty" id="kzDropBtn" type="button" aria-label="KZ Drop" title="KZ Drop">
-      <span class="kzdrop-icon">💧</span>
       <span class="kzdrop-charges"></span>
     </button>
   </div>
   <!-- Magic buttons -->
   <div class="color-row" id="magicRow" aria-label="Magic">
-    <button class="color-btn" id="magicBlue" data-element="water" style="background:radial-gradient(circle, #4da6ff 40%, rgba(14,20,28,0.85) 70%);"><span class="charges">3</span></button>
-    <button class="color-btn" id="magicGreen" data-element="earth" style="background:radial-gradient(circle, #47d16a 40%, rgba(14,20,28,0.85) 70%);"><span class="charges">3</span></button>
+    <button class="color-btn" id="magicBlue" data-element="water" aria-label="Water"><span class="charges">3</span></button>
+    <button class="color-btn" id="magicGreen" data-element="earth" aria-label="Earth"><span class="charges">3</span></button>
     <button class="magic-active-indicator hidden" id="magicActiveIndicator" type="button" aria-label="Active magic indicator">
       <div class="magic-active-progress"></div>
-      <span class="magic-active-icon" id="magicActiveIcon">💧</span>
+      <span class="magic-active-icon" id="magicActiveIcon"></span>
       <span class="magic-active-cost" id="magicActiveCost"></span>
     </button>
-    <button class="color-btn" id="magicYellow" data-element="lightning" style="background:radial-gradient(circle, #ffd84d 40%, rgba(14,20,28,0.85) 70%);"><span class="charges">3</span></button>
-    <button class="color-btn" id="magicRed" data-element="fire" style="background:radial-gradient(circle, #ff4d4d 40%, rgba(14,20,28,0.85) 70%);"><span class="charges">3</span></button>
+    <button class="color-btn" id="magicYellow" data-element="lightning" aria-label="Lightning"><span class="charges">3</span></button>
+    <button class="color-btn" id="magicRed" data-element="fire" aria-label="Fire"><span class="charges">3</span></button>
   </div>
 </div>
 <div class="overlay" id="overlay">
