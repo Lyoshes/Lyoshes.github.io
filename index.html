@@ -232,104 +232,137 @@
 </div>
 <div class="overlay" id="overlay">
   <div class="panel start-panel" id="startPanel">
-    <!-- Animated aura background -->
-    <div class="menu-aura" aria-hidden="true"></div>
-    <!-- Spark layer -->
-    <div class="spark-layer" aria-hidden="true"></div>
-    
-    <!-- Side menu buttons -->
-    <div class="side-menu">
+    <!-- Background image -->
+    <div class="mm-bg" aria-hidden="true"></div>
+    <!-- Blur overlay for non-Home tabs -->
+    <div class="mm-bg-blur" id="mmBgBlur" aria-hidden="true"></div>
+
+    <!-- Top-right buttons: settings, records, help -->
+    <div class="mm-top-bar">
       <button class="side-btn" id="startSettingsBtn" aria-label="Settings"></button>
       <button class="side-btn" id="recordsBtn" aria-label="Records"></button>
       <button class="side-btn" id="helpBtn" aria-label="How to play"></button>
     </div>
-    
-    <!-- Title -->
-    <div class="start-title">
-      <h1><span class="title-elemental">Elemental</span><br><span class="title-blocks">Blocks</span></h1>
-      <div class="start-subtitle">Close the ring · Rise higher</div>
-    </div>
 
-    <!-- Stats -->
-    <div class="start-stats" id="startStats">
-      <div class="stat-row">
-        <span class="stat-icon">🏆</span>
-        <span class="stat-label best-label">Best:</span>
-        <span class="stat-value best-value" id="bestScore">0</span>
-      </div>
-      <div class="stat-row">
-        <span class="stat-icon">⏱</span>
-        <span class="stat-label">Survived:</span>
-        <span class="stat-value" id="bestTimeVal">0:00</span>
-      </div>
-    </div>
+    <!-- Tab content area -->
+    <div class="mm-content">
 
-    <!-- Mode selection -->
-    <div class="section-title">Choose tower</div>
-    <div class="mode-grid" id="modeGrid">
-      <button class="mode-btn active" data-mode="25_20" style="--accRGB:255,216,77">
-        <div class="mode-glow" aria-hidden="true"></div>
-        <div class="mode-top">
-          <div class="mode-name">Quick Tower</div>
+      <!-- HOME TAB -->
+      <div class="mm-tab-pane" id="mmTabHome" data-tab="home">
+        <div class="mm-logo-wrap">
+          <img class="mm-logo" src="img/start/logo_mm.png" alt="Elemental Blocks" draggable="false" />
         </div>
-        <div class="mode-sub">
-          <span class="mode-tag acc">25×20</span>
-          <span class="mode-tag time-tag">3 min</span>
-          <span class="mode-tag">Classic</span>
-        </div>
-      </button>
-      <div class="mode-btn mode-btn-extended" data-mode="30_24" style="--accRGB:77,166,255">
-        <div class="mode-glow" aria-hidden="true"></div>
-        <div class="mode-top">
-          <div class="mode-name">High Tower</div>
-        </div>
-        <div class="mode-sub">
-          <span class="mode-tag acc">30×24</span>
-          <span class="mode-tag time-tag">2 min</span>
-          <span class="mode-tag">Magic</span>
-        </div>
-        <div class="spell-select">
-          <button class="spell-select-btn active" data-spell="ice" data-unlock="0" title="Water">
-            <span class="spell-select-icon">💧</span>
+
+        <div class="mm-mode-list" id="modeGrid">
+          <button class="mm-mode-btn" id="adventureBtn" aria-label="Adventure">
+            <span class="mm-mode-label">Adventure</span>
           </button>
-          <button class="spell-select-btn locked" data-spell="earth" data-unlock="10" title="Earth">
-            <span class="spell-select-icon">🌿</span>
-            <span class="spell-lock">🔒</span>
+          <button class="mm-mode-btn mode-btn active" data-mode="25_20" aria-label="Quick Tower">
+            <span class="mm-mode-label">Quick Tower</span>
           </button>
-          <button class="spell-select-btn locked" data-spell="air" data-unlock="30" title="Lightning">
-            <span class="spell-select-icon">⚡</span>
-            <span class="spell-lock">🔒</span>
-          </button>
-          <button class="spell-select-btn locked" data-spell="fire" data-unlock="40" title="Fire">
-            <span class="spell-select-icon">🔥</span>
-            <span class="spell-lock">🔒</span>
+          <button class="mm-mode-btn mode-btn" data-mode="30_24" aria-label="Magic Tower">
+            <span class="mm-mode-label">Magic Tower</span>
           </button>
         </div>
-        <div class="spell-progress-bar">
-          <div class="spell-progress-track">
-            <div class="spell-progress-fill" id="spellProgressFill"></div>
+
+        <div class="start-version" id="startVersion">v0.25.6</div>
+        <!-- bestScore / bestTimeVal kept hidden for JS compat -->
+        <span id="bestScore" style="display:none"></span>
+        <span id="bestTimeVal" style="display:none"></span>
+      </div>
+
+      <!-- startBtn kept hidden for JS compatibility — mode buttons start the game directly -->
+      <button class="start-btn" id="startBtn" style="display:none" aria-hidden="true"></button>
+
+      <!-- LEADERBOARD TAB -->
+      <div class="mm-tab-pane hidden" id="mmTabLeaderboard" data-tab="leaderboard">
+        <div class="mm-placeholder">
+          <img class="mm-placeholder-icon" src="img/tabbar/ico_leaderboard.png" alt="" draggable="false" />
+          <div class="mm-placeholder-title">Leaderboards</div>
+          <div class="mm-placeholder-sub">Coming soon</div>
+        </div>
+      </div>
+
+      <!-- ACHIEVEMENTS TAB -->
+      <div class="mm-tab-pane hidden" id="mmTabAchievements" data-tab="achievements">
+        <div class="mm-placeholder">
+          <img class="mm-placeholder-icon" src="img/tabbar/ico_achiv.png" alt="" draggable="false" />
+          <div class="mm-placeholder-title">Achievements</div>
+          <div class="mm-placeholder-sub">Coming soon</div>
+        </div>
+      </div>
+
+      <!-- COLLECTION TAB -->
+      <div class="mm-tab-pane hidden" id="mmTabCollection" data-tab="collection">
+        <div class="mm-placeholder">
+          <img class="mm-placeholder-icon" src="img/tabbar/ico_collection.png" alt="" draggable="false" />
+          <div class="mm-placeholder-title">Collection</div>
+          <div class="mm-placeholder-sub">Coming soon</div>
+        </div>
+      </div>
+
+      <!-- QUESTS TAB — magic development (moved from Home) -->
+      <div class="mm-tab-pane hidden" id="mmTabQuests" data-tab="quests">
+        <div class="mm-quests-content">
+          <div class="quest-spell-header">Magic Tower — Spells</div>
+          <div class="spell-select">
+            <button class="spell-select-btn active" data-spell="ice" data-unlock="0" title="Water">
+              <span class="spell-select-icon">💧</span>
+            </button>
+            <button class="spell-select-btn locked" data-spell="earth" data-unlock="10" title="Earth">
+              <span class="spell-select-icon">🌿</span>
+              <span class="spell-lock">🔒</span>
+            </button>
+            <button class="spell-select-btn locked" data-spell="air" data-unlock="30" title="Lightning">
+              <span class="spell-select-icon">⚡</span>
+              <span class="spell-lock">🔒</span>
+            </button>
+            <button class="spell-select-btn locked" data-spell="fire" data-unlock="40" title="Fire">
+              <span class="spell-select-icon">🔥</span>
+              <span class="spell-lock">🔒</span>
+            </button>
           </div>
-          <div class="spell-progress-markers" id="spellProgressMarkers">
-            <!-- Markers generated dynamically from SPELL_UNLOCK_THRESHOLDS -->
+          <div class="spell-progress-bar">
+            <div class="spell-progress-track">
+              <div class="spell-progress-fill" id="spellProgressFill"></div>
+            </div>
+            <div class="spell-progress-markers" id="spellProgressMarkers"></div>
+          </div>
+          <div class="spell-hint">Close rings in Magic Tower to unlock spells</div>
+          <div class="spell-info">
+            <div class="spell-desc" id="spellDesc">Lowers kill zone</div>
           </div>
         </div>
-        <div class="spell-hint">Close rings to unlock spells</div>
-        <div class="spell-info">
-          <div class="spell-desc" id="spellDesc">Lowers kill zone</div>
-        </div>
+      </div>
+
+    </div><!-- /.mm-content -->
+
+    <!-- Tab Bar -->
+    <div class="mm-tabbar">
+      <div class="mm-tabbar-fit">
+        <img class="mm-tabbar-bg" src="img/tabbar/btn_tabbar.png" alt="" aria-hidden="true" draggable="false" />
+        <button class="mm-tab-btn mm-tab-achievements" data-tab="achievements" aria-label="Achievements">
+          <img src="img/tabbar/ico_achiv.png" alt="" draggable="false" />
+          <span>Achievements</span>
+        </button>
+        <button class="mm-tab-btn mm-tab-leaderboard" data-tab="leaderboard" aria-label="Leaderboards">
+          <img src="img/tabbar/ico_leaderboard.png" alt="" draggable="false" />
+          <span>Leaderboards</span>
+        </button>
+        <button class="mm-tab-btn mm-tab-home active" data-tab="home" aria-label="Home">
+          <img src="img/tabbar/ico_home.png" alt="" draggable="false" />
+          <span>Home</span>
+        </button>
+        <button class="mm-tab-btn mm-tab-collection" data-tab="collection" aria-label="Collection">
+          <img src="img/tabbar/ico_collection.png" alt="" draggable="false" />
+          <span>Collection</span>
+        </button>
+        <button class="mm-tab-btn mm-tab-quests" data-tab="quests" aria-label="Quests">
+          <img src="img/tabbar/ico_quests.png" alt="" draggable="false" />
+          <span>Quests</span>
+        </button>
       </div>
     </div>
-
-    <!-- Start button -->
-    <div class="start-actions">
-      <button class="start-btn idlePulse" id="startBtn">
-        <span class="start-glow"></span>
-        <span class="start-text">Start</span>
-      </button>
-    </div>
-
-    <!-- Version -->
-    <div class="start-version" id="startVersion">v0.25.6</div>
   </div>
 
   <!-- Game Over splash (shown immediately; tap to reveal the results panel) -->
