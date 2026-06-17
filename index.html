@@ -248,7 +248,6 @@
     <!-- Top-right buttons: settings, records, help -->
     <div class="mm-top-bar">
       <button class="side-btn" id="startSettingsBtn" aria-label="Settings"></button>
-      <button class="side-btn" id="recordsBtn" aria-label="Records"></button>
       <button class="side-btn" id="helpBtn" aria-label="How to play"></button>
     </div>
 
@@ -285,10 +284,37 @@
 
       <!-- LEADERBOARD TAB -->
       <div class="mm-tab-pane hidden" id="mmTabLeaderboard" data-tab="leaderboard">
-        <div class="mm-placeholder">
-          <img class="mm-placeholder-icon" src="img/tabbar/ico_leaderboard.png" alt="" draggable="false" />
-          <div class="mm-placeholder-title">Leaderboards</div>
-          <div class="mm-placeholder-sub">Coming soon</div>
+        <div class="lb-content">
+          <div class="lb-header">Leaderboards</div>
+
+          <!-- Mode switcher (display-only; does NOT start a game) -->
+          <div class="lb-mode-switch" id="lbModeSwitch" role="tablist" aria-label="Leaderboard mode">
+            <button class="lb-mode-btn active" data-lbmode="25_20" role="tab">Quick Tower</button>
+            <button class="lb-mode-btn" data-lbmode="30_24" role="tab">Magic Tower</button>
+          </div>
+
+          <!-- Personal record card -->
+          <div class="lb-card lb-best">
+            <div class="lb-card-top">
+              <div class="lb-card-label">My Best</div>
+              <div class="lb-pill" id="lbBestPill">⏱ <span id="lbBestTime">0:00</span></div>
+            </div>
+            <div class="lb-best-body" id="lbBestBody">
+              <div class="lb-big-score" id="lbBestScore">0</div>
+              <div class="lb-meta">
+                <span>Mode: <small id="lbBestMode">Quick Tower</small></span>
+                <span id="lbBestRingsWrap">Rings: <small id="lbBestRings">0</small></span>
+              </div>
+            </div>
+            <div class="lb-norecord hidden" id="lbNoRecord">No record yet</div>
+          </div>
+
+          <!-- Future online ranking -->
+          <div class="lb-card lb-global">
+            <div class="lb-card-label">Global Top</div>
+            <div class="lb-coming">Coming soon</div>
+            <div class="lb-coming-sub">Personal record is available now. Online ranking can be added later.</div>
+          </div>
         </div>
       </div>
 
