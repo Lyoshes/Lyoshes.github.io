@@ -122,7 +122,7 @@
   <img id="splash-icon" src="" alt="" />
   <div id="splash-title">Elemental Blocks</div>
   <div id="splash-bar-wrap"><div id="splash-bar"></div></div>
-  <div id="splash-version">v0.25.6</div>
+  <div id="splash-version">v0.25.9</div>
 </div>
 <script>
   (function() {
@@ -147,6 +147,19 @@
     }, 4100);
   })();
 </script>
+<!-- In-game transition loader (menu/restart -> board) -->
+<div id="loader" aria-hidden="true">
+  <div class="loader-anim">
+    <div class="loader-orbit">
+      <span class="loader-orb orb-water"></span>
+      <span class="loader-orb orb-air"></span>
+      <span class="loader-orb orb-earth"></span>
+      <span class="loader-orb orb-fire"></span>
+    </div>
+    <span class="loader-core"></span>
+  </div>
+  <div class="loader-hint">Entering the tower…</div>
+</div>
 <!-- Game container (sized like other panels on desktop) -->
 <div class="game-container" id="gameContainer">
   <canvas id="c"></canvas>
@@ -269,14 +282,11 @@
 
         <div class="mm-home-spacer mm-home-spacer-bot" aria-hidden="true"></div>
 
-        <div class="start-version" id="startVersion">v0.25.6</div>
+        <div class="start-version" id="startVersion">v0.25.9</div>
         <!-- bestScore / bestTimeVal kept hidden for JS compat -->
         <span id="bestScore" style="display:none"></span>
         <span id="bestTimeVal" style="display:none"></span>
       </div>
-
-      <!-- startBtn kept hidden for JS compatibility — mode buttons start the game directly -->
-      <button class="start-btn" id="startBtn" style="display:none" aria-hidden="true"></button>
 
       <!-- LEADERBOARD TAB -->
       <div class="mm-tab-pane hidden" id="mmTabLeaderboard" data-tab="leaderboard">
