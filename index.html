@@ -293,27 +293,70 @@
             <button class="lb-mode-btn" data-lbmode="30_24" role="tab">Magic Tower</button>
           </div>
 
-          <!-- Personal record card -->
+          <!-- Your progress card: title, rings, progress, best record (per mode) -->
           <div class="lb-card lb-best">
             <div class="lb-card-top">
-              <div class="lb-card-label">My Best</div>
-              <div class="lb-pill" id="lbBestPill">⏱ <span id="lbBestTime">0:00</span></div>
+              <div class="lb-card-label">Your Progress</div>
             </div>
             <div class="lb-best-body" id="lbBestBody">
-              <div class="lb-big-score" id="lbBestScore">0</div>
-              <div class="lb-meta">
-                <span>Mode: <small id="lbBestMode">Quick Tower</small></span>
-                <span id="lbBestRingsWrap">Rings: <small id="lbBestRings">0</small></span>
+              <!-- Current title -->
+              <div class="lb-title-row">
+                <div class="lb-title-badge">
+                  <img id="lbTitleIcon" class="lb-title-icon" alt="" draggable="false" />
+                </div>
+                <div class="lb-title-text">
+                  <div class="lb-title-cap">Title</div>
+                  <div class="lb-title-name" id="lbTitleName">Novice Builder</div>
+                </div>
+              </div>
+
+              <!-- Progress to next title -->
+              <div class="lb-progress" id="lbProgress">
+                <div class="lb-progress-fill" id="lbProgressFill"></div>
+              </div>
+
+              <!-- Ring progression stats -->
+              <div class="lb-stat-row lb-stat-row-3">
+                <div class="lb-stat">
+                  <div class="lb-stat-cap">Total Rings</div>
+                  <div class="lb-stat-val" id="lbTotalRings">0</div>
+                </div>
+                <div class="lb-stat">
+                  <div class="lb-stat-cap">Next Title</div>
+                  <div class="lb-stat-val" id="lbNextThreshold">5</div>
+                </div>
+                <div class="lb-stat">
+                  <div class="lb-stat-cap">To Next</div>
+                  <div class="lb-stat-val"><span id="lbToNext">5</span> <span class="lb-stat-unit" id="lbToNextUnit">rings</span></div>
+                </div>
+              </div>
+
+              <div class="lb-divider"></div>
+
+              <!-- Best record -->
+              <div class="lb-stat-row lb-stat-row-2">
+                <div class="lb-stat">
+                  <div class="lb-stat-cap">Best Score</div>
+                  <div class="lb-stat-val lb-stat-val-lg" id="lbBestScore">0</div>
+                </div>
+                <div class="lb-stat">
+                  <div class="lb-stat-cap">Best Time</div>
+                  <div class="lb-stat-val lb-stat-val-lg" id="lbBestTime">⏱ 0:00</div>
+                </div>
               </div>
             </div>
-            <div class="lb-norecord hidden" id="lbNoRecord">No record yet</div>
           </div>
 
           <!-- Future online ranking -->
           <div class="lb-card lb-global">
-            <div class="lb-card-label">Global Top</div>
-            <div class="lb-coming">Coming soon</div>
-            <div class="lb-coming-sub">Personal record is available now. Online ranking can be added later.</div>
+            <div class="lb-card-top">
+              <div class="lb-card-label">Global Top</div>
+            </div>
+            <div class="lb-global-body">
+              <div class="lb-global-orb">🌐</div>
+              <div class="lb-coming">Coming Soon</div>
+              <div class="lb-coming-sub">Global leaderboards are in development</div>
+            </div>
           </div>
         </div>
       </div>
