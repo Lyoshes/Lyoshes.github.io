@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="ru">
 <head>
   <meta charset="utf-8" />
@@ -122,7 +122,7 @@
   <img id="splash-icon" src="" alt="" />
   <div id="splash-title">Elemental Blocks</div>
   <div id="splash-bar-wrap"><div id="splash-bar"></div></div>
-  <div id="splash-version">v0.30.0</div>
+  <div id="splash-version">v0.30.1</div>
 </div>
 <script>
   (function() {
@@ -276,7 +276,7 @@
 
         <div class="mm-home-spacer mm-home-spacer-bot" aria-hidden="true"></div>
 
-        <div class="start-version" id="startVersion">v0.30.0</div>
+        <div class="start-version" id="startVersion">v0.30.1</div>
         <!-- bestScore / bestTimeVal kept hidden for JS compat -->
         <span id="bestScore" style="display:none"></span>
         <span id="bestTimeVal" style="display:none"></span>
@@ -462,6 +462,7 @@
         <div class="gameover-score-card title-prog">
           <div class="gameover-score-top">
             <div class="gameover-label">Title Progress</div>
+            <span class="res-rank-badge hidden" id="goNewRank">★ New Rank!</span>
           </div>
 
           <div class="res-title-row">
@@ -469,31 +470,27 @@
               <img id="goTitleIcon" class="res-title-icon" alt="" draggable="false" />
             </div>
             <div class="res-title-info">
-              <div class="res-title-cap">Current Title <span class="res-rank-badge hidden" id="goNewRank">★ New Rank!</span></div>
               <div class="res-title-name" id="goTitleName">Novice Builder</div>
-              <div class="res-title-rings">Total Rings <span class="res-ring-ico" aria-hidden="true"></span> <span id="goTotalRings">0</span><span class="res-maxring" id="goMaxRing"></span></div>
+              <div class="res-rings-chip">
+                <span class="res-ring-ico" aria-hidden="true"></span>
+                <span class="res-rings-label">Rings</span>
+                <span class="res-rings-count" id="goTotalRings">0</span>
+                <span class="res-maxring" id="goMaxRing"></span>
+              </div>
             </div>
           </div>
 
           <div class="res-prog">
-            <div class="res-prog-marks">
-              <div class="res-prog-mark res-prog-mark-start">
-                <div class="res-prog-num" id="goProgStart">0</div>
-                <div class="res-prog-cap"><span id="goProgStartName">Novice Builder</span></div>
+            <div class="res-prog-bar-row">
+              <span class="res-prog-end" id="goProgStart">0</span>
+              <div class="res-prog-track-wrap">
+                <div class="res-prog-gain" id="goProgDeltaNum">+0</div>
+                <div class="res-prog-track">
+                  <div class="res-prog-base" id="goProgBase"></div>
+                  <div class="res-prog-delta" id="goProgDelta"></div>
+                </div>
               </div>
-              <div class="res-prog-mark res-prog-mark-cur" id="goProgCurMark">
-                <div class="res-prog-delta-num" id="goProgDeltaNum">+0</div>
-                <div class="res-prog-num" id="goProgCur">0</div>
-                <div class="res-prog-cap">CURRENT</div>
-              </div>
-              <div class="res-prog-mark res-prog-mark-next">
-                <div class="res-prog-num" id="goProgNext">5</div>
-                <div class="res-prog-cap">NEXT TITLE<br><span id="goProgNextName">Ring Seeker</span></div>
-              </div>
-            </div>
-            <div class="res-prog-track">
-              <div class="res-prog-base" id="goProgBase"></div>
-              <div class="res-prog-delta" id="goProgDelta"></div>
+              <span class="res-prog-end" id="goProgNext">5</span>
             </div>
           </div>
         </div>
@@ -507,19 +504,19 @@
             </div>
             <div class="res-score-vdiv" aria-hidden="true"></div>
             <div class="res-score-col">
-              <div class="res-score-cap">⏱ Time</div>
+              <div class="res-score-cap">Time</div>
               <div class="res-score-val" id="goTimeMain">0:00</div>
             </div>
           </div>
           <div class="res-score-hdiv" aria-hidden="true"></div>
           <div class="res-score-row res-best-row">
             <div class="res-score-col">
-              <div class="res-best-cap">👑 Best Score</div>
+              <div class="res-best-cap">Best Score</div>
               <div class="res-best-val" id="goBestScore">0</div>
             </div>
             <div class="res-score-vdiv" aria-hidden="true"></div>
             <div class="res-score-col">
-              <div class="res-best-cap">👑 Best Time</div>
+              <div class="res-best-cap">Best Time</div>
               <div class="res-best-val" id="goBestTime">0:00</div>
             </div>
           </div>
