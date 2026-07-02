@@ -36,7 +36,7 @@ jobs:
           touch "$site_dir/.nojekyll"
 
       - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3
+        uses: actions/upload-pages-artifact@98ef48e41587a300b82de4cf298aa98b57b2faae # v4
         with:
           path: ${{ runner.temp }}/site
 
