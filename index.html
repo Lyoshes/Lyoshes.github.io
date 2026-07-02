@@ -7,44 +7,11 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="theme-color" content="#0b0f14" />
+  <!-- Defense-in-depth: no external/injected scripts can run; inline styles are
+       allowed (the splash <style> block below and JS-driven style attributes). -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self'; media-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'" />
   <link rel="manifest" href="manifest.json" />
-  <script>
-    // Fix iOS standalone PWA viewport + Android fullscreen nav bar
-    (function(){
-      var isStandalone = (window.navigator.standalone === true) || window.matchMedia('(display-mode: standalone)').matches;
-      var isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
-      function getH(){
-        if(isIOS && isStandalone){
-          var isPortrait = window.innerHeight > window.innerWidth;
-          return isPortrait ? screen.height : screen.width;
-        }
-        return window.innerHeight;
-      }
-      function update(){
-        var h = getH();
-        var root = document.documentElement;
-        root.style.setProperty('--vh', h*0.01+'px');
-        // On iOS standalone, --nav-bottom = 0 (env(safe-area-inset-bottom) handles it via CSS)
-        // On Android fullscreen, --nav-bottom = screen gap behind nav buttons
-        if(!isIOS){
-          // Android fullscreen: screen.height may equal innerHeight even when
-          // system nav bar overlays content. Use visualViewport if available.
-          var visH = (window.visualViewport) ? window.visualViewport.height : window.innerHeight;
-          var gap = window.innerHeight - visH;
-          // If visualViewport doesn't help, detect standalone and add safe fallback
-          if(gap <= 0 && isStandalone) gap = 48;
-          root.style.setProperty('--nav-bottom', (gap > 0 ? gap : 0) + 'px');
-        }
-        var gc = document.getElementById('gameContainer');
-        if(gc) gc.style.height = h + 'px';
-      }
-      update();
-      window.addEventListener('resize', update);
-      if(window.visualViewport) window.visualViewport.addEventListener('resize', update);
-      setTimeout(update,50);setTimeout(update,150);
-      document.addEventListener('DOMContentLoaded', update);
-    })();
-  </script>
+  <script src="viewport.js"></script>
   <title>Elemental Blocks MVP</title>
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="helpModal.css" />
@@ -124,29 +91,7 @@
   <div id="splash-bar-wrap"><div id="splash-bar"></div></div>
   <div id="splash-version">v0.30.1</div>
 </div>
-<script>
-  (function() {
-    var SHOW_SPLASH_TITLE = false;
-
-    var img = document.getElementById('splash-icon');
-    if (!SHOW_SPLASH_TITLE) document.getElementById('splash-title').style.display = 'none';
-
-    function showIcon() { img.style.opacity = '1'; }
-
-    img.onload = showIcon;
-    img.onerror = function() {
-      img.onload = showIcon;
-      img.src = 'src/img/splash_icon.png';
-    };
-    img.src = 'img/splash_icon.png';
-
-    var el = document.getElementById('splash-screen');
-    setTimeout(function() {
-      el.classList.add('fade-out');
-      setTimeout(function() { el.remove(); }, 520);
-    }, 4100);
-  })();
-</script>
+<script src="splash.js"></script>
 <!-- In-game transition loader (menu/restart -> board) -->
 <div id="loader" aria-hidden="true">
   <div class="loader-anim">
