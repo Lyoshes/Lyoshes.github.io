@@ -112,9 +112,9 @@
   <div class="spell-wave" id="spellWave"></div>
   <!-- Top HUD: timer strip + three connected panels -->
   <div class="top-hud" id="hud">
-    <!-- Timer strip: remaining time centered + KZ progress bar at bottom -->
+    <!-- Timer strip: total elapsed time centered + KZ progress bar at bottom -->
     <div class="hud-timer-row">
-      <div id="remainingHud" class="hud-timer">2:00</div>
+      <div id="timeHud" class="hud-timer">0:00</div>
       <div class="kz-bar-wrap"><div class="kz-bar-fill" id="kzBarFill"></div></div>
     </div>
     <!-- Panel row: left ear | center | right ear -->
@@ -133,12 +133,15 @@
         <div class="ear-content ear-score">
           <div class="panel-label">SCORE</div>
           <div id="scoreHud">0</div>
-          <div class="panel-label">TIME</div>
-          <div class="score-time-row"><span class="hud-clock"></span><span id="timeHud">0:00</span></div>
+          <div class="panel-label" id="remainLabel">TIME</div>
+          <div class="score-time-row"><span class="hud-clock" id="remainClock"></span><span id="remainingHud">2:00</span></div>
         </div>
       </div>
     </div>
   </div>
+  <!-- Adventure objectives widget: standalone block below the top HUD,
+       styled like the HUD panels but not part of them -->
+  <div class="hud-target hidden" id="targetHud"></div>
   <!-- Buffer action buttons — sides of screen, above magic row -->
   <div class="buf-side-wrap buf-side-left">
     <button class="buf-btn change-btn" id="changePieceBtn" aria-label="Change piece" title="Change piece">
@@ -403,6 +406,16 @@
       <div class="res-title-rule" aria-hidden="true"></div>
 
       <div class="gameover-score-grid">
+        <!-- Adventure level card (replaces title progress in Adventure) -->
+        <div class="gameover-score-card level-card hidden" id="goLevelCard">
+          <div class="gameover-score-top">
+            <div class="gameover-label">Adventure</div>
+          </div>
+          <div class="go-level-row">
+            <div class="go-level-name" id="goLevelName">Level 1</div>
+            <div class="go-level-objective" id="goLevelObjective">Rings 0/1</div>
+          </div>
+        </div>
         <!-- Title progress card -->
         <div class="gameover-score-card title-prog">
           <div class="gameover-score-top">
@@ -487,6 +500,7 @@
     <div class="gameover-actions">
       <button class="gameover-action-btn" id="goExitBtn" aria-label="Exit to Menu" title="Exit to Menu"></button>
       <button class="gameover-action-btn" id="goRestartBtn" aria-label="Restart" title="Restart"></button>
+      <button class="gameover-action-btn hidden" id="goNextBtn" aria-label="Next Level" title="Next Level"></button>
     </div>
   </div>
 </div>
