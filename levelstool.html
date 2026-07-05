@@ -22,7 +22,7 @@
       --stone: #e8e8e8;
       --fire: #ff4d4d;
       --water: #4da6ff;
-      --lightning: #ffd84d;
+      --air: #ffd84d;
       --earth: #47d16a;
     }
 
@@ -420,6 +420,21 @@
       align-content: start;
     }
 
+    .test-slot-panel {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #080d13;
+      padding: 10px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .test-slot-hint {
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.35;
+    }
+
     .workspace {
       display: grid;
       grid-template-columns: 220px minmax(0, 1fr) 320px;
@@ -661,8 +676,8 @@
       color: #061425;
     }
 
-    .brush-btn.brush-lightning {
-      background: var(--lightning);
+    .brush-btn.brush-air {
+      background: var(--air);
       color: #1d1600;
     }
 
@@ -702,7 +717,7 @@
     .current-brush-swatch.brush-stone { background: var(--stone); }
     .current-brush-swatch.brush-fire { background: var(--fire); }
     .current-brush-swatch.brush-water { background: var(--water); }
-    .current-brush-swatch.brush-lightning { background: var(--lightning); }
+    .current-brush-swatch.brush-air { background: var(--air); }
     .current-brush-swatch.brush-earth { background: var(--earth); }
 
     .edit-dirty-badge {
@@ -780,7 +795,7 @@
 
     .cell.fire { background: var(--fire); }
     .cell.water { background: var(--water); }
-    .cell.lightning { background: var(--lightning); color: #1d1600; }
+    .cell.air { background: var(--air); color: #1d1600; }
     .cell.earth { background: var(--earth); color: #061507; }
     .cell.stone { background: var(--stone); color: #111; }
     .cell.unknown { background: var(--unknown); }
@@ -807,6 +822,185 @@
       display: grid;
       gap: 12px;
       align-content: start;
+    }
+
+    .details-title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .details-title-row .btn {
+      min-height: 30px;
+      padding: 5px 8px;
+      font-size: 12px;
+    }
+
+    .details-block {
+      display: grid;
+      gap: 7px;
+    }
+
+    .details-block h3 {
+      margin-top: 8px;
+    }
+
+    .details-list {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--text);
+      line-height: 1.45;
+    }
+
+    .details-editor-modal {
+      width: min(1120px, 100%);
+      max-height: min(820px, calc(100vh - 36px));
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.55);
+      display: grid;
+      grid-template-rows: auto 1fr;
+      overflow: hidden;
+    }
+
+    .details-editor-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      align-items: start;
+    }
+
+    .details-editor-section {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #0b1118;
+      padding: 10px;
+      display: grid;
+      gap: 10px;
+      align-content: start;
+      min-width: 0;
+    }
+
+    .details-editor-section.full-width {
+      grid-column: 1 / -1;
+    }
+
+    .form-row {
+      display: grid;
+      gap: 4px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .form-row input,
+    .form-row select,
+    .form-row textarea,
+    .objective-row input,
+    .objective-row select,
+    .queue-row input,
+    .queue-row select {
+      width: 100%;
+      min-height: 34px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #080c12;
+      color: var(--text);
+      padding: 7px 10px;
+      outline: none;
+    }
+
+    .form-row textarea {
+      min-height: 74px;
+      resize: vertical;
+    }
+
+    .form-row input:focus,
+    .form-row select:focus,
+    .form-row textarea:focus,
+    .objective-row input:focus,
+    .objective-row select:focus,
+    .queue-row input:focus,
+    .queue-row select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(77, 166, 255, 0.12);
+    }
+
+    .inline-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .objective-row,
+    .queue-row {
+      display: grid;
+      grid-template-columns: minmax(120px, 1.2fr) 90px minmax(110px, 1fr) auto;
+      gap: 8px;
+      align-items: end;
+    }
+
+    .queue-row {
+      grid-template-columns: 110px 120px minmax(240px, 1fr) auto;
+    }
+
+    .color-checks,
+    .magic-charge-grid,
+    .piece-color-row {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .piece-color-row {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+
+    .color-checks label,
+    .inline-list label,
+    .piece-color-row label {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 34px;
+      padding: 6px 8px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #080c12;
+      color: var(--text);
+      font-size: 12px;
+    }
+
+    .readonly-json {
+      margin: 0;
+      max-height: 220px;
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #080c12;
+      padding: 10px;
+      color: var(--text);
+      font-family: Consolas, "SFMono-Regular", Menlo, monospace;
+      font-size: 12px;
+      line-height: 1.45;
+      white-space: pre-wrap;
+    }
+
+    .details-editor-status {
+      min-height: 20px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .details-editor-status.error {
+      color: var(--danger);
+    }
+
+    .details-editor-status.ok {
+      color: var(--ok);
     }
 
     .kv {
@@ -893,7 +1087,16 @@
       .workspace,
       .versions-modal-grid,
       .level-manager-grid,
+      .details-editor-grid,
       .modal-tools {
+        grid-template-columns: 1fr;
+      }
+
+      .objective-row,
+      .queue-row,
+      .color-checks,
+      .magic-charge-grid,
+      .piece-color-row {
         grid-template-columns: 1fr;
       }
     }
@@ -914,7 +1117,6 @@
         <textarea id="levelsInput" spellcheck="false" placeholder="Paste JSON, JS array, or: export const LEVELS = [...];"></textarea>
         <div class="actions">
           <button class="btn primary" id="renderBtn" type="button">Render levels</button>
-          <button class="btn" id="sampleBtn" type="button">Load sample</button>
           <button class="btn" id="copyBtn" type="button">Copy normalized JSON</button>
           <button class="btn" id="clearBtn" type="button">Clear</button>
           <button class="btn" id="openVersionsBtn" type="button">Versions...</button>
@@ -939,7 +1141,10 @@
       </section>
 
       <aside class="panel details">
-        <h2 class="panel-title">Details</h2>
+        <div class="details-title-row">
+          <h2 class="panel-title">Details</h2>
+          <button class="btn" id="editDetailsBtn" type="button" disabled>Edit details...</button>
+        </div>
         <div id="detailsView" class="empty-state">No level selected.</div>
       </aside>
     </main>
@@ -976,6 +1181,15 @@
               <button class="btn" id="exportAllVersionsBtn" type="button">Export all</button>
               <button class="btn" id="importVersionsBtn" type="button">Import versions</button>
             </div>
+            <section class="test-slot-panel" aria-label="Adventure test slot">
+              <h3 class="panel-title">Test Slot</h3>
+              <div id="testSlotStatus" class="version-summary">Test slot: none</div>
+              <div class="test-slot-hint">Test slot works only when tool and game run on the same origin.</div>
+              <div class="version-actions">
+                <button class="btn primary" id="setVersionForTestBtn" type="button">Set for test</button>
+                <button class="btn" id="clearTestSlotBtn" type="button">Clear test slot</button>
+              </div>
+            </section>
             <input id="importVersionsInput" type="file" accept=".json,application/json" hidden>
           </section>
         </div>
@@ -1018,7 +1232,7 @@
               <button class="btn" id="moveLevelUpBtn" type="button">Move up</button>
               <button class="btn" id="moveLevelDownBtn" type="button">Move down</button>
               <button class="btn" id="renumberLevelIdsBtn" type="button">Renumber ids</button>
-              <button class="btn primary" id="applyStructureBtn" type="button">Apply structure</button>
+              <button class="btn primary" id="applyStructureBtn" type="button">Apply changes</button>
             </div>
           </section>
         </div>
@@ -1026,8 +1240,22 @@
     </section>
   </div>
 
+  <div id="detailsEditorModal" class="modal-backdrop" hidden>
+    <section class="details-editor-modal" role="dialog" aria-modal="true" aria-labelledby="detailsEditorTitle">
+      <header class="modal-header">
+        <h2 id="detailsEditorTitle">Level Details Editor</h2>
+        <button class="modal-close" id="closeDetailsEditorBtn" type="button" aria-label="Close details editor">&times;</button>
+      </header>
+      <div class="modal-body">
+        <div id="detailsEditorStatus" class="details-editor-status">No level selected.</div>
+        <div id="detailsEditorForm" class="details-editor-grid"></div>
+      </div>
+    </section>
+  </div>
+
   <script>
     const STORAGE_KEY = 'eb_level_viewer_saved_versions_v1';
+    const TEST_LEVELS_STORAGE_KEY = 'eb_adventure_levels_test_v1';
 
     let currentLevels = [];
     let selectedLevelId = null;
@@ -1042,10 +1270,13 @@
     let redoStack = [];
     let hasGridEdits = false;
     let hasStructureEdits = false;
+    let hasDetailsEdits = false;
+    let inputDirtySinceRender = false;
+    let detailsDraft = null;
+    let detailsDraftInitialHash = '';
 
     const inputEl = document.getElementById('levelsInput');
     const renderBtn = document.getElementById('renderBtn');
-    const sampleBtn = document.getElementById('sampleBtn');
     const copyBtn = document.getElementById('copyBtn');
     const clearBtn = document.getElementById('clearBtn');
     const openVersionsBtn = document.getElementById('openVersionsBtn');
@@ -1055,6 +1286,7 @@
     const levelButtonsEl = document.getElementById('levelButtons');
     const levelViewEl = document.getElementById('levelView');
     const detailsViewEl = document.getElementById('detailsView');
+    const editDetailsBtn = document.getElementById('editDetailsBtn');
     const viewModeInputs = document.querySelectorAll('input[name="viewMode"]');
     const versionsModal = document.getElementById('versionsModal');
     const closeVersionsBtn = document.getElementById('closeVersionsBtn');
@@ -1073,8 +1305,15 @@
     const exportAllVersionsBtn = document.getElementById('exportAllVersionsBtn');
     const importVersionsBtn = document.getElementById('importVersionsBtn');
     const importVersionsInput = document.getElementById('importVersionsInput');
+    const setVersionForTestBtn = document.getElementById('setVersionForTestBtn');
+    const clearTestSlotBtn = document.getElementById('clearTestSlotBtn');
+    const testSlotStatus = document.getElementById('testSlotStatus');
     const savedVersionsList = document.getElementById('savedVersionsList');
     const levelManagerModal = document.getElementById('levelManagerModal');
+    const detailsEditorModal = document.getElementById('detailsEditorModal');
+    const closeDetailsEditorBtn = document.getElementById('closeDetailsEditorBtn');
+    const detailsEditorStatus = document.getElementById('detailsEditorStatus');
+    const detailsEditorForm = document.getElementById('detailsEditorForm');
     const closeLevelManagerBtn = document.getElementById('closeLevelManagerBtn');
     const newLevelIdInput = document.getElementById('newLevelIdInput');
     const newLevelNInput = document.getElementById('newLevelNInput');
@@ -1127,7 +1366,7 @@
       '.': { className: 'empty', name: 'empty', label: '' },
       '1': { className: 'fire', name: 'fire', label: '1' },
       '2': { className: 'water', name: 'water', label: '2' },
-      '3': { className: 'lightning', name: 'lightning', label: '3' },
+      '3': { className: 'air', name: 'air', label: '3' },
       '4': { className: 'earth', name: 'earth', label: '4' },
       '0': { className: 'stone', name: 'stone', label: '0' },
     };
@@ -1137,10 +1376,19 @@
       { char: '0', name: 'Stone', short: '0', className: 'brush-stone', hotkey: '0' },
       { char: '1', name: 'Fire', short: '1', className: 'brush-fire', hotkey: '1' },
       { char: '2', name: 'Water', short: '2', className: 'brush-water', hotkey: '2' },
-      { char: '3', name: 'Lightning', short: '3', className: 'brush-lightning', hotkey: '3' },
+      { char: '3', name: 'Air', short: '3', className: 'brush-air', hotkey: '3' },
       { char: '4', name: 'Earth', short: '4', className: 'brush-earth', hotkey: '4' },
     ];
     const UNDO_LIMIT = 100;
+    const ELEMENT_OPTIONS = [
+      { value: 1, label: '1 Fire' },
+      { value: 2, label: '2 Water' },
+      { value: 3, label: '3 Air' },
+      { value: 4, label: '4 Earth' },
+    ];
+    const OBJECTIVE_TYPES = ['rings', 'matches', 'clearColor', 'combo', 'cascade', 'surviveMoves'];
+    const SHAPE_OPTIONS = ['F', 'I', 'L', 'P', 'N', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
+    const MAGIC_CHARGE_KEYS = ['fire', 'water', 'air', 'earth'];
 
     const KNOWN_SHAPES = new Set(['F', 'I', 'L', 'P', 'N', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']);
 
@@ -1181,6 +1429,12 @@
       }
 
       return text;
+    }
+
+    function getMagicChargeValue(level, key) {
+      const charges = level && level.magicCharges;
+      if (!charges || typeof charges !== 'object') return '';
+      return charges[key] != null ? charges[key] : '';
     }
 
     function validateLevel(level) {
@@ -1302,7 +1556,7 @@
     }
 
     function hasAnyEditorEdits() {
-      return hasGridEdits || hasStructureEdits;
+      return hasGridEdits || hasStructureEdits || hasDetailsEdits;
     }
 
     function markStructureEdited(message) {
@@ -1383,8 +1637,10 @@
       const selectedBefore = selectedLevelId;
       inputEl.value = JSON.stringify(currentLevels, null, 2);
       const rendered = renderFromInput({ selectedLevelId: selectedBefore, keepEditSession: false });
+      inputDirtySinceRender = false;
       hasGridEdits = false;
       hasStructureEdits = false;
+      hasDetailsEdits = false;
       editSnapshot = cloneLevels(currentLevels);
       undoStack = [];
       redoStack = [];
@@ -1398,7 +1654,7 @@
     }
 
     function applyStructureEditsToTextarea() {
-      applyCurrentLevelsToTextarea('Applied level structure edits to textarea.');
+      applyCurrentLevelsToTextarea('Applied editor changes to textarea.');
     }
 
     function revertGridEdits() {
@@ -1609,17 +1865,17 @@
     function updateLevelManagerView() {
       if (!levelManagerCurrentSummary) return;
       const selected = getSelectedLevel();
-      const countText = currentLevels.length + ' level(s)' + (hasAnyEditorEdits() ? ' · Unapplied changes' : '');
+      const countText = currentLevels.length + ' level(s)' + (hasAnyEditorEdits() ? ' ï¿½ Unapplied changes' : '');
       levelManagerCurrentSummary.textContent = selected
-        ? 'Current: Level ' + (selected.id != null ? selected.id : '?') + ' · ' + gridLabel(selected) + ' · ' + countText
-        : 'Current: none · ' + countText;
+        ? 'Current: Level ' + (selected.id != null ? selected.id : '?') + ' ï¿½ ' + gridLabel(selected) + ' ï¿½ ' + countText
+        : 'Current: none ï¿½ ' + countText;
       const hasSelected = !!selected;
       duplicateCurrentLevelBtn.disabled = !hasSelected || hasGridEdits;
       deleteCurrentLevelBtn.disabled = !hasSelected || hasGridEdits;
       moveLevelUpBtn.disabled = !hasSelected || hasGridEdits || getCurrentLevelIndex() <= 0;
       moveLevelDownBtn.disabled = !hasSelected || hasGridEdits || getCurrentLevelIndex() < 0 || getCurrentLevelIndex() >= currentLevels.length - 1;
       renumberLevelIdsBtn.disabled = !currentLevels.length || hasGridEdits;
-      applyStructureBtn.disabled = !hasStructureEdits && !hasGridEdits;
+      applyStructureBtn.disabled = !hasAnyEditorEdits();
       newLevelIdInput.value = String(getNextLevelId());
     }
 
@@ -1779,7 +2035,7 @@
       sampleButton.type = 'button';
       sampleButton.className = 'btn';
       sampleButton.textContent = 'Load sample';
-      sampleButton.addEventListener('click', () => sampleBtn.click());
+      sampleButton.addEventListener('click', loadSampleLevels);
       const versionsButton = document.createElement('button');
       versionsButton.type = 'button';
       versionsButton.className = 'btn';
@@ -1789,6 +2045,7 @@
       levelViewEl.append(text, actions);
       detailsViewEl.className = 'empty-state';
       detailsViewEl.textContent = 'No level selected.';
+      updateDetailsEditorButton();
     }
 
     function renderSelectedLevel(level) {
@@ -1876,22 +2133,129 @@
       return wrapper;
     }
 
+    function updateDetailsEditorButton() {
+      const hasSelected = !!getSelectedLevel();
+      editDetailsBtn.disabled = !hasSelected;
+      editDetailsBtn.textContent = hasDetailsEdits ? 'Edit details... *' : 'Edit details...';
+      editDetailsBtn.title = hasDetailsEdits ? 'Edit details. Details have unapplied changes.' : 'Edit details';
+    }
+
     function renderDetails(level, warnings) {
       detailsViewEl.className = '';
       detailsViewEl.innerHTML = '';
+      updateDetailsEditorButton();
 
+      if (hasDetailsEdits) {
+        const badge = document.createElement('div');
+        badge.className = 'edit-dirty-badge';
+        badge.textContent = 'Unapplied details changes';
+        detailsViewEl.appendChild(badge);
+      }
+
+      detailsViewEl.append(
+        buildDetailsBlock('Basic', [
+          ['id', level.id],
+          ['version', level.version == null ? 1 : level.version],
+          ['description', level.description || ''],
+          ['grid', gridLabel(level)],
+          ['movesLimit', level.movesLimit],
+        ]),
+        buildDetailsBlock('Tools', [
+          ['pieceColors', formatElementList(level.pieceColors)],
+          ['buffer', level.buffer === false ? 'disabled' : 'enabled'],
+          ['changeCharges', level.changeCharges],
+          ['shuffleCharges', level.shuffleCharges],
+          ['magic', level.magicEnabled === true ? 'enabled' : 'default/off'],
+          ['magicCharges', formatValue(level.magicCharges)],
+        ]),
+        buildObjectivesSummary(level),
+        buildPieceQueueSummary(level),
+        buildTutorialSummary(level),
+        buildWarningsSummary(warnings)
+      );
+    }
+
+    function buildDetailsBlock(title, rows) {
+      const block = document.createElement('section');
+      block.className = 'details-block';
+      const heading = document.createElement('h3');
+      heading.className = 'panel-title';
+      heading.textContent = title;
       const kv = document.createElement('div');
       kv.className = 'kv';
-      addDetail(kv, 'id', level.id);
-      addDetail(kv, 'description', level.description || '');
-      addDetail(kv, 'grid', gridLabel(level));
-      addDetail(kv, 'movesLimit', level.movesLimit);
-      addDetail(kv, 'magicEnabled', level.magicEnabled);
-      addDetail(kv, 'tutorial', formatValue(level.tutorial));
-      addDetail(kv, 'objectives', formatValue(level.objectives));
-      addDetail(kv, 'pieceQueue', pieceQueueSummary(level));
+      rows.forEach(([key, value]) => addDetail(kv, key, value));
+      block.append(heading, kv);
+      return block;
+    }
 
-      const warningBox = document.createElement('div');
+    function buildObjectivesSummary(level) {
+      const block = document.createElement('section');
+      block.className = 'details-block';
+      const heading = document.createElement('h3');
+      heading.className = 'panel-title';
+      heading.textContent = 'Objectives';
+      block.appendChild(heading);
+      const objectives = Array.isArray(level.objectives) ? level.objectives : [];
+      if (!objectives.length) {
+        const empty = document.createElement('div');
+        empty.className = 'value';
+        empty.textContent = '-';
+        block.appendChild(empty);
+        return block;
+      }
+      const list = document.createElement('ol');
+      list.className = 'details-list';
+      objectives.forEach((objective) => {
+        const item = document.createElement('li');
+        const color = objective && objective.color != null ? ' color ' + objective.color : '';
+        item.textContent = (objective && objective.type ? objective.type : '?') + ' x ' + (objective && objective.count != null ? objective.count : '?') + color;
+        list.appendChild(item);
+      });
+      block.appendChild(list);
+      return block;
+    }
+
+    function buildPieceQueueSummary(level) {
+      const block = document.createElement('section');
+      block.className = 'details-block';
+      const heading = document.createElement('h3');
+      heading.className = 'panel-title';
+      heading.textContent = 'PieceQueue';
+      block.appendChild(heading);
+      const queue = normalizePieceQueueForEditor(level.pieceQueue);
+      if (!queue.length) {
+        const empty = document.createElement('div');
+        empty.className = 'value';
+        empty.textContent = level.pieceQueue ? formatValue(level.pieceQueue) : '-';
+        block.appendChild(empty);
+        return block;
+      }
+      const list = document.createElement('ol');
+      list.className = 'details-list';
+      queue.forEach((entry) => {
+        const item = document.createElement('li');
+        item.textContent = entry.shape + (entry.colors ? ' colors ' + entry.colors.join(', ') : '');
+        list.appendChild(item);
+      });
+      block.appendChild(list);
+      return block;
+    }
+
+    function buildTutorialSummary(level) {
+      const block = document.createElement('section');
+      block.className = 'details-block';
+      const heading = document.createElement('h3');
+      heading.className = 'panel-title';
+      heading.textContent = 'Tutorial';
+      const marker = document.createElement('div');
+      marker.className = 'value';
+      marker.textContent = level.tutorial ? 'Configured' : 'None';
+      block.append(heading, marker);
+      return block;
+    }
+
+    function buildWarningsSummary(warnings) {
+      const warningBox = document.createElement('section');
       warningBox.className = 'warnings';
       const warningTitle = document.createElement('h3');
       warningTitle.className = 'panel-title';
@@ -1911,8 +2275,563 @@
           warningBox.appendChild(item);
         });
       }
+      return warningBox;
+    }
 
-      detailsViewEl.append(kv, warningBox);
+    function setDetailsEditorStatus(text, kind) {
+      detailsEditorStatus.textContent = text || '';
+      detailsEditorStatus.className = 'details-editor-status' + (kind ? ' ' + kind : '');
+    }
+
+    function openDetailsEditorModal() {
+      const level = getSelectedLevel();
+      if (!level) {
+        setStatus('No level selected.', 'error');
+        return;
+      }
+      if (hasGridEdits) {
+        setStatus('Apply or revert grid edits before editing details.', 'error');
+        setDetailsEditorStatus('Apply or revert grid edits before editing details.', 'error');
+        return;
+      }
+      detailsDraft = cloneJson(level);
+      detailsEditorModal.hidden = false;
+      renderDetailsEditorForm(detailsDraft);
+      detailsDraftInitialHash = getDetailsFormHash();
+      setDetailsEditorStatus('Editing Level ' + (level.id != null ? level.id : '?') + '.', '');
+      setTimeout(() => {
+        const first = document.getElementById('detailIdInput');
+        if (first) first.focus();
+      }, 0);
+    }
+
+    function closeDetailsEditorModal() {
+      if (!detailsEditorModal.hidden && isDetailsFormDirty() && !confirm('Discard unsaved details form changes?')) return;
+      detailsEditorModal.hidden = true;
+      detailsDraft = null;
+      detailsDraftInitialHash = '';
+      detailsEditorForm.textContent = '';
+      setDetailsEditorStatus('', '');
+    }
+
+    function isDetailsFormDirty() {
+      return detailsDraftInitialHash && getDetailsFormHash() !== detailsDraftInitialHash;
+    }
+
+    function getDetailsFormHash() {
+      if (!detailsEditorForm) return '';
+      const values = Array.from(detailsEditorForm.querySelectorAll('input, select, textarea')).map((el) => ({
+        id: el.id || '',
+        name: el.name || '',
+        type: el.type || '',
+        value: el.value,
+        checked: !!el.checked,
+        row: el.closest('.objective-row, .queue-row') ? Array.from(el.closest('.objective-row, .queue-row').parentNode.children).indexOf(el.closest('.objective-row, .queue-row')) : -1,
+      }));
+      return JSON.stringify(values);
+    }
+
+    function renderDetailsEditorForm(level) {
+      detailsEditorForm.textContent = '';
+      detailsEditorForm.append(
+        buildBasicEditorSection(level),
+        buildGridMovesEditorSection(level),
+        buildToolsEditorSection(level),
+        buildObjectivesEditorSection(level),
+        buildPieceQueueEditorSection(level),
+        buildTutorialEditorSection(level),
+        buildDetailsActionsSection()
+      );
+      updateMagicChargeVisibility();
+      updateObjectiveColorVisibility();
+      updateQueueColorVisibility();
+    }
+
+    function buildEditorSection(title, extraClass) {
+      const section = document.createElement('section');
+      section.className = 'details-editor-section' + (extraClass ? ' ' + extraClass : '');
+      const heading = document.createElement('h3');
+      heading.className = 'panel-title';
+      heading.textContent = title;
+      section.appendChild(heading);
+      return section;
+    }
+
+    function makeInputRow(label, id, type, value, attrs = {}) {
+      const row = document.createElement('label');
+      row.className = 'form-row';
+      row.appendChild(document.createTextNode(label));
+      const input = document.createElement(type === 'textarea' ? 'textarea' : 'input');
+      input.id = id;
+      if (type !== 'textarea') input.type = type || 'text';
+      input.value = value == null ? '' : String(value);
+      Object.entries(attrs).forEach(([key, attrValue]) => input.setAttribute(key, String(attrValue)));
+      row.appendChild(input);
+      return row;
+    }
+
+    function buildBasicEditorSection(level) {
+      const section = buildEditorSection('Basic');
+      section.append(
+        makeInputRow('Level id', 'detailIdInput', 'number', level.id, { min: 1, step: 1 }),
+        makeInputRow('Version', 'detailVersionInput', 'number', level.version == null ? 1 : level.version, { min: 1, step: 1 }),
+        makeInputRow('Description', 'detailDescriptionInput', 'textarea', level.description || '')
+      );
+      return section;
+    }
+
+    function buildGridMovesEditorSection(level) {
+      const section = buildEditorSection('Grid / Moves');
+      const grid = level.grid || {};
+      section.append(
+        makeInputRow('Grid n', 'detailGridNInput', 'number', grid.n || 18, { min: 1, step: 1 }),
+        makeInputRow('Grid h', 'detailGridHInput', 'number', grid.h || 16, { min: 1, step: 1 }),
+        makeInputRow('Moves limit', 'detailMovesInput', 'number', level.movesLimit == null ? 30 : level.movesLimit, { min: 1, step: 1 })
+      );
+      return section;
+    }
+
+    function buildToolsEditorSection(level) {
+      const section = buildEditorSection('Tools / Magic');
+      const checks = document.createElement('div');
+      checks.className = 'color-checks';
+      const selectedColors = Array.isArray(level.pieceColors) && level.pieceColors.length ? level.pieceColors.map(Number) : [1, 2, 3, 4];
+      ELEMENT_OPTIONS.forEach((option) => {
+        const label = document.createElement('label');
+        const input = document.createElement('input');
+        input.type = 'checkbox';
+        input.name = 'detailPieceColor';
+        input.value = String(option.value);
+        input.checked = selectedColors.includes(option.value);
+        label.append(input, document.createTextNode(option.label));
+        checks.appendChild(label);
+      });
+      const bufferLabel = document.createElement('label');
+      bufferLabel.className = 'form-row';
+      const bufferWrap = document.createElement('span');
+      bufferWrap.className = 'inline-list';
+      const bufferCheckLabel = document.createElement('label');
+      const bufferCheck = document.createElement('input');
+      bufferCheck.type = 'checkbox';
+      bufferCheck.id = 'detailBufferEnabledInput';
+      bufferCheck.checked = level.buffer !== false;
+      bufferCheckLabel.append(bufferCheck, document.createTextNode('Buffer enabled'));
+      bufferWrap.appendChild(bufferCheckLabel);
+      bufferLabel.append(document.createTextNode('Buffer'), bufferWrap);
+
+      const magicLabel = document.createElement('label');
+      magicLabel.className = 'form-row';
+      const magicWrap = document.createElement('span');
+      magicWrap.className = 'inline-list';
+      const magicCheckLabel = document.createElement('label');
+      const magicCheck = document.createElement('input');
+      magicCheck.type = 'checkbox';
+      magicCheck.id = 'detailMagicEnabledInput';
+      magicCheck.checked = level.magicEnabled === true;
+      magicCheck.addEventListener('change', updateMagicChargeVisibility);
+      magicCheckLabel.append(magicCheck, document.createTextNode('Magic enabled'));
+      magicWrap.appendChild(magicCheckLabel);
+      magicLabel.append(document.createTextNode('Magic'), magicWrap);
+
+      const chargeGrid = document.createElement('div');
+      chargeGrid.className = 'magic-charge-grid';
+      chargeGrid.append(
+        makeInputRow('changeCharges', 'detailChangeChargesInput', 'number', level.changeCharges == null ? '' : level.changeCharges, { min: 0, step: 1 }),
+        makeInputRow('shuffleCharges', 'detailShuffleChargesInput', 'number', level.shuffleCharges == null ? '' : level.shuffleCharges, { min: 0, step: 1 })
+      );
+      MAGIC_CHARGE_KEYS.forEach((key) => {
+        chargeGrid.appendChild(makeInputRow('magic.' + key, 'detailMagicCharge_' + key, 'number', getMagicChargeValue(level, key), { min: 0, step: 1, 'data-magic-charge': key }));
+      });
+      section.append(makeSectionLabel('Piece colors'), checks, bufferLabel, chargeGrid, magicLabel);
+      return section;
+    }
+
+    function makeSectionLabel(text) {
+      const label = document.createElement('div');
+      label.className = 'key';
+      label.textContent = text;
+      return label;
+    }
+
+    function buildObjectivesEditorSection(level) {
+      const section = buildEditorSection('Objectives', 'full-width');
+      const list = document.createElement('div');
+      list.id = 'objectivesEditorList';
+      list.className = 'details-editor-section';
+      const objectives = Array.isArray(level.objectives) ? level.objectives.slice(0, 3) : [];
+      objectives.forEach((objective) => list.appendChild(createObjectiveRow(objective)));
+      const addButton = document.createElement('button');
+      addButton.type = 'button';
+      addButton.className = 'btn';
+      addButton.textContent = 'Add objective';
+      addButton.addEventListener('click', () => {
+        if (list.children.length >= 3) {
+          setDetailsEditorStatus('Objectives are limited to 3.', 'error');
+          return;
+        }
+        list.appendChild(createObjectiveRow({ type: 'rings', count: 1 }));
+        updateObjectiveColorVisibility();
+      });
+      section.append(list, addButton);
+      return section;
+    }
+
+    function createObjectiveRow(objective = {}) {
+      const row = document.createElement('div');
+      row.className = 'objective-row';
+      const typeSelect = document.createElement('select');
+      typeSelect.name = 'objectiveType';
+      OBJECTIVE_TYPES.forEach((type) => typeSelect.appendChild(makeOption(type, type, objective.type === type)));
+      typeSelect.value = OBJECTIVE_TYPES.includes(objective.type) ? objective.type : 'rings';
+      typeSelect.addEventListener('change', updateObjectiveColorVisibility);
+      const countInput = document.createElement('input');
+      countInput.type = 'number';
+      countInput.name = 'objectiveCount';
+      countInput.min = '1';
+      countInput.step = '1';
+      countInput.value = objective.count == null ? '1' : String(objective.count);
+      const colorSelect = document.createElement('select');
+      colorSelect.name = 'objectiveColor';
+      colorSelect.appendChild(makeOption('', 'No color', objective.color == null));
+      ELEMENT_OPTIONS.forEach((option) => colorSelect.appendChild(makeOption(String(option.value), option.label, Number(objective.color) === option.value)));
+      const removeButton = document.createElement('button');
+      removeButton.type = 'button';
+      removeButton.className = 'btn';
+      removeButton.textContent = 'Remove';
+      removeButton.addEventListener('click', () => row.remove());
+      row.append(typeSelect, countInput, colorSelect, removeButton);
+      return row;
+    }
+
+    function buildPieceQueueEditorSection(level) {
+      const section = buildEditorSection('Piece Queue', 'full-width');
+      const list = document.createElement('div');
+      list.id = 'pieceQueueEditorList';
+      list.className = 'details-editor-section';
+      normalizePieceQueueForEditor(level.pieceQueue).forEach((entry) => list.appendChild(createQueueRow(entry)));
+      const addButton = document.createElement('button');
+      addButton.type = 'button';
+      addButton.className = 'btn';
+      addButton.textContent = 'Add queue item';
+      addButton.addEventListener('click', () => {
+        list.appendChild(createQueueRow({ shape: 'T' }));
+        updateQueueColorVisibility();
+      });
+      section.append(list, addButton);
+      return section;
+    }
+
+    function createQueueRow(entry = {}) {
+      const row = document.createElement('div');
+      row.className = 'queue-row';
+      const shapeSelect = document.createElement('select');
+      shapeSelect.name = 'queueShape';
+      SHAPE_OPTIONS.forEach((shape) => shapeSelect.appendChild(makeOption(shape, shape, entry.shape === shape)));
+      shapeSelect.value = SHAPE_OPTIONS.includes(entry.shape) ? entry.shape : 'T';
+      const customLabel = document.createElement('label');
+      const customInput = document.createElement('input');
+      customInput.type = 'checkbox';
+      customInput.name = 'queueCustomColors';
+      customInput.checked = Array.isArray(entry.colors) && entry.colors.length === 5;
+      customInput.addEventListener('change', updateQueueColorVisibility);
+      customLabel.append(customInput, document.createTextNode('Custom colors'));
+      const colors = document.createElement('div');
+      colors.className = 'piece-color-row';
+      const sourceColors = customInput.checked ? entry.colors : [1, 2, 3, 4, 1];
+      for (let i = 0; i < 5; i++) {
+        const label = document.createElement('label');
+        const select = document.createElement('select');
+        select.name = 'queueColor';
+        ELEMENT_OPTIONS.forEach((option) => select.appendChild(makeOption(String(option.value), String(option.value), Number(sourceColors[i]) === option.value)));
+        select.value = String(ELEMENT_OPTIONS.some((option) => option.value === Number(sourceColors[i])) ? sourceColors[i] : 1);
+        label.append(document.createTextNode(String(i + 1)), select);
+        colors.appendChild(label);
+      }
+      const removeButton = document.createElement('button');
+      removeButton.type = 'button';
+      removeButton.className = 'btn';
+      removeButton.textContent = 'Remove';
+      removeButton.addEventListener('click', () => row.remove());
+      row.append(shapeSelect, customLabel, colors, removeButton);
+      return row;
+    }
+
+    function buildTutorialEditorSection(level) {
+      const section = buildEditorSection('Tutorial (read-only)', 'full-width');
+      const pre = document.createElement('pre');
+      pre.className = 'readonly-json';
+      pre.textContent = level.tutorial ? JSON.stringify(level.tutorial, null, 2) : 'None';
+      section.appendChild(pre);
+      return section;
+    }
+
+    function buildDetailsActionsSection() {
+      const section = buildEditorSection('Actions', 'full-width');
+      const row = document.createElement('div');
+      row.className = 'inline-list';
+      const applyButton = document.createElement('button');
+      applyButton.type = 'button';
+      applyButton.className = 'btn primary';
+      applyButton.textContent = 'Apply changes';
+      applyButton.addEventListener('click', applyDetailsEditorChanges);
+      const revertButton = document.createElement('button');
+      revertButton.type = 'button';
+      revertButton.className = 'btn';
+      revertButton.textContent = 'Revert form';
+      revertButton.addEventListener('click', revertDetailsEditorForm);
+      const closeButton = document.createElement('button');
+      closeButton.type = 'button';
+      closeButton.className = 'btn';
+      closeButton.textContent = 'Close';
+      closeButton.addEventListener('click', closeDetailsEditorModal);
+      row.append(applyButton, revertButton, closeButton);
+      section.appendChild(row);
+      return section;
+    }
+
+    function makeOption(value, label, selected) {
+      const option = document.createElement('option');
+      option.value = value;
+      option.textContent = label;
+      option.selected = !!selected;
+      return option;
+    }
+
+    function updateMagicChargeVisibility() {
+      const enabled = document.getElementById('detailMagicEnabledInput');
+      detailsEditorForm.querySelectorAll('[data-magic-charge]').forEach((input) => {
+        const row = input.closest('.form-row');
+        if (row) row.hidden = !(enabled && enabled.checked);
+      });
+    }
+
+    function updateObjectiveColorVisibility() {
+      detailsEditorForm.querySelectorAll('.objective-row').forEach((row) => {
+        const type = row.querySelector('[name="objectiveType"]');
+        const color = row.querySelector('[name="objectiveColor"]');
+        if (color) color.hidden = !(type && type.value === 'clearColor');
+      });
+    }
+
+    function updateQueueColorVisibility() {
+      detailsEditorForm.querySelectorAll('.queue-row').forEach((row) => {
+        const custom = row.querySelector('[name="queueCustomColors"]');
+        const colors = row.querySelector('.piece-color-row');
+        if (colors) colors.hidden = !(custom && custom.checked);
+      });
+    }
+
+    function revertDetailsEditorForm() {
+      const level = getSelectedLevel();
+      if (!level) return;
+      detailsDraft = cloneJson(level);
+      renderDetailsEditorForm(detailsDraft);
+      detailsDraftInitialHash = getDetailsFormHash();
+      setDetailsEditorStatus('Reverted details form.', 'ok');
+    }
+
+    function normalizePieceQueueForEditor(pieceQueue) {
+      if (!pieceQueue) return [];
+      if (Array.isArray(pieceQueue)) {
+        return pieceQueue.map((item) => {
+          if (typeof item === 'string') return { shape: item };
+          if (!item || typeof item !== 'object') return null;
+          const entry = { shape: item.shape || 'T' };
+          if (Array.isArray(item.colors) && item.colors.length === 5) entry.colors = item.colors.map(Number);
+          return entry;
+        }).filter((entry) => entry && entry.shape);
+      }
+      if (pieceQueue && typeof pieceQueue === 'object') {
+        const sharedColors = Array.isArray(pieceQueue.colors) && pieceQueue.colors.length === 5 ? pieceQueue.colors.map(Number) : null;
+        const shapes = Array.isArray(pieceQueue.shapes) ? pieceQueue.shapes : (Array.isArray(pieceQueue.shape) ? pieceQueue.shape : (pieceQueue.shape ? [pieceQueue.shape] : []));
+        return shapes.map((shape) => {
+          const entry = { shape };
+          if (sharedColors) entry.colors = sharedColors.slice();
+          return entry;
+        }).filter((entry) => entry.shape);
+      }
+      return [];
+    }
+
+    function normalizeObjectives(objectives) {
+      return objectives.slice(0, 3).map((objective) => {
+        const normalized = {
+          type: OBJECTIVE_TYPES.includes(objective.type) ? objective.type : 'rings',
+          count: objective.count,
+        };
+        if (normalized.type === 'clearColor') normalized.color = objective.color;
+        return normalized;
+      });
+    }
+
+    function formatElementList(value) {
+      if (!Array.isArray(value) || !value.length) return 'default';
+      return value.join(', ');
+    }
+
+    function readPositiveDetailsInt(id, label, errors, fallback) {
+      const input = document.getElementById(id);
+      const raw = input ? input.value : '';
+      const value = raw === '' && fallback != null ? fallback : Number(raw);
+      if (!Number.isInteger(value) || value <= 0) {
+        errors.push(label + ' must be a positive integer.');
+        return fallback || 1;
+      }
+      return value;
+    }
+
+    function readOptionalNonNegativeInt(id, label, errors) {
+      const input = document.getElementById(id);
+      if (!input || input.value === '') return null;
+      const value = Number(input.value);
+      if (!Number.isInteger(value) || value < 0) {
+        errors.push(label + ' must be empty or a nonnegative integer.');
+        return null;
+      }
+      return value;
+    }
+
+    function collectDetailsForm() {
+      const selected = getSelectedLevel();
+      const index = getCurrentLevelIndex();
+      const errors = [];
+      const draft = cloneJson(selected || {});
+      const id = readPositiveDetailsInt('detailIdInput', 'Level id', errors);
+      const duplicateId = currentLevels.some((level, levelIndex) => levelIndex !== index && Number(level && level.id) === id);
+      if (duplicateId) errors.push('Level id must be unique.');
+      draft.id = id;
+      draft.version = readPositiveDetailsInt('detailVersionInput', 'Version', errors, 1);
+      draft.description = document.getElementById('detailDescriptionInput').value;
+      const gridN = readPositiveDetailsInt('detailGridNInput', 'grid.n', errors, 18);
+      const gridH = readPositiveDetailsInt('detailGridHInput', 'grid.h', errors, 16);
+      draft.movesLimit = readPositiveDetailsInt('detailMovesInput', 'movesLimit', errors, 30);
+
+      const pieceColors = Array.from(detailsEditorForm.querySelectorAll('[name="detailPieceColor"]:checked')).map((input) => Number(input.value));
+      if (!pieceColors.length) errors.push('Select at least one piece color.');
+      draft.pieceColors = ELEMENT_OPTIONS.map((option) => option.value).filter((value) => pieceColors.includes(value));
+
+      if (document.getElementById('detailBufferEnabledInput').checked) delete draft.buffer;
+      else draft.buffer = false;
+
+      const changeCharges = readOptionalNonNegativeInt('detailChangeChargesInput', 'changeCharges', errors);
+      const shuffleCharges = readOptionalNonNegativeInt('detailShuffleChargesInput', 'shuffleCharges', errors);
+      if (changeCharges == null) delete draft.changeCharges;
+      else draft.changeCharges = changeCharges;
+      if (shuffleCharges == null) delete draft.shuffleCharges;
+      else draft.shuffleCharges = shuffleCharges;
+
+      const magicEnabled = document.getElementById('detailMagicEnabledInput').checked;
+      if (!magicEnabled) {
+        delete draft.magicEnabled;
+        delete draft.magicCharges;
+      } else {
+        draft.magicEnabled = true;
+        const charges = {};
+        MAGIC_CHARGE_KEYS.forEach((key) => {
+          const value = readOptionalNonNegativeInt('detailMagicCharge_' + key, 'magicCharges.' + key, errors);
+          if (value && value > 0) charges[key] = value;
+        });
+        if (Object.keys(charges).length) draft.magicCharges = charges;
+        else delete draft.magicCharges;
+      }
+
+      const objectives = [];
+      detailsEditorForm.querySelectorAll('.objective-row').forEach((row, objectiveIndex) => {
+        const type = row.querySelector('[name="objectiveType"]').value;
+        const count = Number(row.querySelector('[name="objectiveCount"]').value);
+        if (!OBJECTIVE_TYPES.includes(type)) errors.push('Objective ' + (objectiveIndex + 1) + ' has invalid type.');
+        if (!Number.isInteger(count) || count <= 0) errors.push('Objective ' + (objectiveIndex + 1) + ' count must be positive.');
+        const objective = { type, count };
+        if (type === 'clearColor') {
+          const color = Number(row.querySelector('[name="objectiveColor"]').value);
+          if (!ELEMENT_OPTIONS.some((option) => option.value === color)) errors.push('Objective ' + (objectiveIndex + 1) + ' color is required.');
+          objective.color = color;
+        }
+        objectives.push(objective);
+      });
+      if (objectives.length > 3) errors.push('Objectives are limited to 3.');
+      draft.objectives = normalizeObjectives(objectives);
+
+      const queue = [];
+      detailsEditorForm.querySelectorAll('.queue-row').forEach((row, queueIndex) => {
+        const shape = row.querySelector('[name="queueShape"]').value;
+        if (!SHAPE_OPTIONS.includes(shape)) errors.push('Queue item ' + (queueIndex + 1) + ' has invalid shape.');
+        const entry = { shape };
+        const custom = row.querySelector('[name="queueCustomColors"]').checked;
+        if (custom) {
+          const colors = Array.from(row.querySelectorAll('[name="queueColor"]')).map((select) => Number(select.value));
+          if (colors.length !== 5 || colors.some((color) => !ELEMENT_OPTIONS.some((option) => option.value === color))) {
+            errors.push('Queue item ' + (queueIndex + 1) + ' needs 5 valid colors.');
+          }
+          entry.colors = colors;
+        }
+        queue.push(entry);
+      });
+      if (queue.length) draft.pieceQueue = queue;
+      else delete draft.pieceQueue;
+
+      return { draft, gridN, gridH, errors };
+    }
+
+    function resizeWouldClipNonEmpty(level, newN, newH) {
+      const oldN = Number(level.grid && level.grid.n) || 0;
+      const oldH = Number(level.grid && level.grid.h) || 0;
+      const fullRows = buildFullRows(level);
+      if (newN < oldN && fullRows.some((row) => /[^.]/.test(row.slice(newN)))) return true;
+      if (newH < oldH) {
+        const clippedTop = fullRows.slice(0, oldH - newH);
+        if (clippedTop.some((row) => /[^.]/.test(row))) return true;
+      }
+      return false;
+    }
+
+    function resizeLevelRows(level, newN, newH) {
+      const fullRows = buildFullRows(level);
+      let resized = fullRows.map((row) => {
+        let next = String(row || '').slice(0, newN);
+        while (next.length < newN) next += '.';
+        return next;
+      });
+      if (newH < resized.length) resized = resized.slice(resized.length - newH);
+      while (resized.length < newH) resized.unshift('.'.repeat(newN));
+      level.grid = { ...(level.grid || {}), n: newN, h: newH };
+      level.rows = compressRows(resized);
+    }
+
+    function applyDetailsEditorChanges() {
+      const selected = getSelectedLevel();
+      const index = getCurrentLevelIndex();
+      if (!selected || index < 0) {
+        setDetailsEditorStatus('No level selected.', 'error');
+        return;
+      }
+      const result = collectDetailsForm();
+      if (result.errors.length) {
+        setDetailsEditorStatus(result.errors.join(' '), 'error');
+        return;
+      }
+      const oldGrid = result.draft.grid || {};
+      const gridChanged = Number(oldGrid.n) !== result.gridN || Number(oldGrid.h) !== result.gridH;
+      if (gridChanged && resizeWouldClipNonEmpty(result.draft, result.gridN, result.gridH)) {
+        if (!confirm('Resize will clip non-empty cells. Continue?')) return;
+      }
+      if (gridChanged) resizeLevelRows(result.draft, result.gridN, result.gridH);
+      else result.draft.grid = { ...(result.draft.grid || {}), n: result.gridN, h: result.gridH };
+
+      pushUndoSnapshot();
+      currentLevels[index] = result.draft;
+      selectedLevelId = getLevelId(result.draft, index);
+      hasDetailsEdits = true;
+      detailsDraft = cloneJson(result.draft);
+      renderLevelButtons(currentLevels);
+      renderSelectedLevel(result.draft);
+      updateLevelManagerView();
+      updateDirtyIndicator();
+      setStatus('Updated level details. Save or update a version when ready.', 'ok');
+      setDetailsEditorStatus('Updated level details. Save or update a version when ready.', 'ok');
+      detailsDraftInitialHash = getDetailsFormHash();
+      detailsEditorModal.hidden = true;
+      detailsEditorForm.textContent = '';
     }
 
     function colorForCell(ch) {
@@ -2028,7 +2947,7 @@
         ['empty', '.', 'empty'],
         ['fire', '1', 'fire'],
         ['water', '2', 'water'],
-        ['lightning', '3', 'lightning'],
+        ['air', '3', 'air'],
         ['earth', '4', 'earth'],
         ['stone', '0', 'stone'],
         ['unknown', '?', 'unknown'],
@@ -2131,6 +3050,7 @@
           renderSavedVersions();
           updateDirtyIndicator();
           updateActiveVersionSummary();
+          updateTestSlotStatus();
         });
         savedVersionsList.appendChild(button);
       });
@@ -2143,6 +3063,7 @@
       renderSavedVersions();
       updateDirtyIndicator();
       updateActiveVersionSummary();
+      updateTestSlotStatus();
       setTimeout(() => (versionSearchInput.value ? versionSearchInput : versionNameInput).focus(), 0);
     }
 
@@ -2173,19 +3094,51 @@
       );
     }
 
+    function getVersionSaveSnapshot() {
+      if (hasAnyEditorEdits() && currentLevels.length) {
+        const levels = cloneLevels(currentLevels);
+        const rawText = JSON.stringify(levels, null, 2);
+        return { levels, rawText, fromEditor: true };
+      }
+      const levels = parseLevelsInput(inputEl.value);
+      return { levels, rawText: inputEl.value, fromEditor: false };
+    }
+
+    function getWorkingVersionText() {
+      if (!inputDirtySinceRender && currentLevels.length) {
+        return JSON.stringify(currentLevels, null, 2);
+      }
+      return inputEl.value;
+    }
+
+    function markEditorChangesSavedToVersion() {
+      if (!currentLevels.length) return;
+      hasGridEdits = false;
+      hasStructureEdits = false;
+      hasDetailsEdits = false;
+      editSnapshot = cloneLevels(currentLevels);
+      undoStack = [];
+      redoStack = [];
+      renderLevelButtons(currentLevels);
+      renderSelectedLevel(getSelectedLevel());
+      updateLevelManagerView();
+    }
+
     function createVersionFromInput() {
       const name = versionNameInput.value.trim();
       if (!name) {
         setStatus('Version name is required.', 'error');
         return;
       }
-      let levels;
+      let snapshot;
       try {
-        levels = parseLevelsInput(inputEl.value);
+        snapshot = getVersionSaveSnapshot();
       } catch (error) {
         setStatus('Cannot save: ' + error.message, 'error');
         return;
       }
+      const levels = snapshot.levels;
+      const rawText = snapshot.rawText;
 
       const now = new Date().toISOString();
       const version = {
@@ -2196,13 +3149,14 @@
         createdAt: now,
         updatedAt: now,
         levelCount: levels.length,
-        hash: hashText(inputEl.value),
-        rawText: inputEl.value,
+        hash: hashText(rawText),
+        rawText,
         normalizedJson: levels,
       };
       savedVersions.push(version);
       selectedVersionId = version.id;
       saveSavedVersions();
+      if (snapshot.fromEditor) markEditorChangesSavedToVersion();
       renderSavedVersions();
       setStatus('Saved version: ' + name, 'ok');
       updateActiveVersionSummary();
@@ -2219,23 +3173,26 @@
         setStatus('Version name is required.', 'error');
         return;
       }
-      let levels;
+      let snapshot;
       try {
-        levels = parseLevelsInput(inputEl.value);
+        snapshot = getVersionSaveSnapshot();
       } catch (error) {
         setStatus('Cannot update: ' + error.message, 'error');
         return;
       }
+      const levels = snapshot.levels;
+      const rawText = snapshot.rawText;
 
       version.name = name;
       version.tag = versionTagInput.value.trim();
       version.note = versionNoteInput.value.trim();
       version.updatedAt = new Date().toISOString();
       version.levelCount = levels.length;
-      version.hash = hashText(inputEl.value);
-      version.rawText = inputEl.value;
+      version.hash = hashText(rawText);
+      version.rawText = rawText;
       version.normalizedJson = levels;
       saveSavedVersions();
+      if (snapshot.fromEditor) markEditorChangesSavedToVersion();
       renderSavedVersions();
       setStatus('Updated version: ' + name, 'ok');
       updateActiveVersionSummary();
@@ -2355,6 +3312,7 @@
           saveSavedVersions();
           if (imported.length) fillVersionFields(imported[imported.length - 1]);
           renderSavedVersions();
+          updateTestSlotStatus();
           setStatus('Imported ' + imported.length + ' version(s)', 'ok');
           updateActiveVersionSummary();
         } catch (error) {
@@ -2365,6 +3323,95 @@
       };
       reader.onerror = () => setStatus('Import failed: could not read file.', 'error');
       reader.readAsText(file);
+    }
+
+    function readTestSlot() {
+      try {
+        const raw = localStorage.getItem(TEST_LEVELS_STORAGE_KEY);
+        if (!raw) return { ok: false, payload: null, error: null };
+        const payload = JSON.parse(raw);
+        if (!payload || payload.schema !== 1) return { ok: false, payload, error: 'schema mismatch' };
+        if (payload.enabled !== true) return { ok: false, payload, error: 'disabled' };
+        if (!Array.isArray(payload.levels)) return { ok: false, payload, error: 'levels is not an array' };
+        return { ok: true, payload, error: null };
+      } catch (error) {
+        return { ok: false, payload: null, error: error.message || String(error) };
+      }
+    }
+
+    function updateTestSlotStatus() {
+      if (!testSlotStatus) return;
+      const state = readTestSlot();
+      if (!state.payload && !state.error) {
+        testSlotStatus.textContent = 'Test slot: none';
+      } else if (state.ok) {
+        const payload = state.payload;
+        const parts = ['Test slot: enabled'];
+        if (payload.sourceVersionName) parts.push(payload.sourceVersionName);
+        if (payload.sourceVersionTag) parts.push(payload.sourceVersionTag);
+        parts.push((payload.levelCount || payload.levels.length || 0) + ' levels');
+        testSlotStatus.textContent = parts.join(' - ');
+      } else {
+        testSlotStatus.textContent = 'Test slot: invalid - ' + (state.error || 'unknown error');
+      }
+      if (setVersionForTestBtn) setVersionForTestBtn.disabled = !getSelectedVersion();
+      if (clearTestSlotBtn) clearTestSlotBtn.disabled = !state.payload && !state.error;
+    }
+
+    function setSelectedVersionForTest() {
+      const version = getSelectedVersion();
+      if (!version) {
+        setStatus('No saved version selected.', 'error');
+        return;
+      }
+      if (hasAnyEditorEdits()) {
+        setStatus('Apply changes and save/update the version before setting it for test.', 'error');
+        return;
+      }
+      if (hasUnsavedChanges()) {
+        setStatus('Save or update the selected version before setting it for test.', 'error');
+        return;
+      }
+      let levels;
+      try {
+        levels = parseLevelsInput(version.rawText || '');
+      } catch (error) {
+        setStatus('Cannot set for test: ' + error.message, 'error');
+        return;
+      }
+      const rawText = JSON.stringify(levels, null, 2);
+      const payload = {
+        enabled: true,
+        schema: 1,
+        createdAt: new Date().toISOString(),
+        source: 'levelstool',
+        sourceVersionId: version.id,
+        sourceVersionName: version.name || '',
+        sourceVersionTag: version.tag || '',
+        levelCount: levels.length,
+        hash: hashText(rawText),
+        levels,
+      };
+      try {
+        localStorage.setItem(TEST_LEVELS_STORAGE_KEY, JSON.stringify(payload));
+      } catch (error) {
+        setStatus('Could not set test slot: ' + error.message, 'error');
+        return;
+      }
+      updateTestSlotStatus();
+      setStatus('Set for test: ' + (version.name || '(untitled)'), 'ok');
+    }
+
+    function clearTestSlot() {
+      if (!confirm('Clear test Adventure levels slot?')) return;
+      try {
+        localStorage.removeItem(TEST_LEVELS_STORAGE_KEY);
+      } catch (error) {
+        setStatus('Could not clear test slot: ' + error.message, 'error');
+        return;
+      }
+      updateTestSlotStatus();
+      setStatus('Cleared test Adventure levels slot.', 'ok');
     }
 
     function downloadJson(filename, data) {
@@ -2396,7 +3443,7 @@
     function hasUnsavedChanges() {
       const version = getSelectedVersion();
       if (!version) return false;
-      return hashText(inputEl.value) !== version.hash;
+      return hashText(getWorkingVersionText()) !== version.hash;
     }
 
     function updateDirtyIndicator() {
@@ -2437,12 +3484,14 @@
       redoStack = [];
       hasGridEdits = false;
       hasStructureEdits = false;
+      hasDetailsEdits = false;
     }
 
     function renderFromInput(options = {}) {
       try {
         const levels = parseLevelsInput(inputEl.value);
         currentLevels = levels;
+        inputDirtySinceRender = false;
         if (!options.keepEditSession) resetGridEditState();
         const requestedId = options.selectedLevelId || selectedLevelId;
         const selected = levels.find((level, index) => getLevelId(level, index) === requestedId) || levels[0] || null;
@@ -2456,11 +3505,13 @@
       } catch (error) {
         currentLevels = [];
         selectedLevelId = null;
+        inputDirtySinceRender = false;
         resetGridEditState();
         levelButtonsEl.textContent = '';
         renderEmptyLevelState('No levels loaded.');
         detailsViewEl.className = 'empty-state';
         detailsViewEl.textContent = 'No level selected.';
+        updateDetailsEditorButton();
         updateLevelManagerView();
         setStatus(error.message, 'error');
         updateDirtyIndicator();
@@ -2567,21 +3618,27 @@
 
     openVersionsBtn.addEventListener('click', openVersionsModal);
     openLevelManagerBtn.addEventListener('click', openLevelManagerModal);
+    editDetailsBtn.addEventListener('click', openDetailsEditorModal);
     closeVersionsBtn.addEventListener('click', closeVersionsModal);
     closeLevelManagerBtn.addEventListener('click', closeLevelManagerModal);
+    closeDetailsEditorBtn.addEventListener('click', closeDetailsEditorModal);
     versionsModal.addEventListener('click', (event) => {
       if (event.target === versionsModal) closeVersionsModal();
     });
     levelManagerModal.addEventListener('click', (event) => {
       if (event.target === levelManagerModal) closeLevelManagerModal();
     });
+    detailsEditorModal.addEventListener('click', (event) => {
+      if (event.target === detailsEditorModal) closeDetailsEditorModal();
+    });
     document.addEventListener('keydown', (event) => {
       if (event.key === 'Escape' && !versionsModal.hidden) closeVersionsModal();
       if (event.key === 'Escape' && !levelManagerModal.hidden) closeLevelManagerModal();
+      if (event.key === 'Escape' && !detailsEditorModal.hidden) closeDetailsEditorModal();
     });
     document.addEventListener('keydown', (event) => {
       if (!editMode) return;
-      if (!versionsModal.hidden || !levelManagerModal.hidden) return;
+      if (!versionsModal.hidden || !levelManagerModal.hidden || !detailsEditorModal.hidden) return;
       const target = event.target;
       if (target && ['INPUT', 'TEXTAREA'].includes(target.tagName)) return;
       if (target && target.isContentEditable) return;
@@ -2625,7 +3682,10 @@
       });
     });
 
-    inputEl.addEventListener('input', updateDirtyIndicator);
+    inputEl.addEventListener('input', () => {
+      inputDirtySinceRender = true;
+      updateDirtyIndicator();
+    });
     saveVersionBtn.addEventListener('click', createVersionFromInput);
     updateVersionBtn.addEventListener('click', updateSelectedVersionFromInput);
     loadVersionBtn.addEventListener('click', loadSelectedVersion);
@@ -2634,6 +3694,8 @@
     exportVersionBtn.addEventListener('click', exportSelectedVersion);
     exportAllVersionsBtn.addEventListener('click', exportAllVersions);
     importVersionsBtn.addEventListener('click', () => importVersionsInput.click());
+    setVersionForTestBtn.addEventListener('click', setSelectedVersionForTest);
+    clearTestSlotBtn.addEventListener('click', clearTestSlot);
     importVersionsInput.addEventListener('change', () => importVersionsFromFile(importVersionsInput.files && importVersionsInput.files[0]));
     createLevelBtn.addEventListener('click', addLevelFromManager);
     duplicateCurrentLevelBtn.addEventListener('click', duplicateCurrentLevel);
@@ -2643,16 +3705,18 @@
     renumberLevelIdsBtn.addEventListener('click', renumberLevelIds);
     applyStructureBtn.addEventListener('click', applyStructureEditsToTextarea);
 
-    renderBtn.addEventListener('click', renderFromInput);
-    sampleBtn.addEventListener('click', () => {
+    function loadSampleLevels() {
       inputEl.value = JSON.stringify(SAMPLE_LEVELS, null, 2);
       renderFromInput();
-    });
+    }
+
+    renderBtn.addEventListener('click', renderFromInput);
     copyBtn.addEventListener('click', copyNormalizedJson);
     clearBtn.addEventListener('click', () => {
       if (hasAnyEditorEdits() && !confirm('You have unapplied editor changes. Clear anyway?')) return;
       if (hasUnsavedChanges() && !confirm('Textarea has unsaved changes. Clear anyway?')) return;
       inputEl.value = '';
+      inputDirtySinceRender = false;
       currentLevels = [];
       selectedLevelId = null;
       resetGridEditState();
@@ -2664,6 +3728,7 @@
 
     loadSavedVersions();
     renderSavedVersions();
+    updateTestSlotStatus();
     renderEmptyLevelState('Paste level data and click Render levels.');
     updateActiveVersionSummary();
   </script>
