@@ -232,6 +232,10 @@
       color: var(--warn);
     }
 
+    .quick-update-version.hidden {
+      display: none;
+    }
+
     .version-actions {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -433,6 +437,38 @@
       color: var(--muted);
       font-size: 11px;
       line-height: 1.35;
+    }
+
+    .feature-override-grid {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 4px 8px;
+      align-items: center;
+      font-size: 11px;
+    }
+
+    .feature-override-grid label {
+      color: var(--muted);
+    }
+
+    .feature-override-grid select {
+      font-size: 11px;
+      padding: 2px 4px;
+    }
+
+    .unlock-check {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+    }
+
+    .unlock-gating {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      margin: 4px 0;
     }
 
     .workspace {
@@ -816,6 +852,17 @@
       box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.42);
     }
 
+    .cell.start-combo {
+      position: relative;
+      outline: 2px solid #ff5c5c;
+      outline-offset: -2px;
+      box-shadow: inset 0 0 0 2px rgba(255, 216, 77, 0.8), 0 0 10px rgba(255, 80, 80, 0.6);
+    }
+
+    .cell.start-ring {
+      box-shadow: inset 0 0 0 2px rgba(255, 216, 77, 0.9), 0 0 10px rgba(255, 216, 77, 0.45);
+    }
+
     .details {
       padding: 12px;
       overflow: auto;
@@ -1122,6 +1169,7 @@
           <button class="btn" id="openVersionsBtn" type="button">Versions...</button>
           <div id="activeVersionSummary" class="version-summary">Current version: none</div>
           <div id="dirtyIndicator" class="dirty-indicator">No version selected</div>
+          <button class="btn primary quick-update-version hidden" id="quickUpdateVersionBtn" type="button" hidden>Update current version</button>
           <div id="status" class="status">No levels loaded.</div>
         </div>
       </div>
@@ -1190,6 +1238,15 @@
                 <button class="btn" id="clearTestSlotBtn" type="button">Clear test slot</button>
               </div>
             </section>
+            <section class="test-slot-panel" aria-label="Feature override">
+              <h3 class="panel-title">Feature Override (dev)</h3>
+              <div class="test-slot-hint">Force features on/off regardless of level/progress. Blank = neutral (no override). Same-origin only.</div>
+              <div id="featureOverrideGrid" class="feature-override-grid"></div>
+              <div class="version-actions">
+                <button class="btn primary" id="saveFeatureOverrideBtn" type="button">Save override</button>
+                <button class="btn" id="clearFeatureOverrideBtn" type="button">Clear override</button>
+              </div>
+            </section>
             <input id="importVersionsInput" type="file" accept=".json,application/json" hidden>
           </section>
         </div>
@@ -1256,6 +1313,7 @@
   <script>
     const STORAGE_KEY = 'eb_level_viewer_saved_versions_v1';
     const TEST_LEVELS_STORAGE_KEY = 'eb_adventure_levels_test_v1';
+    const FEATURE_OVERRIDE_STORAGE_KEY = 'eb_features_override';
 
     let currentLevels = [];
     let selectedLevelId = null;
@@ -1280,6 +1338,7 @@
     const copyBtn = document.getElementById('copyBtn');
     const clearBtn = document.getElementById('clearBtn');
     const openVersionsBtn = document.getElementById('openVersionsBtn');
+    const quickUpdateVersionBtn = document.getElementById('quickUpdateVersionBtn');
     const openLevelManagerBtn = document.getElementById('openLevelManagerBtn');
     const activeVersionSummary = document.getElementById('activeVersionSummary');
     const statusEl = document.getElementById('status');
@@ -1308,6 +1367,9 @@
     const setVersionForTestBtn = document.getElementById('setVersionForTestBtn');
     const clearTestSlotBtn = document.getElementById('clearTestSlotBtn');
     const testSlotStatus = document.getElementById('testSlotStatus');
+    const featureOverrideGrid = document.getElementById('featureOverrideGrid');
+    const saveFeatureOverrideBtn = document.getElementById('saveFeatureOverrideBtn');
+    const clearFeatureOverrideBtn = document.getElementById('clearFeatureOverrideBtn');
     const savedVersionsList = document.getElementById('savedVersionsList');
     const levelManagerModal = document.getElementById('levelManagerModal');
     const detailsEditorModal = document.getElementById('detailsEditorModal');
@@ -1370,6 +1432,7 @@
       '4': { className: 'earth', name: 'earth', label: '4' },
       '0': { className: 'stone', name: 'stone', label: '0' },
     };
+    const MATCHABLE_CELLS = new Set(['1', '2', '3', '4']);
 
     const BRUSHES = [
       { char: '.', name: 'Erase', short: '\u00d7', className: 'brush-empty', hotkey: 'E' },
@@ -1389,6 +1452,21 @@
     const OBJECTIVE_TYPES = ['rings', 'matches', 'clearColor', 'combo', 'cascade', 'surviveMoves'];
     const SHAPE_OPTIONS = ['F', 'I', 'L', 'P', 'N', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
     const MAGIC_CHARGE_KEYS = ['fire', 'water', 'air', 'earth'];
+
+    // Feature-unlock ids (must mirror src/game/features.js FEATURE_META order)
+    const FEATURE_META = {
+      change: { label: 'Change Piece', group: 'Buffer' },
+      shuffle: { label: 'Shuffle Colors', group: 'Buffer' },
+      magic_fire: { label: 'Fire Magic', group: 'Magic' },
+      magic_water: { label: 'Water Magic', group: 'Magic' },
+      magic_air: { label: 'Air Magic', group: 'Magic' },
+      magic_earth: { label: 'Earth Magic', group: 'Magic' },
+      ult_water: { label: 'Water Wash', group: 'Ult' },
+      ult_air: { label: 'Chain Lightning', group: 'Ult' },
+      ult_earth: { label: 'Transmutation', group: 'Ult' },
+      ult_fire: { label: 'Cross Beam', group: 'Ult' },
+    };
+    const FEATURE_IDS = Object.keys(FEATURE_META);
 
     const KNOWN_SHAPES = new Set(['F', 'I', 'L', 'P', 'N', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']);
 
@@ -1437,6 +1515,86 @@
       return charges[key] != null ? charges[key] : '';
     }
 
+    function isMatchableCell(ch) {
+      return MATCHABLE_CELLS.has(String(ch));
+    }
+
+    function isFilledCell(ch) {
+      return ch !== '.' && !!CELL_TYPES[ch];
+    }
+
+    function makeCellKey(gameY, sector) {
+      return gameY + ':' + sector;
+    }
+
+    function findInitialComboIssues(level) {
+      const issues = [];
+      const cellsByKey = new Map();
+      const n = Number(level && level.grid && level.grid.n);
+      const h = Number(level && level.grid && level.grid.h);
+      if (!Number.isInteger(n) || !Number.isInteger(h) || n <= 0 || h <= 0 || !Array.isArray(level.rows)) {
+        return { issues, cellsByKey };
+      }
+
+      const rows = buildFullRows(level);
+      const wrapSector = (sector) => ((sector % n) + n) % n;
+      const getCell = (gameY, sector) => {
+        const visualY = h - 1 - gameY;
+        return (rows[visualY] && rows[visualY][wrapSector(sector)]) || '.';
+      };
+      const addIssue = (type, message, cells) => {
+        const issue = { type, message, cells };
+        issues.push(issue);
+        cells.forEach((cell) => {
+          const key = makeCellKey(cell.y, cell.s);
+          if (!cellsByKey.has(key)) cellsByKey.set(key, []);
+          cellsByKey.get(key).push(issue);
+        });
+      };
+      const makeCells = (coords) => coords.map(([y, s]) => ({ y, s: wrapSector(s) }));
+
+      for (let y = 0; y < h; y++) {
+        const row = rows[h - 1 - y] || '';
+        if (row.length >= n && Array.from({ length: n }, (_, s) => row[s] || '.').every(isFilledCell)) {
+          addIssue('ring', 'Initial complete ring at y=' + y, makeCells(Array.from({ length: n }, (_, s) => [y, s])));
+        }
+      }
+
+      for (let y = 0; y < h; y++) {
+        for (let s = 0; s < n; s++) {
+          const a = getCell(y, s);
+          const b = getCell(y, s + 1);
+          const c = getCell(y, s + 2);
+          const d = getCell(y, s + 3);
+          if (isMatchableCell(a) && a === b && b === c) {
+            addIssue('line', 'Initial horizontal 3-run at y=' + y + ' s=' + s, makeCells([[y, s], [y, s + 1], [y, s + 2]]));
+          }
+          if (isMatchableCell(a) && a === b && isMatchableCell(c) && c === d && a !== c) {
+            addIssue('pair', 'Initial horizontal AABB at y=' + y + ' s=' + s, makeCells([[y, s], [y, s + 1], [y, s + 2], [y, s + 3]]));
+          }
+        }
+      }
+
+      for (let s = 0; s < n; s++) {
+        for (let y = 0; y + 2 < h; y++) {
+          const a = getCell(y, s);
+          const b = getCell(y + 1, s);
+          const c = getCell(y + 2, s);
+          if (isMatchableCell(a) && a === b && b === c) {
+            addIssue('line', 'Initial vertical 3-run at s=' + s + ' y=' + y, makeCells([[y, s], [y + 1, s], [y + 2, s]]));
+          }
+          if (y + 3 < h) {
+            const d = getCell(y + 3, s);
+            if (isMatchableCell(a) && a === b && isMatchableCell(c) && c === d && a !== c) {
+              addIssue('pair', 'Initial vertical AABB at s=' + s + ' y=' + y, makeCells([[y, s], [y + 1, s], [y + 2, s], [y + 3, s]]));
+            }
+          }
+        }
+      }
+
+      return { issues, cellsByKey };
+    }
+
     function validateLevel(level) {
       const warnings = [];
       const idLabel = level && level.id != null ? 'Level ' + level.id : 'Level without id';
@@ -1478,6 +1636,16 @@
         warnings.push('magicCharges is set, but magicEnabled !== true.');
       }
 
+      if (level.unlocks !== undefined) {
+        if (!Array.isArray(level.unlocks)) {
+          warnings.push('unlocks must be an array of feature ids.');
+        } else {
+          level.unlocks.forEach((id) => {
+            if (!FEATURE_META[id]) warnings.push('unlocks: unknown feature "' + id + '".');
+          });
+        }
+      }
+
       const pieceQueue = level.pieceQueue;
       if (pieceQueue && pieceQueue.colors && pieceQueue.colors.length !== 5) {
         warnings.push('pieceQueue.colors length is ' + pieceQueue.colors.length + ', expected 5.');
@@ -1494,6 +1662,7 @@
         warnings.push(idLabel + ' has more rows than grid.h; extra top rows will not fit visually.');
       }
 
+      findInitialComboIssues(level).issues.forEach((issue) => warnings.push(issue.message));
       return warnings;
     }
 
@@ -1840,7 +2009,7 @@
           movesLimit: selected.movesLimit != null ? selected.movesLimit : movesLimit,
           objectives: cloneJson(selected.objectives || [{ type: 'rings', count: 1 }]),
         };
-        ['pieceColors', 'magicEnabled', 'magicCharges', 'changeCharges', 'shuffleCharges'].forEach((key) => {
+        ['pieceColors', 'magicEnabled', 'magicCharges', 'changeCharges', 'shuffleCharges', 'unlocks'].forEach((key) => {
           if (selected[key] != null) level[key] = cloneJson(selected[key]);
         });
         return level;
@@ -2100,6 +2269,7 @@
 
       const ruler = buildSectorRuler(n, cellSize);
       const rows = buildFullRows(level);
+      const initialComboInfo = findInitialComboIssues(level);
       const seamAfterVisualX = getSeamAfterVisualX(n);
       rows.forEach((row, visualY) => {
         const gameY = h - 1 - visualY;
@@ -2111,6 +2281,11 @@
           const snapshotLevel = getSnapshotLevel(level);
           const snapshotRow = snapshotLevel ? getEditableRows(snapshotLevel)[visualY] : null;
           cell.className = 'cell ' + cellInfo.className;
+          const initialHits = initialComboInfo.cellsByKey.get(makeCellKey(gameY, sector)) || [];
+          if (initialHits.length) {
+            cell.classList.add('start-combo');
+            if (initialHits.some((hit) => hit.type === 'ring')) cell.classList.add('start-ring');
+          }
           if (viewMode === 'gameStart' && x === seamAfterVisualX) cell.classList.add('seam-right');
           if (viewMode === 'gameStart' && x === seamAfterVisualX + 1) cell.classList.add('seam-left');
           if (editMode) cell.classList.add('editable-cell');
@@ -2120,7 +2295,7 @@
           cell.dataset.sector = String(sector);
           cell.dataset.gameY = String(gameY);
           cell.textContent = cellInfo.label;
-          cell.title = 'visual x: ' + x + '\nsector: ' + sector + '\ny: ' + gameY + '\nraw char: ' + ch + '\ntype: ' + cellInfo.name;
+          cell.title = 'visual x: ' + x + '\nsector: ' + sector + '\ny: ' + gameY + '\nraw char: ' + ch + '\ntype: ' + cellInfo.name + (initialHits.length ? '\nstart warnings:\n- ' + initialHits.map((hit) => hit.message).join('\n- ') : '');
           cell.addEventListener('click', () => {
             if (!editMode) return;
             editCell(level, visualY, sector, activeBrush);
@@ -2167,6 +2342,7 @@
           ['shuffleCharges', level.shuffleCharges],
           ['magic', level.magicEnabled === true ? 'enabled' : 'default/off'],
           ['magicCharges', formatValue(level.magicCharges)],
+          ['unlocks', Array.isArray(level.unlocks) ? (level.unlocks.length ? level.unlocks.join(', ') : '(gated, none)') : 'legacy (off)'],
         ]),
         buildObjectivesSummary(level),
         buildPieceQueueSummary(level),
@@ -2442,7 +2618,40 @@
       MAGIC_CHARGE_KEYS.forEach((key) => {
         chargeGrid.appendChild(makeInputRow('magic.' + key, 'detailMagicCharge_' + key, 'number', getMagicChargeValue(level, key), { min: 0, step: 1, 'data-magic-charge': key }));
       });
-      section.append(makeSectionLabel('Piece colors'), checks, bufferLabel, chargeGrid, magicLabel);
+
+      // Feature unlocks: master "gating" toggle + one checkbox per feature.
+      // Gating on (field present) = strict progression (available = earned ∪
+      // these). Gating off = legacy back-compat (buffer on, magic per flag).
+      const gatingOn = Array.isArray(level.unlocks);
+      const unlocksLabel = makeSectionLabel('Feature unlocks (rewards)');
+      const gatingLabelEl = document.createElement('label');
+      gatingLabelEl.className = 'unlock-gating';
+      const gatingCheck = document.createElement('input');
+      gatingCheck.type = 'checkbox';
+      gatingCheck.id = 'detailUnlocksGatingInput';
+      gatingCheck.checked = gatingOn;
+      gatingLabelEl.append(gatingCheck, document.createTextNode(' Use feature gating (unlocks granted on win)'));
+      const unlocksGrid = document.createElement('div');
+      unlocksGrid.className = 'magic-charge-grid';
+      FEATURE_IDS.forEach((id) => {
+        const wrap = document.createElement('label');
+        wrap.className = 'unlock-check';
+        const cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.name = 'detailUnlock';
+        cb.value = id;
+        cb.checked = gatingOn && level.unlocks.includes(id);
+        cb.disabled = !gatingOn;
+        wrap.append(cb, document.createTextNode(' ' + FEATURE_META[id].label));
+        unlocksGrid.appendChild(wrap);
+      });
+      gatingCheck.addEventListener('change', () => {
+        unlocksGrid.querySelectorAll('[name="detailUnlock"]').forEach((cb) => {
+          cb.disabled = !gatingCheck.checked;
+        });
+      });
+
+      section.append(makeSectionLabel('Piece colors'), checks, bufferLabel, chargeGrid, magicLabel, unlocksLabel, gatingLabelEl, unlocksGrid);
       return section;
     }
 
@@ -2733,6 +2942,14 @@
         });
         if (Object.keys(charges).length) draft.magicCharges = charges;
         else delete draft.magicCharges;
+      }
+
+      const gatingOn = document.getElementById('detailUnlocksGatingInput');
+      if (gatingOn && gatingOn.checked) {
+        const picked = Array.from(detailsEditorForm.querySelectorAll('[name="detailUnlock"]:checked')).map((cb) => cb.value);
+        draft.unlocks = FEATURE_IDS.filter((id) => picked.includes(id));
+      } else {
+        delete draft.unlocks;
       }
 
       const objectives = [];
@@ -3198,6 +3415,44 @@
       updateActiveVersionSummary();
     }
 
+    function quickUpdateCurrentVersion() {
+      const version = getSelectedVersion();
+      if (!version) {
+        setStatus('No version selected.', 'error');
+        updateDirtyIndicator();
+        return;
+      }
+      if (!hasUnsavedChanges()) {
+        setStatus('Current version is already saved.', 'ok');
+        updateDirtyIndicator();
+        return;
+      }
+      const name = version.name || '(untitled)';
+      if (!confirm('Update current version "' + name + '"? This will overwrite its saved JSON.')) return;
+      let snapshot;
+      try {
+        snapshot = getVersionSaveSnapshot();
+      } catch (error) {
+        setStatus('Cannot update current version: ' + error.message, 'error');
+        return;
+      }
+      const levels = snapshot.levels;
+      const rawText = snapshot.rawText;
+
+      version.updatedAt = new Date().toISOString();
+      version.levelCount = levels.length;
+      version.hash = hashText(rawText);
+      version.rawText = rawText;
+      version.normalizedJson = levels;
+      saveSavedVersions();
+      if (snapshot.fromEditor) markEditorChangesSavedToVersion();
+      renderSavedVersions();
+      setStatus('Updated current version: ' + name, 'ok');
+      updateDirtyIndicator();
+      updateActiveVersionSummary();
+      updateTestSlotStatus();
+    }
+
     function loadSelectedVersion() {
       const version = getSelectedVersion();
       if (!version) {
@@ -3414,6 +3669,76 @@
       setStatus('Cleared test Adventure levels slot.', 'ok');
     }
 
+    // ===== Feature override (dev testing switch: eb_features_override) =====
+    function readFeatureOverride() {
+      try {
+        const raw = localStorage.getItem(FEATURE_OVERRIDE_STORAGE_KEY);
+        if (!raw) return {};
+        const parsed = JSON.parse(raw);
+        if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return {};
+        const out = {};
+        FEATURE_IDS.forEach((id) => {
+          if (typeof parsed[id] === 'boolean') out[id] = parsed[id];
+        });
+        return out;
+      } catch (error) {
+        return {};
+      }
+    }
+
+    function buildFeatureOverrideGrid() {
+      if (!featureOverrideGrid) return;
+      const current = readFeatureOverride();
+      featureOverrideGrid.textContent = '';
+      FEATURE_IDS.forEach((id) => {
+        const label = document.createElement('label');
+        label.setAttribute('for', 'featOverride_' + id);
+        label.textContent = FEATURE_META[id].label;
+        const select = document.createElement('select');
+        select.id = 'featOverride_' + id;
+        select.dataset.feature = id;
+        [['', 'neutral'], ['on', 'force ON'], ['off', 'force OFF']].forEach(([value, text]) => {
+          const option = document.createElement('option');
+          option.value = value;
+          option.textContent = text;
+          select.appendChild(option);
+        });
+        select.value = current[id] === true ? 'on' : current[id] === false ? 'off' : '';
+        featureOverrideGrid.append(label, select);
+      });
+    }
+
+    function saveFeatureOverride() {
+      if (!featureOverrideGrid) return;
+      const payload = {};
+      featureOverrideGrid.querySelectorAll('select[data-feature]').forEach((select) => {
+        if (select.value === 'on') payload[select.dataset.feature] = true;
+        else if (select.value === 'off') payload[select.dataset.feature] = false;
+      });
+      try {
+        if (Object.keys(payload).length) {
+          localStorage.setItem(FEATURE_OVERRIDE_STORAGE_KEY, JSON.stringify(payload));
+          setStatus('Saved feature override: ' + Object.keys(payload).length + ' forced', 'ok');
+        } else {
+          localStorage.removeItem(FEATURE_OVERRIDE_STORAGE_KEY);
+          setStatus('Feature override cleared (all neutral).', 'ok');
+        }
+      } catch (error) {
+        setStatus('Could not save feature override: ' + error.message, 'error');
+      }
+    }
+
+    function clearFeatureOverride() {
+      try {
+        localStorage.removeItem(FEATURE_OVERRIDE_STORAGE_KEY);
+      } catch (error) {
+        setStatus('Could not clear feature override: ' + error.message, 'error');
+        return;
+      }
+      buildFeatureOverrideGrid();
+      setStatus('Cleared feature override.', 'ok');
+    }
+
     function downloadJson(filename, data) {
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
@@ -3450,6 +3775,7 @@
       if (!selectedVersionId || !getSelectedVersion()) {
         dirtyIndicator.textContent = 'No version selected';
         dirtyIndicator.className = 'dirty-indicator';
+        updateQuickUpdateButton();
         updateActiveVersionSummary();
         return;
       }
@@ -3460,7 +3786,16 @@
         dirtyIndicator.textContent = 'Saved';
         dirtyIndicator.className = 'dirty-indicator saved';
       }
+      updateQuickUpdateButton();
       updateActiveVersionSummary();
+    }
+
+    function updateQuickUpdateButton() {
+      if (!quickUpdateVersionBtn) return;
+      const show = !!getSelectedVersion() && hasUnsavedChanges();
+      quickUpdateVersionBtn.hidden = !show;
+      quickUpdateVersionBtn.classList.toggle('hidden', !show);
+      quickUpdateVersionBtn.disabled = !show;
     }
 
     function getSelectedVersion() {
@@ -3617,6 +3952,7 @@
     }
 
     openVersionsBtn.addEventListener('click', openVersionsModal);
+    quickUpdateVersionBtn.addEventListener('click', quickUpdateCurrentVersion);
     openLevelManagerBtn.addEventListener('click', openLevelManagerModal);
     editDetailsBtn.addEventListener('click', openDetailsEditorModal);
     closeVersionsBtn.addEventListener('click', closeVersionsModal);
@@ -3696,6 +4032,8 @@
     importVersionsBtn.addEventListener('click', () => importVersionsInput.click());
     setVersionForTestBtn.addEventListener('click', setSelectedVersionForTest);
     clearTestSlotBtn.addEventListener('click', clearTestSlot);
+    if (saveFeatureOverrideBtn) saveFeatureOverrideBtn.addEventListener('click', saveFeatureOverride);
+    if (clearFeatureOverrideBtn) clearFeatureOverrideBtn.addEventListener('click', clearFeatureOverride);
     importVersionsInput.addEventListener('change', () => importVersionsFromFile(importVersionsInput.files && importVersionsInput.files[0]));
     createLevelBtn.addEventListener('click', addLevelFromManager);
     duplicateCurrentLevelBtn.addEventListener('click', duplicateCurrentLevel);
@@ -3729,6 +4067,7 @@
     loadSavedVersions();
     renderSavedVersions();
     updateTestSlotStatus();
+    buildFeatureOverrideGrid();
     renderEmptyLevelState('Paste level data and click Render levels.');
     updateActiveVersionSummary();
   </script>

@@ -90,7 +90,7 @@
   <img id="splash-icon" src="" alt="" />
   <div id="splash-title">Elemental Blocks</div>
   <div id="splash-bar-wrap"><div id="splash-bar"></div></div>
-  <div id="splash-version">v0.34.1</div>
+  <div id="splash-version">v0.40.1</div>
 </div>
 <script src="splash.js"></script>
 <!-- In-game transition loader (menu/restart -> board) -->
@@ -225,7 +225,7 @@
 
         <div class="mm-home-spacer mm-home-spacer-bot" aria-hidden="true"></div>
 
-        <div class="start-version" id="startVersion">v0.34.1</div>
+        <div class="start-version" id="startVersion">v0.40.1</div>
         <!-- bestScore / bestTimeVal kept hidden for JS compat -->
         <span id="bestScore" style="display:none"></span>
         <span id="bestTimeVal" style="display:none"></span>
@@ -328,37 +328,13 @@
         </div>
       </div>
 
-      <!-- QUESTS TAB — magic development (moved from Home) -->
+      <!-- QUESTS TAB — reserved (ring-based spell unlock removed; feature
+           unlocks now live in the Collection tab) -->
       <div class="mm-tab-pane hidden" id="mmTabQuests" data-tab="quests">
-        <div class="mm-quests-content">
-          <div class="quest-spell-header">Magic Tower — Spells</div>
-          <div class="spell-select">
-            <button class="spell-select-btn active" data-spell="water" data-unlock="0" title="Water">
-              <span class="spell-select-icon">💧</span>
-            </button>
-            <button class="spell-select-btn locked" data-spell="earth" data-unlock="10" title="Earth">
-              <span class="spell-select-icon">🌿</span>
-              <span class="spell-lock">🔒</span>
-            </button>
-            <button class="spell-select-btn locked" data-spell="air" data-unlock="30" title="Lightning">
-              <span class="spell-select-icon">⚡</span>
-              <span class="spell-lock">🔒</span>
-            </button>
-            <button class="spell-select-btn locked" data-spell="fire" data-unlock="40" title="Fire">
-              <span class="spell-select-icon">🔥</span>
-              <span class="spell-lock">🔒</span>
-            </button>
-          </div>
-          <div class="spell-progress-bar">
-            <div class="spell-progress-track">
-              <div class="spell-progress-fill" id="spellProgressFill"></div>
-            </div>
-            <div class="spell-progress-markers" id="spellProgressMarkers"></div>
-          </div>
-          <div class="spell-hint">Close rings in Magic Tower to unlock spells</div>
-          <div class="spell-info">
-            <div class="spell-desc" id="spellDesc">Lowers kill zone</div>
-          </div>
+        <div class="mm-placeholder">
+          <img class="mm-placeholder-icon" src="img/tabbar/ico_quests.png" alt="" draggable="false" />
+          <div class="mm-placeholder-title">Quests</div>
+          <div class="mm-placeholder-sub">Coming soon</div>
         </div>
       </div>
 
@@ -416,6 +392,13 @@
             <div class="go-level-name" id="goLevelName">Level 1</div>
             <div class="go-level-objective" id="goLevelObjective">Rings 0/1</div>
           </div>
+        </div>
+        <!-- Adventure reward: features unlocked by this win -->
+        <div class="gameover-score-card unlock-card hidden" id="goUnlockCard">
+          <div class="gameover-score-top">
+            <div class="gameover-label">✦ New Unlock</div>
+          </div>
+          <div class="go-unlock-list" id="goUnlockList"></div>
         </div>
         <!-- Title progress card -->
         <div class="gameover-score-card title-prog">
@@ -545,17 +528,6 @@
           <div class="pause-big-score" id="pauseCurrentScore">0</div>
           <div class="pause-meta-row">
             <span>Mode: <small id="pauseCurrentMode">High Tower</small></span>
-          </div>
-
-          <div class="pause-spell-progress" id="pauseSpellProgress">
-            <div class="spell-progress-bar">
-              <div class="spell-progress-track">
-                <div class="spell-progress-fill" id="pauseSpellProgressFill"></div>
-              </div>
-              <div class="spell-progress-markers" id="pauseSpellProgressMarkers"></div>
-              <div class="spell-progress-label" id="pauseSpellProgressLabel"></div>
-            </div>
-            <div class="spell-hint">Close rings to unlock spells</div>
           </div>
         </div>
       </div>
