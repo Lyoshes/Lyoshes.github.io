@@ -14,7 +14,6 @@
   <script src="viewport.js"></script>
   <title>Elemental Blocks MVP</title>
   <link rel="stylesheet" href="styles.css" />
-  <link rel="stylesheet" href="helpModal.css" />
   <link rel="stylesheet" href="tutorial.css" />
   <style>
     html, body { margin: 0; padding: 0; background: #000; }
@@ -90,7 +89,7 @@
   <img id="splash-icon" src="" alt="" />
   <div id="splash-title">Elemental Blocks</div>
   <div id="splash-bar-wrap"><div id="splash-bar"></div></div>
-  <div id="splash-version">v0.40.1</div>
+  <div id="splash-version">v0.41.1</div>
 </div>
 <script src="splash.js"></script>
 <!-- In-game transition loader (menu/restart -> board) -->
@@ -194,10 +193,9 @@
     <!-- Blur overlay for non-Home tabs -->
     <div class="mm-bg-blur" id="mmBgBlur" aria-hidden="true"></div>
 
-    <!-- Top-right buttons: settings, records, help -->
+    <!-- Top-right buttons: settings -->
     <div class="mm-top-bar">
       <button class="side-btn" id="startSettingsBtn" aria-label="Settings"></button>
-      <button class="side-btn" id="helpBtn" aria-label="How to play"></button>
     </div>
 
     <!-- Tab content area -->
@@ -225,7 +223,7 @@
 
         <div class="mm-home-spacer mm-home-spacer-bot" aria-hidden="true"></div>
 
-        <div class="start-version" id="startVersion">v0.40.1</div>
+        <div class="start-version" id="startVersion">v0.41.1</div>
         <!-- bestScore / bestTimeVal kept hidden for JS compat -->
         <span id="bestScore" style="display:none"></span>
         <span id="bestTimeVal" style="display:none"></span>
@@ -580,7 +578,7 @@
           <span class="settings-label">Vibration</span>
           <div class="toggle-switch" id="hapticsToggle"></div>
         </div>
-        <div class="settings-row settings-row-sep">
+        <div class="settings-row settings-row-sep" style="display:none;">
           <span class="settings-label">Theme</span>
           <div class="theme-picker">
             <button class="theme-btn" data-theme="water"><span class="theme-icon water"></span></button>
@@ -589,7 +587,7 @@
             <button class="theme-btn" data-theme="fire"><span class="theme-icon fire"></span></button>
           </div>
         </div>
-        <div class="settings-row">
+        <div class="settings-row" style="display:none;">
           <span class="settings-label">Fullscreen mode</span>
           <button class="settings-action-btn" id="fullscreenBtn">Enable</button>
         </div>
