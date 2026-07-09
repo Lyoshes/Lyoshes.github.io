@@ -161,6 +161,23 @@
       background: #1c6fb5;
     }
 
+
+    .icon-btn {
+      width: 38px;
+      min-width: 38px;
+      padding: 0;
+      display: inline-grid;
+      place-items: center;
+      flex: 0 0 auto;
+    }
+
+    .icon-btn svg {
+      width: 18px;
+      height: 18px;
+      display: block;
+      stroke: currentColor;
+    }
+
     .status {
       min-height: 22px;
       color: var(--muted);
@@ -1851,6 +1868,15 @@
       const topRow = document.createElement('div');
       topRow.className = 'edit-toolbar-row';
 
+      const copySchemeButton = document.createElement('button');
+      copySchemeButton.type = 'button';
+      copySchemeButton.className = 'btn icon-btn';
+      copySchemeButton.setAttribute('aria-label', 'Copy current scheme');
+      copySchemeButton.title = 'Copy current scheme';
+      copySchemeButton.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="8" width="11" height="11" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v1"></path></svg>';
+      copySchemeButton.addEventListener('click', copyCurrentScheme);
+      topRow.appendChild(copySchemeButton);
+
       const modeButton = document.createElement('button');
       modeButton.type = 'button';
       modeButton.className = 'btn' + (editMode ? ' primary' : '');
@@ -3058,7 +3084,7 @@
     function getDisplaySector(visualX, n) {
       if (viewMode === 'raw') return visualX;
       const split = Math.floor(n / 2);
-      return (split + visualX) % n;
+      return (split - 1 - visualX + n) % n;
     }
 
     function getSeamAfterVisualX(n) {
@@ -3066,7 +3092,7 @@
     }
 
     function getViewCaption() {
-      return viewMode === 'raw' ? 'View: Raw sectors 0..n-1' : 'View: Game start - center seam n-1|0';
+      return viewMode === 'raw' ? 'View: Raw sectors 0..n-1' : 'View: Game start - mirrored player view, center seam 0|n-1';
     }
 
     function buildSectorRuler(n, cellSize) {
@@ -3854,23 +3880,36 @@
       }
     }
 
+    function copyTextToClipboard(text, successMessage) {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text)
+          .then(() => setStatus(successMessage, 'ok'))
+          .catch(() => fallbackCopy(text, successMessage));
+      } else {
+        fallbackCopy(text, successMessage);
+      }
+    }
+
     function copyNormalizedJson() {
       if (!currentLevels.length) {
         setStatus('Nothing to copy. Render levels first.', 'error');
         return;
       }
 
-      const json = JSON.stringify(currentLevels, null, 2);
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(json)
-          .then(() => setStatus('Normalized JSON copied.', 'ok'))
-          .catch(() => fallbackCopy(json));
-      } else {
-        fallbackCopy(json);
-      }
+      copyTextToClipboard(JSON.stringify(currentLevels, null, 2), 'Normalized JSON copied.');
     }
 
-    function fallbackCopy(text) {
+    function copyCurrentScheme() {
+      const level = getSelectedLevel();
+      if (!level) {
+        setStatus('No level selected.', 'error');
+        return;
+      }
+
+      copyTextToClipboard(JSON.stringify(compressRows(getEditableRows(level)), null, 2), 'Current scheme copied.');
+    }
+
+    function fallbackCopy(text, successMessage) {
       const helper = document.createElement('textarea');
       helper.value = text;
       helper.style.position = 'fixed';
@@ -3879,7 +3918,7 @@
       helper.select();
       const ok = document.execCommand('copy');
       document.body.removeChild(helper);
-      setStatus(ok ? 'Normalized JSON copied.' : 'Copy failed.', ok ? 'ok' : 'error');
+      setStatus(ok ? successMessage : 'Copy failed.', ok ? 'ok' : 'error');
     }
 
     function makeVersionId() {
