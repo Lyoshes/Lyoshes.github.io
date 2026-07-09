@@ -89,7 +89,7 @@
   <img id="splash-icon" src="" alt="" />
   <div id="splash-title">Elemental Blocks</div>
   <div id="splash-bar-wrap"><div id="splash-bar"></div></div>
-  <div id="splash-version">v0.41.3</div>
+  <div id="splash-version">v0.41.4</div>
 </div>
 <script src="splash.js"></script>
 <!-- In-game transition loader (menu/restart -> board) -->
@@ -223,7 +223,7 @@
 
         <div class="mm-home-spacer mm-home-spacer-bot" aria-hidden="true"></div>
 
-        <div class="start-version" id="startVersion">v0.41.3</div>
+        <div class="start-version" id="startVersion">v0.41.4</div>
         <!-- bestScore / bestTimeVal kept hidden for JS compat -->
         <span id="bestScore" style="display:none"></span>
         <span id="bestTimeVal" style="display:none"></span>
@@ -389,6 +389,16 @@
           <div class="go-level-row">
             <div class="go-level-name" id="goLevelName">Level 1</div>
             <div class="go-level-objective" id="goLevelObjective">Rings 0/1</div>
+          </div>
+          <div class="go-level-meta hidden" id="goLevelMeta">
+            <div class="go-level-chip go-level-chip-rings">
+              <span class="go-level-chip-label">Rings Cleared</span>
+              <span class="go-level-chip-value" id="goLevelRings">0</span>
+            </div>
+            <div class="go-level-chip go-level-chip-moves">
+              <span class="go-level-chip-label">Moves Used</span>
+              <span class="go-level-chip-value" id="goLevelMovesUsed">0</span>
+            </div>
           </div>
         </div>
         <!-- Adventure reward: features unlocked by this win -->
