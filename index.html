@@ -89,7 +89,7 @@
   <img id="splash-icon" src="" alt="" />
   <div id="splash-title">Elemental Blocks</div>
   <div id="splash-bar-wrap"><div id="splash-bar"></div></div>
-  <div id="splash-version">v0.41.4</div>
+  <div id="splash-version">v0.41.5</div>
 </div>
 <script src="splash.js"></script>
 <!-- In-game transition loader (menu/restart -> board) -->
@@ -223,7 +223,7 @@
 
         <div class="mm-home-spacer mm-home-spacer-bot" aria-hidden="true"></div>
 
-        <div class="start-version" id="startVersion">v0.41.4</div>
+        <div class="start-version" id="startVersion">v0.41.5</div>
         <!-- bestScore / bestTimeVal kept hidden for JS compat -->
         <span id="bestScore" style="display:none"></span>
         <span id="bestTimeVal" style="display:none"></span>
@@ -377,28 +377,25 @@
     <div class="ringlines" aria-hidden="true"></div>
     
     <div class="gameover-content">
-      <div class="gameover-title res-title">RESULTS</div>
-      <div class="res-title-rule" aria-hidden="true"></div>
+      <div class="gameover-head">
+        <div class="gameover-title res-title">RESULTS</div>
+        <div class="res-title-rule" aria-hidden="true"></div>
+      </div>
 
-      <div class="gameover-score-grid">
+      <div class="gameover-scroll">
+        <div class="gameover-score-grid">
         <!-- Adventure level card (replaces title progress in Adventure) -->
         <div class="gameover-score-card level-card hidden" id="goLevelCard">
           <div class="gameover-score-top">
             <div class="gameover-label">Adventure</div>
+            <div class="go-level-moves" aria-label="Moves used">
+              <span class="go-level-moves-icon" aria-hidden="true">&#10140;</span>
+              <span class="go-level-moves-value" id="goLevelMovesUsed">0</span>
+            </div>
           </div>
           <div class="go-level-row">
             <div class="go-level-name" id="goLevelName">Level 1</div>
             <div class="go-level-objective" id="goLevelObjective">Rings 0/1</div>
-          </div>
-          <div class="go-level-meta hidden" id="goLevelMeta">
-            <div class="go-level-chip go-level-chip-rings">
-              <span class="go-level-chip-label">Rings Cleared</span>
-              <span class="go-level-chip-value" id="goLevelRings">0</span>
-            </div>
-            <div class="go-level-chip go-level-chip-moves">
-              <span class="go-level-chip-label">Moves Used</span>
-              <span class="go-level-chip-value" id="goLevelMovesUsed">0</span>
-            </div>
           </div>
         </div>
         <!-- Adventure reward: features unlocked by this win -->
@@ -425,7 +422,6 @@
                 <span class="res-ring-ico" aria-hidden="true"></span>
                 <span class="res-rings-label">Rings</span>
                 <span class="res-rings-count" id="goTotalRings">0</span>
-                <span class="res-maxring" id="goMaxRing"></span>
               </div>
             </div>
           </div>
@@ -473,19 +469,13 @@
           <div class="gameover-record hidden" id="goNewRecord">🏆 NEW RECORD!</div>
         </div>
 
-        <!-- Matches + bonuses (two columns) -->
-        <div class="res-bottom-grid">
-          <div class="gameover-score-card stats">
-            <div class="gameover-stats-title">MATCHES</div>
-            <div class="gameover-stats-grid" id="goMatches"></div>
-          </div>
-          <div class="gameover-score-card stats">
-            <div class="gameover-stats-title">BONUSES</div>
-            <div class="gameover-stats-grid" id="goBonuses"></div>
-          </div>
+        <!-- Scoring events performed during this run -->
+        <div class="gameover-score-card stats res-breakdown-card">
+          <div class="gameover-stats-title">BREAKDOWN</div>
+          <div class="gameover-stats-grid" id="goBreakdown"></div>
+        </div>
         </div>
       </div>
-
     </div>
     
     <!-- Bottom action buttons -->
@@ -513,8 +503,9 @@
     <!-- Content -->
     <div class="pause-content">
       <div class="pause-title">PAUSED</div>
-      
-      <div class="pause-score-grid">
+
+      <div class="pause-scroll">
+        <div class="pause-score-grid">
         <!-- Best score card -->
         <div class="pause-score-card best">
           <div class="pause-score-top">
@@ -538,10 +529,26 @@
             <span>Mode: <small id="pauseCurrentMode">High Tower</small></span>
           </div>
         </div>
+        </div>
+
+        <div class="pause-adventure-card hidden" id="pauseAdventureCard">
+        <div class="pause-adventure-head">
+          <div class="pause-label">Mission</div>
+          <div class="pause-pill cur">
+            <span class="pause-adv-moves-cap">Moves Left</span>
+            <span class="pause-adv-moves-val" id="pauseAdventureMovesLeft">0</span>
+          </div>
+        </div>
+        <div class="pause-adventure-objectives" id="pauseAdventureObjectives"></div>
+        <div class="pause-adventure-unlock-wrap">
+          <div class="pause-adv-unlock-cap">Will Unlock</div>
+          <div class="pause-adventure-unlocks" id="pauseAdventureUnlocks"></div>
+        </div>
+        </div>
       </div>
     </div>
     
-    <!-- Bottom action buttons (positioned absolute to panel) -->
+    <!-- Bottom action buttons -->
     <div class="pause-actions">
       <button class="pause-action-btn" id="exitToMenuBtn" aria-label="Exit to Menu" title="Exit to Menu"></button>
       <button class="pause-action-btn" id="restartBtn" aria-label="Restart" title="Restart"></button>
