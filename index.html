@@ -90,7 +90,7 @@
   <img id="splash-icon" src="" alt="" />
   <div id="splash-title">Elemental Blocks</div>
   <div id="splash-bar-wrap"><div id="splash-bar"></div></div>
-  <div id="splash-version">v0.41.6</div>
+  <div id="splash-version">v0.41.8</div>
 </div>
 <script src="splash.js"></script>
 <!-- In-game transition loader (menu/restart -> board) -->
@@ -224,7 +224,7 @@
 
         <div class="mm-home-spacer mm-home-spacer-bot" aria-hidden="true"></div>
 
-        <div class="start-version" id="startVersion">v0.41.6</div>
+        <div class="start-version" id="startVersion">v0.41.8</div>
         <!-- bestScore / bestTimeVal kept hidden for JS compat -->
         <span id="bestScore" style="display:none"></span>
         <span id="bestTimeVal" style="display:none"></span>
@@ -389,10 +389,7 @@
         <div class="gameover-score-card level-card hidden" id="goLevelCard">
           <div class="gameover-score-top">
             <div class="gameover-label">Adventure</div>
-            <div class="go-level-moves" aria-label="Moves used">
-              <span class="go-level-moves-icon" aria-hidden="true">&#10140;</span>
-              <span class="go-level-moves-value" id="goLevelMovesUsed">0</span>
-            </div>
+            <div class="go-mission-status" id="goMissionStatus">Mission Complete</div>
           </div>
           <div class="go-level-row">
             <div class="go-level-name" id="goLevelName">Level 1</div>
@@ -451,7 +448,7 @@
             </div>
             <div class="res-score-vdiv" aria-hidden="true"></div>
             <div class="res-score-col">
-              <div class="res-score-cap">Time</div>
+              <div class="res-score-cap" id="goConditionCap">Time</div>
               <div class="res-score-val" id="goTimeMain">0:00</div>
             </div>
           </div>
@@ -463,7 +460,7 @@
             </div>
             <div class="res-score-vdiv" aria-hidden="true"></div>
             <div class="res-score-col">
-              <div class="res-best-cap">Best Time</div>
+              <div class="res-best-cap" id="goBestConditionCap">Best Time</div>
               <div class="res-best-val" id="goBestTime">0:00</div>
             </div>
           </div>
