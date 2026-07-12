@@ -134,7 +134,7 @@
         <div class="ear-content ear-score">
           <div class="panel-label" data-i18n="hud.score">SCORE</div>
           <div id="scoreHud">0</div>
-          <div class="panel-label" id="remainLabel">TIME</div>
+          <div class="panel-label" id="remainLabel" data-i18n-dynamic>TIME</div>
           <div class="score-time-row"><span class="hud-clock" id="remainClock"></span><span id="remainingHud">2:00</span></div>
         </div>
       </div>
@@ -254,7 +254,7 @@
                 </div>
                 <div class="lb-title-text">
                   <div class="lb-title-cap" data-i18n="leaderboard.titleCap">Title</div>
-                  <div class="lb-title-name" id="lbTitleName">Novice Builder</div>
+                  <div class="lb-title-name" id="lbTitleName" data-i18n-dynamic>Novice Builder</div>
                 </div>
               </div>
 
@@ -368,7 +368,7 @@
 
   <!-- Game Over splash (shown immediately; tap to reveal the results panel) -->
   <div class="gameover-splash hidden" id="gameoverSplash">
-    <div class="gameover-splash-title">GAME OVER</div>
+    <div class="gameover-splash-title" data-i18n-dynamic>GAME OVER</div>
     <div class="gameover-splash-hint" data-i18n="results.tapToContinue">Tap to continue</div>
   </div>
 
@@ -389,11 +389,11 @@
         <div class="gameover-score-card level-card hidden" id="goLevelCard">
           <div class="gameover-score-top">
             <div class="gameover-label" data-i18n="results.adventure">Adventure</div>
-            <div class="go-mission-status" id="goMissionStatus">Mission Complete</div>
+            <div class="go-mission-status" id="goMissionStatus" data-i18n-dynamic>Mission Complete</div>
           </div>
           <div class="go-level-row">
-            <div class="go-level-name" id="goLevelName">Level 1</div>
-            <div class="go-level-objective" id="goLevelObjective">Rings 0/1</div>
+            <div class="go-level-name" id="goLevelName" data-i18n-dynamic>Level 1</div>
+            <div class="go-level-objective" id="goLevelObjective" data-i18n-dynamic>Rings 0/1</div>
           </div>
         </div>
         <!-- Adventure reward: features unlocked by this win -->
@@ -415,7 +415,7 @@
               <img id="goTitleIcon" class="res-title-icon" alt="" draggable="false" />
             </div>
             <div class="res-title-info">
-              <div class="res-title-name" id="goTitleName">Novice Builder</div>
+              <div class="res-title-name" id="goTitleName" data-i18n-dynamic>Novice Builder</div>
               <div class="res-rings-chip">
                 <span class="res-ring-ico" aria-hidden="true"></span>
                 <span class="res-rings-label" data-i18n="results.rings">Rings</span>
@@ -448,7 +448,7 @@
             </div>
             <div class="res-score-vdiv" aria-hidden="true"></div>
             <div class="res-score-col">
-              <div class="res-score-cap" id="goConditionCap">Time</div>
+              <div class="res-score-cap" id="goConditionCap" data-i18n-dynamic>Time</div>
               <div class="res-score-val" id="goTimeMain">0:00</div>
             </div>
           </div>
@@ -460,7 +460,7 @@
             </div>
             <div class="res-score-vdiv" aria-hidden="true"></div>
             <div class="res-score-col">
-              <div class="res-best-cap" id="goBestConditionCap">Best Time</div>
+              <div class="res-best-cap" id="goBestConditionCap" data-i18n-dynamic>Best Time</div>
               <div class="res-best-val" id="goBestTime">0:00</div>
             </div>
           </div>
@@ -512,7 +512,7 @@
           </div>
           <div class="pause-big-score" id="pauseBestScore">0</div>
           <div class="pause-meta-row">
-            <span><span data-i18n="pause.mode">Mode:</span> <small id="pauseBestMode">High Tower</small></span>
+            <span><span data-i18n="pause.mode">Mode:</span> <small id="pauseBestMode" data-i18n-dynamic>High Tower</small></span>
           </div>
         </div>
         
@@ -524,7 +524,7 @@
           </div>
           <div class="pause-big-score" id="pauseCurrentScore">0</div>
           <div class="pause-meta-row">
-            <span><span data-i18n="pause.mode">Mode:</span> <small id="pauseCurrentMode">High Tower</small></span>
+            <span><span data-i18n="pause.mode">Mode:</span> <small id="pauseCurrentMode" data-i18n-dynamic>High Tower</small></span>
           </div>
         </div>
         </div>
@@ -556,7 +556,7 @@
     <!-- Confirmation dialog -->
     <div class="confirm-dialog hidden" id="confirmDialog">
       <div class="confirm-box">
-        <div class="confirm-text" id="confirmText">Are you sure?</div>
+        <div class="confirm-text" id="confirmText" data-i18n-dynamic>Are you sure?</div>
         <div class="confirm-buttons">
           <button class="confirm-btn cancel" id="confirmCancel" aria-label="Cancel" data-i18n-aria-label="common.cancel"></button>
           <button class="confirm-btn ok" id="confirmOk" aria-label="Confirm" data-i18n-aria-label="common.confirm"></button>
@@ -608,7 +608,7 @@
         </div>
         <div class="settings-row" style="display:none;">
           <span class="settings-label" data-i18n="settings.fullscreen">Fullscreen mode</span>
-          <button class="settings-action-btn" id="fullscreenBtn">Enable</button>
+          <button class="settings-action-btn" id="fullscreenBtn" data-i18n-dynamic>Enable</button>
         </div>
         <div id="iosHint" class="ios-hint" style="display:none;" data-i18n="settings.iosHint">
           📱 iOS Safari: tap Share → Add to Home Screen to run in fullscreen mode.

@@ -1981,6 +1981,17 @@
         }
       }
 
+      // Localization key fields (titleKey/headlineKey/descriptionKey): the
+      // game falls back to title/description when a key is absent from the
+      // dictionaries, but a malformed key is almost certainly a typo.
+      ['titleKey', 'headlineKey', 'descriptionKey'].forEach((field) => {
+        const key = level[field];
+        if (key === undefined) return;
+        if (typeof key !== 'string' || !/^[a-z0-9]+(\.[a-zA-Z0-9_-]+)+$/i.test(key)) {
+          warnings.push(field + ': "' + key + '" does not look like a localization key (expected dotted path like levels.l1.desc).');
+        }
+      });
+
       const pieceQueue = level.pieceQueue;
       if (pieceQueue && pieceQueue.colors && pieceQueue.colors.length !== 5) {
         warnings.push('pieceQueue.colors length is ' + pieceQueue.colors.length + ', expected 5.');
@@ -3063,6 +3074,7 @@
           ['id', level.id],
           ['version', level.version == null ? 1 : level.version],
           ['description', level.description || ''],
+          ['i18n keys', ['titleKey', 'headlineKey', 'descriptionKey'].filter((f) => level[f]).map((f) => f + '=' + level[f]).join(', ') || '(none)'],
           ['grid', gridLabel(level)],
           ['movesLimit', level.movesLimit],
         ]),
@@ -3290,7 +3302,12 @@
       section.append(
         makeInputRow('Level id', 'detailIdInput', 'number', level.id, { min: 1, step: 1 }),
         makeInputRow('Version', 'detailVersionInput', 'number', level.version == null ? 1 : level.version, { min: 1, step: 1 }),
-        makeInputRow('Description', 'detailDescriptionInput', 'textarea', level.description || '')
+        makeInputRow('Description', 'detailDescriptionInput', 'textarea', level.description || ''),
+        // Localization keys (optional): the game shows t(key) when the key
+        // exists in the dictionaries and falls back to the raw fields above.
+        makeInputRow('Title key', 'detailTitleKeyInput', 'text', level.titleKey || '', { placeholder: 'levels.l' + (level.id || 'N') + '.title' }),
+        makeInputRow('Headline key', 'detailHeadlineKeyInput', 'text', level.headlineKey || '', { placeholder: 'levels.l' + (level.id || 'N') + '.headline' }),
+        makeInputRow('Description key', 'detailDescriptionKeyInput', 'text', level.descriptionKey || '', { placeholder: 'levels.l' + (level.id || 'N') + '.desc' })
       );
       return section;
     }
@@ -3712,6 +3729,14 @@
       draft.id = id;
       draft.version = readPositiveDetailsInt('detailVersionInput', 'Version', errors, 1);
       draft.description = document.getElementById('detailDescriptionInput').value;
+      // Localization keys: empty input removes the field (fallback to the raw
+      // description); values are exported/test-slotted verbatim.
+      ['titleKey', 'headlineKey', 'descriptionKey'].forEach((field) => {
+        const inputId = 'detail' + field.charAt(0).toUpperCase() + field.slice(1) + 'Input';
+        const value = (document.getElementById(inputId)?.value || '').trim();
+        if (value) draft[field] = value;
+        else delete draft[field];
+      });
       const gridN = readPositiveDetailsInt('detailGridNInput', 'grid.n', errors, 18);
       const gridH = readPositiveDetailsInt('detailGridHInput', 'grid.h', errors, 16);
       draft.movesLimit = readPositiveDetailsInt('detailMovesInput', 'movesLimit', errors, 30);
