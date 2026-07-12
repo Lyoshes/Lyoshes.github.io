@@ -137,6 +137,13 @@
       align-content: start;
     }
 
+    .action-primary-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto auto;
+      gap: 6px;
+      align-items: stretch;
+    }
+
     .btn {
       border: 1px solid var(--line);
       background: var(--panel-2);
@@ -399,12 +406,12 @@
     }
 
     .modal-tools input {
-      min-height: 34px;
+      min-height: 30px;
       border: 1px solid var(--line);
-      border-radius: 8px;
+      border-radius: 7px;
       background: #080c12;
       color: var(--text);
-      padding: 7px 10px;
+      padding: 5px 8px;
       outline: none;
     }
 
@@ -439,6 +446,28 @@
       display: grid;
       gap: 12px;
       align-content: start;
+    }
+
+    .testing-modal {
+      width: min(560px, 100%);
+    }
+
+    .version-action-group {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #080d13;
+      padding: 10px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .version-action-group-title {
+      margin: 0;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0;
+      text-transform: uppercase;
     }
 
     .test-slot-panel {
@@ -486,6 +515,33 @@
       gap: 6px;
       font-size: 12px;
       margin: 4px 0;
+    }
+
+    .feature-groups {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 4px 0 2px;
+    }
+    .feature-group {
+      flex: 1 1 140px;
+      min-width: 130px;
+      border: 1px solid var(--border, #2a3550);
+      border-radius: 6px;
+      padding: 6px 8px;
+      background: rgba(255, 255, 255, 0.02);
+    }
+    .feature-group-title {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      opacity: 0.7;
+      margin-bottom: 4px;
+    }
+    .feature-group .magic-charge-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
     }
 
     .workspace {
@@ -563,12 +619,12 @@
     .level-manager-form input,
     .level-manager-form select {
       width: 100%;
-      min-height: 34px;
+      min-height: 30px;
       border: 1px solid var(--line);
-      border-radius: 8px;
+      border-radius: 7px;
       background: #080c12;
       color: var(--text);
-      padding: 7px 10px;
+      padding: 5px 8px;
       outline: none;
     }
 
@@ -628,7 +684,18 @@
       background: #14304a;
     }
 
-    .level-btn.warn::after {
+    .level-btn.warn::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--danger);
+      position: absolute;
+      left: 5px;
+      top: 5px;
+    }
+
+    .level-btn.unlock::after {
       content: "";
       width: 7px;
       height: 7px;
@@ -637,6 +704,17 @@
       position: absolute;
       right: 5px;
       top: 5px;
+    }
+
+    .level-btn.tutorial .tutorial-dot {
+      position: absolute;
+      left: 5px;
+      bottom: 5px;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--ok);
+      pointer-events: none;
     }
 
     .main-panel {
@@ -932,7 +1010,7 @@
     .details-editor-grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 12px;
+      gap: 8px;
       align-items: start;
     }
 
@@ -940,9 +1018,9 @@
       border: 1px solid var(--line);
       border-radius: 8px;
       background: #0b1118;
-      padding: 10px;
+      padding: 8px;
       display: grid;
-      gap: 10px;
+      gap: 6px;
       align-content: start;
       min-width: 0;
     }
@@ -966,12 +1044,12 @@
     .queue-row input,
     .queue-row select {
       width: 100%;
-      min-height: 34px;
+      min-height: 30px;
       border: 1px solid var(--line);
-      border-radius: 8px;
+      border-radius: 7px;
       background: #080c12;
       color: var(--text);
-      padding: 7px 10px;
+      padding: 5px 8px;
       outline: none;
     }
 
@@ -1001,13 +1079,13 @@
     .objective-row,
     .queue-row {
       display: grid;
-      grid-template-columns: minmax(120px, 1.2fr) 90px minmax(110px, 1fr) auto;
-      gap: 8px;
-      align-items: end;
+      grid-template-columns: minmax(118px, 1.2fr) 58px minmax(104px, 1fr) minmax(118px, 1fr) auto;
+      gap: 6px;
+      align-items: center;
     }
 
     .queue-row {
-      grid-template-columns: 110px 120px minmax(240px, 1fr) auto;
+      grid-template-columns: 82px 98px minmax(220px, 1fr) auto;
     }
 
     .color-checks,
@@ -1015,7 +1093,7 @@
     .piece-color-row {
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 8px;
+      gap: 6px;
     }
 
     .piece-color-row {
@@ -1028,27 +1106,102 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      min-height: 34px;
-      padding: 6px 8px;
+      min-height: 28px;
+      padding: 4px 6px;
       border: 1px solid var(--line);
-      border-radius: 8px;
+      border-radius: 7px;
       background: #080c12;
       color: var(--text);
+      font-size: 11px;
+    }
+    .details-editor-section > .details-editor-section {
+      border: 0;
+      background: transparent;
+      padding: 0;
+      gap: 5px;
+    }
+
+    .details-editor-section .btn {
+      min-height: 30px;
+      padding: 5px 8px;
       font-size: 12px;
     }
 
+    .objective-row .btn,
+    .queue-row .btn {
+      min-height: 28px;
+      padding: 4px 7px;
+      font-size: 11px;
+    }
+
+    .element-swatch {
+      width: 14px;
+      height: 14px;
+      border-radius: 4px;
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.22);
+      flex: 0 0 auto;
+    }
+
+    .element-swatch.fire { background: var(--fire); }
+    .element-swatch.water { background: var(--water); }
+    .element-swatch.air { background: var(--air); }
+    .element-swatch.earth { background: var(--earth); }
+
+    .queue-color-control {
+      display: grid;
+      grid-template-columns: auto minmax(42px, 1fr);
+      gap: 4px;
+      align-items: center;
+      min-width: 0;
+    }
+
+    .queue-color-control select {
+      min-width: 42px;
+      padding-left: 5px;
+      padding-right: 5px;
+    }
+
+    .piece-color-row label {
+      gap: 4px;
+      min-width: 0;
+    }
+
+    .piece-color-row label > span:first-child {
+      color: var(--muted);
+      font-size: 10px;
+      width: 8px;
+      text-align: center;
+    }
+
+    .color-checks input,
+    .inline-list input,
+    .piece-color-row input,
+    .queue-row input[type="checkbox"] {
+      width: 14px;
+      min-height: 14px;
+      height: 14px;
+      margin: 0;
+    }
+
+    .queue-custom-colors {
+      justify-content: center;
+      white-space: nowrap;
+    }
+
+
     .readonly-json {
       margin: 0;
-      max-height: 220px;
+      max-height: 120px;
       overflow: auto;
       border: 1px solid var(--line);
       border-radius: 8px;
       background: #080c12;
-      padding: 10px;
+      padding: 7px;
       color: var(--text);
       font-family: Consolas, "SFMono-Regular", Menlo, monospace;
-      font-size: 12px;
-      line-height: 1.45;
+      font-size: 11px;
+      line-height: 1.35;
       white-space: pre-wrap;
     }
 
@@ -1136,6 +1289,27 @@
       border: 1px solid rgba(255, 255, 255, 0.15);
     }
 
+
+    .level-list-tools { display: flex; gap: 6px; }
+    .act-editor-list { display: grid; gap: 10px; }
+    .act-editor-card { border: 1px solid var(--line); border-radius: 9px; background: #0b1118; padding: 10px; display: grid; gap: 8px; }
+    .act-editor-card.drop-target { border-color: #4da3ff; box-shadow: 0 0 0 1px #4da3ff inset; }
+    .act-editor-head { display: grid; grid-template-columns: 42px minmax(0, 1fr) auto; gap: 8px; align-items: center; }
+    .act-editor-number { color: var(--muted); font-size: 12px; font-weight: 800; }
+    .act-editor-title, .act-level-select { min-width: 0; border: 1px solid var(--line); border-radius: 7px; background: #0c121a; color: var(--text); padding: 7px 8px; }
+    .act-editor-actions, .act-level-actions { display: flex; gap: 5px; flex-wrap: wrap; }
+    .act-level-list { display: grid; gap: 5px; min-height: 30px; }
+    .act-level-row { display: grid; grid-template-columns: 14px 34px minmax(90px, 1fr) minmax(120px, 1fr) auto; gap: 7px; align-items: center; padding: 6px; border-radius: 7px; background: rgba(255,255,255,.025); cursor: grab; }
+    .act-level-row.dragging { opacity: .35; }
+    .act-level-row.drop-before { box-shadow: 0 -2px 0 0 #4da3ff; }
+    .act-level-row.drop-after { box-shadow: 0 2px 0 0 #4da3ff; }
+    .act-level-grip { color: var(--muted); font-size: 12px; user-select: none; text-align: center; }
+    .act-level-pos { color: #ffd166; font-size: 11px; font-weight: 800; text-align: right; }
+    .act-level-name { font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .act-level-id { color: var(--muted); font-weight: 600; }
+    .act-empty { color: var(--muted); font-size: 12px; padding: 5px; border: 1px dashed var(--line); border-radius: 7px; text-align: center; }
+    .act-editor-hint { color: var(--muted); font-size: 11px; }
+    .level-act-group { grid-column: 1 / -1; margin-top: 6px; color: var(--muted); font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     @media (max-width: 1040px) {
       .workspace {
         grid-template-columns: 190px minmax(0, 1fr);
@@ -1178,12 +1352,15 @@
         <div class="trusted-note">Paste only trusted local level data.</div>
       </div>
       <div class="input-grid">
-        <textarea id="levelsInput" spellcheck="false" placeholder="Paste JSON, JS array, or: export const LEVELS = [...];"></textarea>
+        <textarea id="levelsInput" spellcheck="false" placeholder="Paste campaign JSON or a legacy levels array"></textarea>
         <div class="actions">
-          <button class="btn primary" id="renderBtn" type="button">Render levels</button>
-          <button class="btn" id="copyBtn" type="button">Copy normalized JSON</button>
-          <button class="btn" id="clearBtn" type="button">Clear</button>
+          <div class="action-primary-row">
+            <button class="btn primary" id="renderBtn" type="button">Render levels</button>
+            <button class="btn icon-btn" id="copyBtn" type="button" title="Copy normalized JSON" aria-label="Copy normalized JSON"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="8" width="11" height="11" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v1"></path></svg></button>
+            <button class="btn icon-btn" id="clearBtn" type="button" title="Clear" aria-label="Clear"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"></path><path d="M8 6V4h8v2"></path><path d="M19 6l-1 14H6L5 6"></path><path d="M10 11v5"></path><path d="M14 11v5"></path></svg></button>
+          </div>
           <button class="btn" id="openVersionsBtn" type="button">Versions...</button>
+          <button class="btn" id="openTestingBtn" type="button">Testing...</button>
           <div id="activeVersionSummary" class="version-summary">Current version: none</div>
           <div id="dirtyIndicator" class="dirty-indicator">No version selected</div>
           <button class="btn primary quick-update-version hidden" id="quickUpdateVersionBtn" type="button" hidden>Update current version</button>
@@ -1196,7 +1373,7 @@
       <aside class="panel level-list">
         <div class="level-list-header">
           <h2 class="panel-title">Levels</h2>
-          <button class="btn" id="openLevelManagerBtn" type="button">Levels...</button>
+          <div class="level-list-tools"><button class="btn" id="openActsManagerBtn" type="button">Acts...</button><button class="btn" id="openLevelManagerBtn" type="button">Levels...</button></div>
         </div>
         <div id="levelButtons" class="level-buttons"></div>
       </aside>
@@ -1240,37 +1417,73 @@
               <button class="btn" id="saveVersionBtn" type="button">Save as version</button>
               <button class="btn" id="updateVersionBtn" type="button">Update selected</button>
               <button class="btn" id="loadVersionBtn" type="button">Load selected</button>
-              <button class="btn" id="duplicateVersionBtn" type="button">Duplicate</button>
-              <button class="btn" id="deleteVersionBtn" type="button">Delete</button>
-              <button class="btn" id="exportVersionBtn" type="button">Export selected</button>
-              <button class="btn" id="exportAllVersionsBtn" type="button">Export all</button>
-              <button class="btn" id="importVersionsBtn" type="button">Import versions</button>
             </div>
-            <section class="test-slot-panel" aria-label="Adventure test slot">
-              <h3 class="panel-title">Test Slot</h3>
-              <div id="testSlotStatus" class="version-summary">Test slot: none</div>
-              <div class="test-slot-hint">Test slot works only when tool and game run on the same origin.</div>
+            <div class="version-action-group">
+              <h3 class="version-action-group-title">Manage</h3>
               <div class="version-actions">
-                <button class="btn primary" id="setVersionForTestBtn" type="button">Set for test</button>
-                <button class="btn" id="clearTestSlotBtn" type="button">Clear test slot</button>
+                <button class="btn" id="duplicateVersionBtn" type="button">Duplicate</button>
+                <button class="btn" id="deleteVersionBtn" type="button">Delete</button>
               </div>
-            </section>
-            <section class="test-slot-panel" aria-label="Feature override">
-              <h3 class="panel-title">Feature Override (dev)</h3>
-              <div class="test-slot-hint">Force features on/off regardless of level/progress. Blank = neutral (no override). Same-origin only.</div>
-              <div id="featureOverrideGrid" class="feature-override-grid"></div>
+            </div>
+            <div class="version-action-group">
+              <h3 class="version-action-group-title">Import / Export</h3>
               <div class="version-actions">
-                <button class="btn primary" id="saveFeatureOverrideBtn" type="button">Save override</button>
-                <button class="btn" id="clearFeatureOverrideBtn" type="button">Clear override</button>
+                <button class="btn" id="exportVersionBtn" type="button">Export selected</button>
+                <button class="btn" id="exportAllVersionsBtn" type="button">Export all</button>
+                <button class="btn" id="importVersionsBtn" type="button">Import versions</button>
               </div>
-            </section>
+            </div>
             <input id="importVersionsInput" type="file" accept=".json,application/json" hidden>
           </section>
         </div>
       </div>
     </section>
   </div>
+  <div id="testingModal" class="modal-backdrop" hidden>
+    <section class="versions-modal testing-modal" role="dialog" aria-modal="true" aria-labelledby="testingModalTitle">
+      <header class="modal-header">
+        <h2 id="testingModalTitle">Testing</h2>
+        <button class="modal-close" id="closeTestingBtn" type="button" aria-label="Close testing modal">&times;</button>
+      </header>
+      <div class="modal-body">
+        <section class="test-slot-panel" aria-label="Adventure test slot">
+          <h3 class="panel-title">Test Slot</h3>
+          <div id="testSlotStatus" class="version-summary">Test slot: none</div>
+          <div class="test-slot-hint">Test slot works only when tool and game run on the same origin.</div>
+          <div class="version-actions">
+            <button class="btn primary" id="setVersionForTestBtn" type="button">Set for test</button>
+            <button class="btn" id="clearTestSlotBtn" type="button">Clear test slot</button>
+          </div>
+        </section>
+        <section class="test-slot-panel" aria-label="Feature override">
+          <h3 class="panel-title">Feature Override (dev)</h3>
+          <div class="test-slot-hint">Force features on/off regardless of level/progress. Blank = neutral (no override). Same-origin only.</div>
+          <div id="featureOverrideGrid" class="feature-override-grid"></div>
+          <div class="version-actions">
+            <button class="btn primary" id="saveFeatureOverrideBtn" type="button">Save override</button>
+            <button class="btn" id="clearFeatureOverrideBtn" type="button">Clear override</button>
+          </div>
+        </section>
+      </div>
+    </section>
+  </div>
 
+  <div id="actsManagerModal" class="modal-backdrop" hidden>
+    <section class="versions-modal" role="dialog" aria-modal="true" aria-labelledby="actsManagerTitle">
+      <header class="modal-header">
+        <h2 id="actsManagerTitle">Acts &amp; Level Order</h2>
+        <button class="modal-close" id="closeActsManagerBtn" type="button" aria-label="Close acts manager">&times;</button>
+      </header>
+      <div class="modal-body">
+        <div class="level-manager-status">Drag levels to reorder them or move them between acts (or use the dropdown / arrows). The acts define the campaign order and the player-facing level numbers (#N); the stable id (L<em>n</em>) is a save key and never changes.</div>
+        <div id="actsEditorList" class="act-editor-list"></div>
+        <div class="version-actions">
+          <button class="btn" id="addActBtn" type="button">Add act</button>
+          <button class="btn primary" id="applyActsBtn" type="button">Apply campaign</button>
+        </div>
+      </div>
+    </section>
+  </div>
   <div id="levelManagerModal" class="modal-backdrop" hidden>
     <section class="versions-modal" role="dialog" aria-modal="true" aria-labelledby="levelManagerTitle">
       <header class="modal-header">
@@ -1332,11 +1545,16 @@
     const TEST_LEVELS_STORAGE_KEY = 'eb_adventure_levels_test_v1';
     const FEATURE_OVERRIDE_STORAGE_KEY = 'eb_features_override';
 
+    const CAMPAIGN_FORMAT = 'elemental-blocks-campaign';
+    const CAMPAIGN_VERSION = 2;
+
     let currentLevels = [];
+    let currentActs = [];
     let selectedLevelId = null;
     let viewMode = 'gameStart';
     let savedVersions = [];
     let selectedVersionId = null;
+    let activeVersionId = null;
     let versionSearch = '';
     let editMode = false;
     let activeBrush = '.';
@@ -1349,14 +1567,24 @@
     let inputDirtySinceRender = false;
     let detailsDraft = null;
     let detailsDraftInitialHash = '';
+    let lastVersionTapId = null;
+    let lastVersionTapAt = 0;
+    const DOUBLE_TAP_MS = 320;
 
     const inputEl = document.getElementById('levelsInput');
     const renderBtn = document.getElementById('renderBtn');
     const copyBtn = document.getElementById('copyBtn');
     const clearBtn = document.getElementById('clearBtn');
     const openVersionsBtn = document.getElementById('openVersionsBtn');
+    const openTestingBtn = document.getElementById('openTestingBtn');
     const quickUpdateVersionBtn = document.getElementById('quickUpdateVersionBtn');
     const openLevelManagerBtn = document.getElementById('openLevelManagerBtn');
+    const openActsManagerBtn = document.getElementById('openActsManagerBtn');
+    const actsManagerModal = document.getElementById('actsManagerModal');
+    const closeActsManagerBtn = document.getElementById('closeActsManagerBtn');
+    const actsEditorList = document.getElementById('actsEditorList');
+    const addActBtn = document.getElementById('addActBtn');
+    const applyActsBtn = document.getElementById('applyActsBtn');
     const activeVersionSummary = document.getElementById('activeVersionSummary');
     const statusEl = document.getElementById('status');
     const levelButtonsEl = document.getElementById('levelButtons');
@@ -1365,6 +1593,8 @@
     const editDetailsBtn = document.getElementById('editDetailsBtn');
     const viewModeInputs = document.querySelectorAll('input[name="viewMode"]');
     const versionsModal = document.getElementById('versionsModal');
+    const testingModal = document.getElementById('testingModal');
+    const closeTestingBtn = document.getElementById('closeTestingBtn');
     const closeVersionsBtn = document.getElementById('closeVersionsBtn');
     const versionSearchInput = document.getElementById('versionSearchInput');
     const versionsCount = document.getElementById('versionsCount');
@@ -1466,7 +1696,16 @@
       { value: 3, label: '3 Air' },
       { value: 4, label: '4 Earth' },
     ];
-    const OBJECTIVE_TYPES = ['rings', 'matches', 'clearColor', 'combo', 'cascade', 'surviveMoves'];
+    const OBJECTIVE_TYPES = ['rings', 'matches', 'reaction', 'clearColor', 'combo', 'cascade', 'surviveMoves'];
+    const REACTION_OPTIONS = [
+      { value: '', label: 'Any Reaction', colors: [] },
+      { value: 'steam', label: 'Steam (Fire + Water)', colors: [1, 2] },
+      { value: 'plasma', label: 'Plasma (Fire + Air)', colors: [1, 3] },
+      { value: 'magma', label: 'Magma (Fire + Earth)', colors: [1, 4] },
+      { value: 'frost', label: 'Frost (Water + Air)', colors: [2, 3] },
+      { value: 'bloom', label: 'Bloom (Water + Earth)', colors: [2, 4] },
+      { value: 'sandstorm', label: 'Sandstorm (Air + Earth)', colors: [3, 4] },
+    ];
     const SHAPE_OPTIONS = ['F', 'I', 'L', 'P', 'N', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
     const MAGIC_CHARGE_KEYS = ['fire', 'water', 'air', 'earth'];
 
@@ -1487,45 +1726,94 @@
 
     const KNOWN_SHAPES = new Set(['F', 'I', 'L', 'P', 'N', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']);
 
-    function parseLevelsInput(raw) {
+    // Legacy input (a bare levels array) carries no act structure. Put every
+    // level into a single act in array order — no hardcoded copy of the shipped
+    // campaign here (it would silently drift); the designer splits acts via the
+    // Acts editor.
+    function inferActs(levels) {
+      const ids = (levels || []).map((level) => Number(level.id)).filter((id) => Number.isFinite(id) && id > 0);
+      return ids.length ? [{ id: 1, title: 'Act 1', levelIds: ids }] : [];
+    }
+
+    function normalizeActs(acts, levels) {
+      const validIds = new Set((levels || []).map((level) => Number(level.id)));
+      const assigned = new Set();
+      return (Array.isArray(acts) ? acts : []).map((act, index) => {
+        const levelIds = [];
+        for (const rawId of Array.isArray(act && act.levelIds) ? act.levelIds : []) {
+          const id = Number(rawId);
+          if (validIds.has(id) && !assigned.has(id)) {
+            assigned.add(id);
+            levelIds.push(id);
+          }
+        }
+        return {
+          id: Number.isInteger(Number(act && act.id)) ? Number(act.id) : index + 1,
+          title: String((act && act.title) || `Act ${index + 1}`),
+          levelIds,
+        };
+      });
+    }
+
+    function parseCampaignInput(raw) {
       const normalized = normalizeInput(raw);
       if (!normalized) throw new Error('Input is empty.');
-
+      let parsed;
       try {
-        const parsed = JSON.parse(normalized);
-        if (!Array.isArray(parsed)) throw new Error('Parsed value is not an array.');
-        return parsed;
+        parsed = JSON.parse(normalized);
       } catch (jsonError) {
         try {
-          const parsed = Function('"use strict"; return (' + normalized + ');')();
-          if (!Array.isArray(parsed)) throw new Error('Parsed value is not an array.');
-          return parsed;
+          parsed = Function('"use strict"; return (' + normalized + ');')();
         } catch (jsError) {
-          throw new Error('Could not parse levels array. JSON error: ' + jsonError.message + ' JS fallback error: ' + jsError.message);
+          throw new Error('Could not parse campaign. JSON error: ' + jsonError.message + ' JS fallback error: ' + jsError.message);
         }
       }
+      const legacy = Array.isArray(parsed);
+      const levels = legacy ? parsed : parsed && parsed.levels;
+      if (!Array.isArray(levels)) throw new Error('Campaign levels must be an array.');
+      const acts = legacy ? inferActs(levels) : normalizeActs(parsed.acts, levels);
+      return { format: CAMPAIGN_FORMAT, version: CAMPAIGN_VERSION, acts, levels, legacy };
+    }
+
+    function parseLevelsInput(raw) {
+      return parseCampaignInput(raw).levels;
+    }
+
+    function campaignData() {
+      return {
+        format: CAMPAIGN_FORMAT,
+        version: CAMPAIGN_VERSION,
+        acts: normalizeActs(currentActs, currentLevels),
+        levels: currentLevels,
+      };
+    }
+
+    function campaignJson() {
+      return JSON.stringify(campaignData(), null, 2);
     }
 
     function normalizeInput(raw) {
       let text = String(raw || '').replace(/^\uFEFF/, '').trim();
       if (!text) return '';
-
       const exportMatch = text.match(/export\s+const\s+\w+\s*=\s*/);
       if (exportMatch) {
         text = text.slice(exportMatch.index + exportMatch[0].length).trim();
+        // Whole-file paste: drop everything from the next export on (levels.js
+        // has derived `export const LEVELS/ADVENTURE_ACTS` after CAMPAIGN).
+        const nextExport = text.search(/^export\s/m);
+        if (nextExport > 0) text = text.slice(0, nextExport).trim();
       }
-
       if (text.startsWith('const ') || text.startsWith('let ') || text.startsWith('var ')) {
         text = text.replace(/^(const|let|var)\s+\w+\s*=\s*/, '').trim();
       }
-
-      if (text.endsWith(';')) {
-        text = text.slice(0, -1).trim();
-      }
-
+      // Drop trailing // comment lines left over from a whole-file paste
+      // (e.g. the "Convenience views" note after CAMPAIGN in levels.js).
+      const lines = text.split('\n');
+      while (lines.length && /^\s*(\/\/.*)?$/.test(lines[lines.length - 1])) lines.pop();
+      text = lines.join('\n').trim();
+      if (text.endsWith(';')) text = text.slice(0, -1).trim();
       return text;
     }
-
     function getMagicChargeValue(level, key) {
       const charges = level && level.magicCharges;
       if (!charges || typeof charges !== 'object') return '';
@@ -1645,12 +1933,32 @@
 
       if (!Array.isArray(level.objectives)) {
         warnings.push('objectives is missing or is not an array.');
-      } else if (level.objectives.length > 3) {
-        warnings.push('objectives.length > 3.');
+      } else {
+        if (level.objectives.length > 3) warnings.push('objectives.length > 3.');
+        level.objectives.forEach((objective, index) => {
+          if (!OBJECTIVE_TYPES.includes(objective.type) && objective.type !== 'pairs') warnings.push('Objective ' + (index + 1) + ' has unknown type.');
+          if (objective.type === 'matches' && objective.color != null && !ELEMENT_OPTIONS.some((option) => option.value === Number(objective.color))) {
+            warnings.push('Objective ' + (index + 1) + ' has unknown match color.');
+          }
+          if (objective.type === 'reaction') {
+            const reaction = REACTION_OPTIONS.find((option) => option.value === (objective.reaction || ''));
+            if (!reaction) warnings.push('Objective ' + (index + 1) + ' has unknown reaction.');
+            else {
+              const palette = Array.isArray(level.pieceColors) ? level.pieceColors.map(Number) : ELEMENT_OPTIONS.map((option) => option.value);
+              const missing = reaction.colors.filter((color) => !palette.includes(color));
+              if (missing.length) warnings.push(reaction.label + ' objective uses colors missing from pieceColors.');
+            }
+          }
+        });
       }
 
-      if (level.magicCharges != null && level.magicEnabled !== true) {
-        warnings.push('magicCharges is set, but magicEnabled !== true.');
+      if (level.magicCharges != null) {
+        // Magic turns on when a magic_* feature is available (in `available` or
+        // the level's own `unlocks`), or via the legacy `magicEnabled` flag.
+        const hasMagicFeature = (list) => Array.isArray(list) && list.some((id) => typeof id === 'string' && id.startsWith('magic_'));
+        if (!hasMagicFeature(level.available) && !hasMagicFeature(level.unlocks) && level.magicEnabled !== true) {
+          warnings.push('magicCharges is set, but no magic is available (add a magic_* to available/unlocks).');
+        }
       }
 
       if (level.unlocks !== undefined) {
@@ -1659,6 +1967,16 @@
         } else {
           level.unlocks.forEach((id) => {
             if (!FEATURE_META[id]) warnings.push('unlocks: unknown feature "' + id + '".');
+          });
+        }
+      }
+
+      if (level.available !== undefined) {
+        if (!Array.isArray(level.available)) {
+          warnings.push('available must be an array of feature ids.');
+        } else {
+          level.available.forEach((id) => {
+            if (!FEATURE_META[id]) warnings.push('available: unknown feature "' + id + '".');
           });
         }
       }
@@ -1735,8 +2053,25 @@
       return cloneJson(levels || []);
     }
 
+    // Snapshots carry BOTH halves of the campaign (levels + acts) — restoring
+    // one without the other would desync act levelIds from the level pool.
+    function campaignSnapshot() {
+      return { levels: cloneLevels(currentLevels), acts: cloneJson(currentActs) };
+    }
+
+    function restoreCampaignSnapshot(snapshot) {
+      if (Array.isArray(snapshot)) {
+        // Old-shape snapshot (levels only) — keep acts consistent by pruning.
+        currentLevels = snapshot;
+        currentActs = normalizeActs(currentActs, currentLevels);
+        return;
+      }
+      currentLevels = snapshot.levels;
+      currentActs = normalizeActs(snapshot.acts, currentLevels);
+    }
+
     function pushUndoSnapshot() {
-      undoStack.push(cloneLevels(currentLevels));
+      undoStack.push(campaignSnapshot());
       if (undoStack.length > UNDO_LIMIT) undoStack.shift();
       redoStack = [];
     }
@@ -1759,8 +2094,8 @@
         setStatus('Nothing to undo.', 'error');
         return;
       }
-      redoStack.push(cloneLevels(currentLevels));
-      currentLevels = undoStack.pop();
+      redoStack.push(campaignSnapshot());
+      restoreCampaignSnapshot(undoStack.pop());
       hasStructureEdits = true;
       renderLevelButtons(currentLevels);
       renderSelectedLevel(getSelectedLevel());
@@ -1773,8 +2108,8 @@
         setStatus('Nothing to redo.', 'error');
         return;
       }
-      undoStack.push(cloneLevels(currentLevels));
-      currentLevels = redoStack.pop();
+      undoStack.push(campaignSnapshot());
+      restoreCampaignSnapshot(redoStack.pop());
       hasStructureEdits = true;
       renderLevelButtons(currentLevels);
       renderSelectedLevel(getSelectedLevel());
@@ -1821,7 +2156,7 @@
         return;
       }
       const selectedBefore = selectedLevelId;
-      inputEl.value = JSON.stringify(currentLevels, null, 2);
+      inputEl.value = campaignJson();
       const rendered = renderFromInput({ selectedLevelId: selectedBefore, keepEditSession: false });
       inputDirtySinceRender = false;
       hasGridEdits = false;
@@ -2035,7 +2370,7 @@
           movesLimit: selected.movesLimit != null ? selected.movesLimit : movesLimit,
           objectives: cloneJson(selected.objectives || [{ type: 'rings', count: 1 }]),
         };
-        ['pieceColors', 'magicEnabled', 'magicCharges', 'changeCharges', 'shuffleCharges', 'unlocks'].forEach((key) => {
+        ['pieceColors', 'magicEnabled', 'magicCharges', 'changeCharges', 'shuffleCharges', 'unlocks', 'available'].forEach((key) => {
           if (selected[key] != null) level[key] = cloneJson(selected[key]);
         });
         return level;
@@ -2060,15 +2395,23 @@
     function updateLevelManagerView() {
       if (!levelManagerCurrentSummary) return;
       const selected = getSelectedLevel();
-      const countText = currentLevels.length + ' level(s)' + (hasAnyEditorEdits() ? ' � Unapplied changes' : '');
+      const countText = currentLevels.length + ' level(s)' + (hasAnyEditorEdits() ? ' - Unapplied changes' : '');
+      const selectedPos = selected ? campaignPositionMap().get(Number(selected.id)) : null;
       levelManagerCurrentSummary.textContent = selected
-        ? 'Current: Level ' + (selected.id != null ? selected.id : '?') + ' � ' + gridLabel(selected) + ' � ' + countText
-        : 'Current: none � ' + countText;
+        ? 'Current: #' + (selectedPos != null ? selectedPos : '?') + ' (id ' + (selected.id != null ? selected.id : '?') + ') - ' + gridLabel(selected) + ' - ' + countText
+        : 'Current: none - ' + countText;
       const hasSelected = !!selected;
+      const inAct = selected ? actPositionOf(selected.id) : null;
+      const canMoveUp = inAct ? inAct.position > 0 : getCurrentLevelIndex() > 0;
+      const canMoveDown = inAct
+        ? inAct.position < inAct.length - 1
+        : getCurrentLevelIndex() >= 0 && getCurrentLevelIndex() < currentLevels.length - 1;
       duplicateCurrentLevelBtn.disabled = !hasSelected || hasGridEdits;
       deleteCurrentLevelBtn.disabled = !hasSelected || hasGridEdits;
-      moveLevelUpBtn.disabled = !hasSelected || hasGridEdits || getCurrentLevelIndex() <= 0;
-      moveLevelDownBtn.disabled = !hasSelected || hasGridEdits || getCurrentLevelIndex() < 0 || getCurrentLevelIndex() >= currentLevels.length - 1;
+      moveLevelUpBtn.disabled = !hasSelected || hasGridEdits || !canMoveUp;
+      moveLevelDownBtn.disabled = !hasSelected || hasGridEdits || !canMoveDown;
+      moveLevelUpBtn.title = inAct ? 'Move earlier within its act' : 'Move earlier in the list';
+      moveLevelDownBtn.title = inAct ? 'Move later within its act' : 'Move later in the list';
       renumberLevelIdsBtn.disabled = !currentLevels.length || hasGridEdits;
       applyStructureBtn.disabled = !hasAnyEditorEdits();
       newLevelIdInput.value = String(getNextLevelId());
@@ -2105,9 +2448,13 @@
         template: newLevelTemplateSelect.value,
       });
       currentLevels.push(level);
+      // New levels join the campaign right away: at the end of the last act
+      // (creating Act 1 when the pack has no acts yet).
+      if (!currentActs.length) currentActs.push({ id: 1, title: 'Act 1', levelIds: [] });
+      currentActs[currentActs.length - 1].levelIds.push(Number(level.id));
       selectLevel(level);
       hasStructureEdits = true;
-      levelManagerStatus.textContent = 'Created level ' + level.id + '. Apply structure to textarea when ready.';
+      levelManagerStatus.textContent = 'Created level ' + level.id + ' (added to the last act). Apply structure to textarea when ready.';
       markStructureEdited('Created level ' + level.id + '.');
     }
 
@@ -2116,6 +2463,7 @@
       pushUndoSnapshot();
       const level = createLevelTemplate({ id: 1, n: 18, h: 16, movesLimit: 30, template: 'blank' });
       currentLevels = [level];
+      currentActs = [{ id: 1, title: 'New Act 1', levelIds: [1] }];
       selectLevel(level);
       hasStructureEdits = true;
       markStructureEdited('Created new pack with level 1.');
@@ -2134,6 +2482,12 @@
       copy.id = getNextLevelId();
       if (copy.description) copy.description += ' copy';
       currentLevels.splice(index + 1, 0, copy);
+      // Keep the copy next to its source in the campaign: same act, right
+      // after the original (unassigned source -> copy stays unassigned too).
+      for (const act of currentActs) {
+        const at = (act.levelIds || []).indexOf(Number(selected.id));
+        if (at >= 0) { act.levelIds.splice(at + 1, 0, Number(copy.id)); break; }
+      }
       selectLevel(copy);
       hasStructureEdits = true;
       markStructureEdited('Duplicated level ' + selected.id + ' as level ' + copy.id + '.');
@@ -2150,6 +2504,7 @@
       if (!confirm('Delete Level ' + (selected.id != null ? selected.id : index + 1) + '?')) return;
       pushUndoSnapshot();
       currentLevels.splice(index, 1);
+      removeLevelFromActs(selected.id);
       const next = currentLevels[Math.min(index, currentLevels.length - 1)] || null;
       selectLevel(next);
       hasStructureEdits = true;
@@ -2160,8 +2515,29 @@
       setStatus('Deleted level.', 'ok');
     }
 
+    // Where a level sits in the acts structure (null = unassigned).
+    function actPositionOf(levelId) {
+      const id = Number(levelId);
+      for (let actIndex = 0; actIndex < currentActs.length; actIndex++) {
+        const ids = currentActs[actIndex].levelIds || [];
+        const position = ids.indexOf(id);
+        if (position >= 0) return { actIndex, position, length: ids.length };
+      }
+      return null;
+    }
+
+    // Campaign order is acts-driven, so "move" means moving within the
+    // level's act; the flat array order only matters for unassigned levels.
     function moveCurrentLevel(delta) {
       if (hasPendingGridEditsForStructure()) return;
+      const selected = getSelectedLevel();
+      if (!selected) return;
+      const inAct = actPositionOf(selected.id);
+      if (inAct) {
+        moveLevelInAct(inAct.actIndex, selected.id, delta);
+        updateLevelManagerView();
+        return;
+      }
       const index = getCurrentLevelIndex();
       const nextIndex = index + delta;
       if (index < 0 || nextIndex < 0 || nextIndex >= currentLevels.length) return;
@@ -2181,29 +2557,342 @@
         return;
       }
       const selected = getSelectedLevel();
-      if (!confirm('Renumber all level ids from 1 to ' + currentLevels.length + '?')) return;
+      if (!confirm(
+        'Renumber all level ids from 1 to ' + currentLevels.length + ' in campaign order?\n\n' +
+        'WARNING: ids are stable save keys. Renumbering BREAKS existing player progress ' +
+        'and per-level records (completedIds/records are keyed by id).\n' +
+        'Dev-only — never do this to a shipped campaign.'
+      )) return;
       pushUndoSnapshot();
-      currentLevels.forEach((level, index) => {
-        level.id = index + 1;
-      });
+      const ordered = campaignOrderedLevels();
+      const idMap = new Map();
+      ordered.forEach((level, index) => { idMap.set(Number(level.id), index + 1); });
+      currentLevels.forEach((level) => { level.id = idMap.get(Number(level.id)) || level.id; });
+      currentLevels.sort((a, b) => Number(a.id) - Number(b.id));
+      currentActs.forEach((act) => { act.levelIds = (act.levelIds || []).map((id) => idMap.get(Number(id))).filter(Boolean); });
       selectLevel(selected || currentLevels[0]);
       hasStructureEdits = true;
-      markStructureEdited('Renumbered level ids.');
+      markStructureEdited('Renumbered level ids in campaign order.');
     }
+    function removeLevelFromActs(levelId) {
+      const id = Number(levelId);
+      currentActs.forEach((act) => {
+        act.levelIds = (act.levelIds || []).filter((value) => Number(value) !== id);
+      });
+    }
+
+    // Campaign order = acts order (act sequence + levelIds sequence inside
+    // each act), unassigned levels last in array order — mirrors
+    // orderLevelsByActs in game.js. The player-facing level number is the
+    // 1-based position in this order; the id is only a stable save key.
+    function campaignOrderedLevels() {
+      const byId = new Map(currentLevels.map((level) => [Number(level.id), level]));
+      const used = new Set();
+      const ordered = [];
+      currentActs.forEach((act) => {
+        (act.levelIds || []).forEach((rawId) => {
+          const id = Number(rawId);
+          const level = byId.get(id);
+          if (level && !used.has(id)) { used.add(id); ordered.push(level); }
+        });
+      });
+      currentLevels.forEach((level) => { if (!used.has(Number(level.id))) ordered.push(level); });
+      return ordered;
+    }
+
+    function campaignPositionMap() {
+      const map = new Map();
+      campaignOrderedLevels().forEach((level, index) => map.set(Number(level.id), index + 1));
+      return map;
+    }
+
+    function markActsEdited(message) {
+      currentActs = normalizeActs(currentActs, currentLevels);
+      hasStructureEdits = true;
+      renderActsEditor();
+      renderLevelButtons(currentLevels);
+      updateDirtyIndicator();
+      if (message) setStatus(message, 'ok');
+    }
+
+    function moveAct(index, delta) {
+      const next = index + delta;
+      if (next < 0 || next >= currentActs.length) return;
+      pushUndoSnapshot();
+      [currentActs[index], currentActs[next]] = [currentActs[next], currentActs[index]];
+      markActsEdited('Moved act.');
+    }
+
+    function moveLevelInAct(actIndex, levelId, delta) {
+      const ids = currentActs[actIndex].levelIds;
+      const index = ids.indexOf(Number(levelId));
+      const next = index + delta;
+      if (index < 0 || next < 0 || next >= ids.length) return;
+      pushUndoSnapshot();
+      [ids[index], ids[next]] = [ids[next], ids[index]];
+      markActsEdited('Changed campaign level order.');
+    }
+
+    function assignLevelToAct(levelId, targetValue) {
+      const id = Number(levelId);
+      pushUndoSnapshot();
+      removeLevelFromActs(id);
+      if (targetValue !== '') {
+        const target = currentActs[Number(targetValue)];
+        if (target) target.levelIds.push(id);
+      }
+      markActsEdited(targetValue === '' ? 'Level is now unassigned.' : 'Moved level to another act.');
+    }
+
+    // --- Acts editor drag & drop state ---
+    let dragLevelId = null;
+
+    function clearDropMarkers() {
+      actsEditorList.querySelectorAll('.drop-before, .drop-after').forEach((el) => el.classList.remove('drop-before', 'drop-after'));
+      actsEditorList.querySelectorAll('.act-editor-card.drop-target').forEach((el) => el.classList.remove('drop-target'));
+    }
+
+    // Insert the dragged level into an act (actIndex -1 = Unassigned), before
+    // the given level id or at the end when beforeLevelId is null.
+    function placeLevelInAct(levelId, actIndex, beforeLevelId) {
+      const id = Number(levelId);
+      // The drop re-renders the editor and the dragged row leaves the DOM, so
+      // dragend may never fire — reset drag state here.
+      dragLevelId = null;
+      pushUndoSnapshot();
+      removeLevelFromActs(id);
+      if (actIndex >= 0 && currentActs[actIndex]) {
+        const ids = currentActs[actIndex].levelIds;
+        const at = beforeLevelId == null ? -1 : ids.indexOf(Number(beforeLevelId));
+        if (at < 0) ids.push(id);
+        else ids.splice(at, 0, id);
+      }
+      markActsEdited(actIndex >= 0 ? 'Moved level.' : 'Level is now unassigned.');
+    }
+
+    function makeActLevelRow(level, actIndex, positions) {
+      const row = document.createElement('div');
+      row.className = 'act-level-row';
+      row.draggable = true;
+      row.dataset.levelId = String(level.id);
+
+      const grip = document.createElement('span');
+      grip.className = 'act-level-grip';
+      grip.textContent = '⠿';
+      grip.setAttribute('aria-hidden', 'true');
+
+      const pos = document.createElement('span');
+      pos.className = 'act-level-pos';
+      pos.textContent = '#' + (positions.get(Number(level.id)) || '?');
+      pos.title = 'Campaign position (what the player sees)';
+
+      const name = document.createElement('div');
+      name.className = 'act-level-name';
+      const idBadge = document.createElement('span');
+      idBadge.className = 'act-level-id';
+      idBadge.textContent = `L${level.id} · `;
+      idBadge.title = 'Stable level id (save key, never shown to the player)';
+      name.appendChild(idBadge);
+      name.appendChild(document.createTextNode(level.title || level.name || level.description || 'Untitled'));
+      name.title = `id ${level.id}: ${level.title || level.name || level.description || ''}`;
+
+      const select = document.createElement('select');
+      select.className = 'act-level-select';
+      const none = document.createElement('option');
+      none.value = '';
+      none.textContent = 'Unassigned';
+      select.appendChild(none);
+      currentActs.forEach((act, index) => {
+        const option = document.createElement('option');
+        option.value = String(index);
+        option.textContent = `Act ${index + 1}: ${act.title}`;
+        option.selected = index === actIndex;
+        select.appendChild(option);
+      });
+      select.addEventListener('change', () => assignLevelToAct(level.id, select.value));
+
+      const actions = document.createElement('div');
+      actions.className = 'act-level-actions';
+      if (actIndex >= 0) {
+        const ids = currentActs[actIndex].levelIds;
+        const position = ids.indexOf(Number(level.id));
+        const up = document.createElement('button');
+        up.type = 'button'; up.className = 'btn'; up.textContent = '↑'; up.title = 'Earlier';
+        up.disabled = position <= 0;
+        up.addEventListener('click', () => moveLevelInAct(actIndex, level.id, -1));
+        const down = document.createElement('button');
+        down.type = 'button'; down.className = 'btn'; down.textContent = '↓'; down.title = 'Later';
+        down.disabled = position < 0 || position >= ids.length - 1;
+        down.addEventListener('click', () => moveLevelInAct(actIndex, level.id, 1));
+        actions.append(up, down);
+      }
+
+      row.addEventListener('dragstart', (event) => {
+        dragLevelId = Number(level.id);
+        row.classList.add('dragging');
+        event.dataTransfer.effectAllowed = 'move';
+        event.dataTransfer.setData('text/plain', String(level.id));
+      });
+      row.addEventListener('dragend', () => {
+        dragLevelId = null;
+        row.classList.remove('dragging');
+        clearDropMarkers();
+      });
+      row.addEventListener('dragover', (event) => {
+        if (dragLevelId == null || dragLevelId === Number(level.id)) return;
+        event.preventDefault();
+        event.stopPropagation();
+        event.dataTransfer.dropEffect = 'move';
+        clearDropMarkers();
+        const rect = row.getBoundingClientRect();
+        const before = event.clientY < rect.top + rect.height / 2;
+        row.classList.add(before ? 'drop-before' : 'drop-after');
+      });
+      row.addEventListener('drop', (event) => {
+        if (dragLevelId == null || dragLevelId === Number(level.id)) return;
+        event.preventDefault();
+        event.stopPropagation();
+        const rect = row.getBoundingClientRect();
+        const before = event.clientY < rect.top + rect.height / 2;
+        if (actIndex < 0) {
+          placeLevelInAct(dragLevelId, -1, null);
+          return;
+        }
+        const ids = currentActs[actIndex].levelIds;
+        const targetPos = ids.indexOf(Number(level.id));
+        const beforeId = before ? Number(level.id) : (targetPos >= 0 ? ids[targetPos + 1] ?? null : null);
+        placeLevelInAct(dragLevelId, actIndex, beforeId);
+      });
+
+      row.append(grip, pos, name, select, actions);
+      return row;
+    }
+
+    // Whole card accepts drops (append to the act's end / unassign).
+    function wireActDropTarget(card, list, actIndex) {
+      card.addEventListener('dragover', (event) => {
+        if (dragLevelId == null) return;
+        event.preventDefault();
+        event.dataTransfer.dropEffect = 'move';
+        clearDropMarkers();
+        card.classList.add('drop-target');
+      });
+      card.addEventListener('dragleave', (event) => {
+        if (!card.contains(event.relatedTarget)) card.classList.remove('drop-target');
+      });
+      card.addEventListener('drop', (event) => {
+        if (dragLevelId == null) return;
+        event.preventDefault();
+        placeLevelInAct(dragLevelId, actIndex, null);
+      });
+    }
+
+    function renderActsEditor() {
+      if (!actsEditorList) return;
+      currentActs = normalizeActs(currentActs, currentLevels);
+      actsEditorList.textContent = '';
+      const levelsById = new Map(currentLevels.map((level) => [Number(level.id), level]));
+      const positions = campaignPositionMap();
+      const assigned = new Set();
+      currentActs.forEach((act, index) => {
+        const card = document.createElement('section');
+        card.className = 'act-editor-card';
+        const head = document.createElement('div');
+        head.className = 'act-editor-head';
+        const number = document.createElement('div');
+        number.className = 'act-editor-number';
+        number.textContent = `ACT ${index + 1}`;
+        const title = document.createElement('input');
+        title.className = 'act-editor-title';
+        title.value = act.title;
+        title.setAttribute('aria-label', `Act ${index + 1} title`);
+        title.addEventListener('change', () => { pushUndoSnapshot(); act.title = title.value.trim() || `Act ${index + 1}`; markActsEdited('Renamed act.'); });
+        const actions = document.createElement('div');
+        actions.className = 'act-editor-actions';
+        const up = document.createElement('button'); up.type = 'button'; up.className = 'btn'; up.textContent = '↑'; up.title = 'Move act earlier'; up.disabled = index === 0; up.addEventListener('click', () => moveAct(index, -1));
+        const down = document.createElement('button'); down.type = 'button'; down.className = 'btn'; down.textContent = '↓'; down.title = 'Move act later'; down.disabled = index === currentActs.length - 1; down.addEventListener('click', () => moveAct(index, 1));
+        const remove = document.createElement('button'); remove.type = 'button'; remove.className = 'btn'; remove.textContent = 'Delete'; remove.addEventListener('click', () => { if (!confirm(`Delete Act ${index + 1}? Its levels will become unassigned.`)) return; pushUndoSnapshot(); currentActs.splice(index, 1); markActsEdited('Deleted act.'); });
+        actions.append(up, down, remove);
+        head.append(number, title, actions);
+        const list = document.createElement('div');
+        list.className = 'act-level-list';
+        act.levelIds.forEach((id) => {
+          const level = levelsById.get(Number(id));
+          if (!level) return;
+          assigned.add(Number(id));
+          list.appendChild(makeActLevelRow(level, index, positions));
+        });
+        if (!list.children.length) { const empty = document.createElement('div'); empty.className = 'act-empty'; empty.textContent = 'Drop levels here.'; list.appendChild(empty); }
+        card.append(head, list);
+        wireActDropTarget(card, list, index);
+        actsEditorList.appendChild(card);
+      });
+      const unassigned = currentLevels.filter((level) => !assigned.has(Number(level.id)));
+      {
+        const card = document.createElement('section'); card.className = 'act-editor-card';
+        const heading = document.createElement('div'); heading.className = 'act-editor-number'; heading.textContent = 'UNASSIGNED LEVELS';
+        const note = document.createElement('div'); note.className = 'act-editor-hint'; note.textContent = 'Unassigned levels still play — appended after all acts, in list order.';
+        const list = document.createElement('div');
+        list.className = 'act-level-list';
+        unassigned.forEach((level) => list.appendChild(makeActLevelRow(level, -1, positions)));
+        if (!list.children.length) { const empty = document.createElement('div'); empty.className = 'act-empty'; empty.textContent = 'Drop a level here to unassign it.'; list.appendChild(empty); }
+        card.append(heading, note, list);
+        wireActDropTarget(card, list, -1);
+        actsEditorList.appendChild(card);
+      }
+    }
+
+    function openActsManagerModal() {
+      renderActsEditor();
+      actsManagerModal.hidden = false;
+    }
+
+    function closeActsManagerModal() {
+      actsManagerModal.hidden = true;
+    }
+    // Level list is shown in CAMPAIGN order, grouped by act; each button shows
+    // the player-facing position number (the stable id lives in the tooltip).
     function renderLevelButtons(levels) {
       levelButtonsEl.textContent = '';
-      const sorted = levels.slice();
-      sorted.forEach((level, index) => {
+      const positions = campaignPositionMap();
+      const byId = new Map(levels.map((level) => [Number(level.id), level]));
+      const assigned = new Set();
+
+      const appendHeader = (text) => {
+        const header = document.createElement('div');
+        header.className = 'level-act-group';
+        header.textContent = text;
+        header.title = text;
+        levelButtonsEl.appendChild(header);
+      };
+
+      const appendButton = (level, index) => {
         const warnings = validateLevel(level);
+        const unlocks = Array.isArray(level && level.unlocks) ? level.unlocks : [];
+        const hasUnlocks = unlocks.length > 0;
+        const hasTutorial = !!(level && level.tutorial);
         const id = getLevelId(level, currentLevels.indexOf(level));
+        const position = positions.get(Number(level.id));
         const button = document.createElement('button');
         button.type = 'button';
         button.className = 'level-btn';
-        button.textContent = level && level.id != null ? String(level.id) : String(index + 1);
-        button.title = warnings.length ? warnings.join('\n') : 'No warnings';
+        button.textContent = position != null ? String(position) : String(index + 1);
+        const titleParts = ['id ' + (level && level.id != null ? level.id : '?') + (position != null ? ' · campaign #' + position : '')];
+        if (hasTutorial) titleParts.push('Tutorial level');
+        if (hasUnlocks) titleParts.push('Unlocks: ' + unlocks.join(', '));
+        if (warnings.length) titleParts.push(warnings.join('\n'));
+        button.title = titleParts.join('\n\n');
         button.dataset.levelId = String(id);
         button.classList.toggle('active', selectedLevelId === id);
         button.classList.toggle('warn', warnings.length > 0);
+        button.classList.toggle('unlock', hasUnlocks);
+        button.classList.toggle('tutorial', hasTutorial);
+        if (hasTutorial) {
+          const tutorialDot = document.createElement('span');
+          tutorialDot.className = 'tutorial-dot';
+          tutorialDot.setAttribute('aria-hidden', 'true');
+          button.appendChild(tutorialDot);
+        }
         button.addEventListener('click', () => {
           selectedLevelId = id;
           renderLevelButtons(currentLevels);
@@ -2211,7 +2900,23 @@
           updateLevelManagerView();
         });
         levelButtonsEl.appendChild(button);
+      };
+
+      currentActs.forEach((act, index) => {
+        const actLevels = (act.levelIds || []).map((rawId) => byId.get(Number(rawId))).filter(Boolean);
+        if (!actLevels.length) return;
+        appendHeader(`Act ${index + 1} · ${act.title}`);
+        actLevels.forEach((level, levelIndex) => {
+          assigned.add(Number(level.id));
+          appendButton(level, levelIndex);
+        });
       });
+
+      const rest = levels.filter((level) => !assigned.has(Number(level.id)));
+      if (rest.length) {
+        if (currentActs.length) appendHeader('Unassigned');
+        rest.forEach((level, index) => appendButton(level, index));
+      }
     }
 
     function renderEmptyLevelState(message) {
@@ -2363,12 +3068,17 @@
         ]),
         buildDetailsBlock('Tools', [
           ['pieceColors', formatElementList(level.pieceColors)],
-          ['buffer', level.buffer === false ? 'disabled' : 'enabled'],
+          ['buffer', (() => {
+            const src = Array.isArray(level.available) ? level.available : (Array.isArray(level.unlocks) ? level.unlocks : []);
+            const tools = ['change', 'shuffle'].filter((t) => src.includes(t));
+            return (tools.length ? tools.join('+') : 'none') + (level.buffer === false ? ' (legacy buffer:false)' : '');
+          })()],
           ['changeCharges', level.changeCharges],
           ['shuffleCharges', level.shuffleCharges],
-          ['magic', level.magicEnabled === true ? 'enabled' : 'default/off'],
+          ['magic', ((Array.isArray(level.available) ? level.available : (Array.isArray(level.unlocks) ? level.unlocks : [])).some((id) => typeof id === 'string' && id.startsWith('magic_')) || level.magicEnabled === true ? 'on' : 'off') + (level.magicEnabled === true ? ' (legacy magicEnabled)' : '')],
           ['magicCharges', formatValue(level.magicCharges)],
           ['unlocks', Array.isArray(level.unlocks) ? (level.unlocks.length ? level.unlocks.join(', ') : '(gated, none)') : 'legacy (off)'],
+          ['available', Array.isArray(level.available) ? (level.available.length ? level.available.join(', ') : '(override: none)') : 'cumulative'],
         ]),
         buildObjectivesSummary(level),
         buildPieceQueueSummary(level),
@@ -2410,7 +3120,10 @@
       objectives.forEach((objective) => {
         const item = document.createElement('li');
         const color = objective && objective.color != null ? ' color ' + objective.color : '';
-        item.textContent = (objective && objective.type ? objective.type : '?') + ' x ' + (objective && objective.count != null ? objective.count : '?') + color;
+        const isAnyReaction = objective && (objective.type === 'reaction' || objective.type === 'pairs') && !objective.reaction;
+        const reaction = isAnyReaction ? ' Any Reaction' : (objective && objective.reaction ? ' ' + (REACTION_OPTIONS.find((option) => option.value === objective.reaction)?.label || objective.reaction) : '');
+        const type = objective && objective.type === 'pairs' ? 'reaction' : (objective && objective.type ? objective.type : '?');
+        item.textContent = type + reaction + ' x ' + (objective && objective.count != null ? objective.count : '?') + color;
         list.appendChild(item);
       });
       block.appendChild(list);
@@ -2605,35 +3318,13 @@
         input.name = 'detailPieceColor';
         input.value = String(option.value);
         input.checked = selectedColors.includes(option.value);
-        label.append(input, document.createTextNode(option.label));
+        label.append(input, createElementSwatch(option.value), document.createTextNode(option.label.replace(/^\d+\s*/, '')));
         checks.appendChild(label);
       });
-      const bufferLabel = document.createElement('label');
-      bufferLabel.className = 'form-row';
-      const bufferWrap = document.createElement('span');
-      bufferWrap.className = 'inline-list';
-      const bufferCheckLabel = document.createElement('label');
-      const bufferCheck = document.createElement('input');
-      bufferCheck.type = 'checkbox';
-      bufferCheck.id = 'detailBufferEnabledInput';
-      bufferCheck.checked = level.buffer !== false;
-      bufferCheckLabel.append(bufferCheck, document.createTextNode('Buffer enabled'));
-      bufferWrap.appendChild(bufferCheckLabel);
-      bufferLabel.append(document.createTextNode('Buffer'), bufferWrap);
-
-      const magicLabel = document.createElement('label');
-      magicLabel.className = 'form-row';
-      const magicWrap = document.createElement('span');
-      magicWrap.className = 'inline-list';
-      const magicCheckLabel = document.createElement('label');
-      const magicCheck = document.createElement('input');
-      magicCheck.type = 'checkbox';
-      magicCheck.id = 'detailMagicEnabledInput';
-      magicCheck.checked = level.magicEnabled === true;
-      magicCheck.addEventListener('change', updateMagicChargeVisibility);
-      magicCheckLabel.append(magicCheck, document.createTextNode('Magic enabled'));
-      magicWrap.appendChild(magicCheckLabel);
-      magicLabel.append(document.createTextNode('Magic'), magicWrap);
+      // Buffer/Magic master checkboxes removed: Change/Shuffle and each magic
+      // element are per-tool features now — control them in Available / Unlocks
+      // below. (Legacy level.buffer / level.magicEnabled are still honored by
+      // the game but the editor no longer writes them.)
 
       const chargeGrid = document.createElement('div');
       chargeGrid.className = 'magic-charge-grid';
@@ -2657,27 +3348,39 @@
       gatingCheck.id = 'detailUnlocksGatingInput';
       gatingCheck.checked = gatingOn;
       gatingLabelEl.append(gatingCheck, document.createTextNode(' Use feature gating (unlocks granted on win)'));
-      const unlocksGrid = document.createElement('div');
-      unlocksGrid.className = 'magic-charge-grid';
-      FEATURE_IDS.forEach((id) => {
-        const wrap = document.createElement('label');
-        wrap.className = 'unlock-check';
-        const cb = document.createElement('input');
-        cb.type = 'checkbox';
-        cb.name = 'detailUnlock';
-        cb.value = id;
-        cb.checked = gatingOn && level.unlocks.includes(id);
-        cb.disabled = !gatingOn;
-        wrap.append(cb, document.createTextNode(' ' + FEATURE_META[id].label));
-        unlocksGrid.appendChild(wrap);
-      });
+      const unlocksGrid = buildGroupedFeatureGrid('detailUnlock',
+        (id) => gatingOn && level.unlocks.includes(id), () => !gatingOn);
       gatingCheck.addEventListener('change', () => {
         unlocksGrid.querySelectorAll('[name="detailUnlock"]').forEach((cb) => {
           cb.disabled = !gatingCheck.checked;
         });
+        updateMagicChargeVisibility();
       });
 
-      section.append(makeSectionLabel('Piece colors'), checks, bufferLabel, chargeGrid, magicLabel, unlocksLabel, gatingLabelEl, unlocksGrid);
+      // Available (in-level override): when ON, this list is EXACTLY what's
+      // usable during the level (special / story levels — e.g. "you lost your
+      // magic" = override ON, nothing checked). When OFF (field absent), the
+      // level's usable set is the campaign-cumulative unlocks up to it. This is
+      // separate from the rewards above; it grants nothing on win.
+      const availableOn = Array.isArray(level.available);
+      const availableLabel = makeSectionLabel('Available (in-level override)');
+      const availGatingLabelEl = document.createElement('label');
+      availGatingLabelEl.className = 'unlock-gating';
+      const availGatingCheck = document.createElement('input');
+      availGatingCheck.type = 'checkbox';
+      availGatingCheck.id = 'detailAvailableGatingInput';
+      availGatingCheck.checked = availableOn;
+      availGatingLabelEl.append(availGatingCheck, document.createTextNode(' Override what is usable in this level (else: cumulative)'));
+      const availableGrid = buildGroupedFeatureGrid('detailAvailable',
+        (id) => availableOn && level.available.includes(id), () => !availableOn);
+      availGatingCheck.addEventListener('change', () => {
+        availableGrid.querySelectorAll('[name="detailAvailable"]').forEach((cb) => {
+          cb.disabled = !availGatingCheck.checked;
+        });
+        updateMagicChargeVisibility();
+      });
+
+      section.append(makeSectionLabel('Piece colors'), checks, chargeGrid, unlocksLabel, gatingLabelEl, unlocksGrid, availableLabel, availGatingLabelEl, availableGrid);
       return section;
     }
 
@@ -2686,6 +3389,21 @@
       label.className = 'key';
       label.textContent = text;
       return label;
+    }
+    function getElementClass(value) {
+      const type = CELL_TYPES[String(value)];
+      return type && type.className ? type.className : 'unknown';
+    }
+
+    function createElementSwatch(value) {
+      const swatch = document.createElement('span');
+      swatch.className = 'element-swatch ' + getElementClass(value);
+      swatch.setAttribute('aria-hidden', 'true');
+      return swatch;
+    }
+
+    function updateElementSwatch(swatch, value) {
+      swatch.className = 'element-swatch ' + getElementClass(value);
     }
 
     function buildObjectivesEditorSection(level) {
@@ -2716,8 +3434,9 @@
       row.className = 'objective-row';
       const typeSelect = document.createElement('select');
       typeSelect.name = 'objectiveType';
-      OBJECTIVE_TYPES.forEach((type) => typeSelect.appendChild(makeOption(type, type, objective.type === type)));
-      typeSelect.value = OBJECTIVE_TYPES.includes(objective.type) ? objective.type : 'rings';
+      const effectiveType = objective.type === 'pairs' ? 'reaction' : objective.type;
+      OBJECTIVE_TYPES.forEach((type) => typeSelect.appendChild(makeOption(type, type, effectiveType === type)));
+      typeSelect.value = OBJECTIVE_TYPES.includes(effectiveType) ? effectiveType : 'rings';
       typeSelect.addEventListener('change', updateObjectiveColorVisibility);
       const countInput = document.createElement('input');
       countInput.type = 'number';
@@ -2727,14 +3446,17 @@
       countInput.value = objective.count == null ? '1' : String(objective.count);
       const colorSelect = document.createElement('select');
       colorSelect.name = 'objectiveColor';
-      colorSelect.appendChild(makeOption('', 'No color', objective.color == null));
+      colorSelect.appendChild(makeOption('', 'Any Element', objective.color == null));
       ELEMENT_OPTIONS.forEach((option) => colorSelect.appendChild(makeOption(String(option.value), option.label, Number(objective.color) === option.value)));
+      const reactionSelect = document.createElement('select');
+      reactionSelect.name = 'objectiveReaction';
+      REACTION_OPTIONS.forEach((option) => reactionSelect.appendChild(makeOption(option.value, option.label, objective.reaction === option.value)));
       const removeButton = document.createElement('button');
       removeButton.type = 'button';
       removeButton.className = 'btn';
       removeButton.textContent = 'Remove';
       removeButton.addEventListener('click', () => row.remove());
-      row.append(typeSelect, countInput, colorSelect, removeButton);
+      row.append(typeSelect, countInput, colorSelect, reactionSelect, removeButton);
       return row;
     }
 
@@ -2764,22 +3486,31 @@
       SHAPE_OPTIONS.forEach((shape) => shapeSelect.appendChild(makeOption(shape, shape, entry.shape === shape)));
       shapeSelect.value = SHAPE_OPTIONS.includes(entry.shape) ? entry.shape : 'T';
       const customLabel = document.createElement('label');
+      customLabel.className = 'queue-custom-colors';
       const customInput = document.createElement('input');
       customInput.type = 'checkbox';
       customInput.name = 'queueCustomColors';
       customInput.checked = Array.isArray(entry.colors) && entry.colors.length === 5;
       customInput.addEventListener('change', updateQueueColorVisibility);
-      customLabel.append(customInput, document.createTextNode('Custom colors'));
+      customLabel.append(customInput, document.createTextNode('Custom'));
       const colors = document.createElement('div');
       colors.className = 'piece-color-row';
       const sourceColors = customInput.checked ? entry.colors : [1, 2, 3, 4, 1];
       for (let i = 0; i < 5; i++) {
         const label = document.createElement('label');
+        const index = document.createElement('span');
+        index.textContent = String(i + 1);
+        const control = document.createElement('span');
+        control.className = 'queue-color-control';
+        const swatch = createElementSwatch(sourceColors[i]);
         const select = document.createElement('select');
         select.name = 'queueColor';
-        ELEMENT_OPTIONS.forEach((option) => select.appendChild(makeOption(String(option.value), String(option.value), Number(sourceColors[i]) === option.value)));
+        ELEMENT_OPTIONS.forEach((option) => select.appendChild(makeOption(String(option.value), option.label.replace(/^\d+\s*/, ''), Number(sourceColors[i]) === option.value)));
         select.value = String(ELEMENT_OPTIONS.some((option) => option.value === Number(sourceColors[i])) ? sourceColors[i] : 1);
-        label.append(document.createTextNode(String(i + 1)), select);
+        updateElementSwatch(swatch, select.value);
+        select.addEventListener('change', () => updateElementSwatch(swatch, select.value));
+        control.append(swatch, select);
+        label.append(index, control);
         colors.appendChild(label);
       }
       const removeButton = document.createElement('button');
@@ -2832,11 +3563,52 @@
       return option;
     }
 
+    // Group feature checkboxes (Tools / Elements / Ultimates) into labelled
+    // blocks for readability. Used by both the Available and Unlocks grids.
+    const FEATURE_GROUP_LABELS = { Buffer: 'Tools', Magic: 'Elements', Ult: 'Ultimates' };
+    function buildGroupedFeatureGrid(name, isChecked, isDisabled) {
+      const container = document.createElement('div');
+      container.className = 'feature-groups';
+      Object.keys(FEATURE_GROUP_LABELS).forEach((group) => {
+        const ids = FEATURE_IDS.filter((id) => (FEATURE_META[id].group || 'other') === group);
+        if (!ids.length) return;
+        const block = document.createElement('div');
+        block.className = 'feature-group';
+        const title = document.createElement('div');
+        title.className = 'feature-group-title';
+        title.textContent = FEATURE_GROUP_LABELS[group];
+        block.appendChild(title);
+        const grid = document.createElement('div');
+        grid.className = 'magic-charge-grid';
+        ids.forEach((id) => {
+          const wrap = document.createElement('label');
+          wrap.className = 'unlock-check';
+          const cb = document.createElement('input');
+          cb.type = 'checkbox';
+          cb.name = name;
+          cb.value = id;
+          cb.checked = isChecked(id);
+          cb.disabled = isDisabled(id);
+          cb.addEventListener('change', updateMagicChargeVisibility);
+          wrap.append(cb, document.createTextNode(' ' + FEATURE_META[id].label));
+          grid.appendChild(wrap);
+        });
+        block.appendChild(grid);
+        container.appendChild(block);
+      });
+      return container;
+    }
+
     function updateMagicChargeVisibility() {
-      const enabled = document.getElementById('detailMagicEnabledInput');
+      // Magic charge inputs show when any magic_* feature is picked in
+      // Available / Unlocks (magic derives from the feature set now — the
+      // legacy magicEnabled checkbox is gone). See levelLoader.setAdventureLevel.
+      const magicOn = !!detailsEditorForm.querySelector(
+        '[name="detailAvailable"]:checked[value^="magic_"], [name="detailUnlock"]:checked[value^="magic_"]'
+      );
       detailsEditorForm.querySelectorAll('[data-magic-charge]').forEach((input) => {
         const row = input.closest('.form-row');
-        if (row) row.hidden = !(enabled && enabled.checked);
+        if (row) row.hidden = !magicOn;
       });
     }
 
@@ -2844,7 +3616,9 @@
       detailsEditorForm.querySelectorAll('.objective-row').forEach((row) => {
         const type = row.querySelector('[name="objectiveType"]');
         const color = row.querySelector('[name="objectiveColor"]');
-        if (color) color.hidden = !(type && type.value === 'clearColor');
+        if (color) color.hidden = !(type && (type.value === 'clearColor' || type.value === 'matches'));
+        const reaction = row.querySelector('[name="objectiveReaction"]');
+        if (reaction) reaction.hidden = !(type && type.value === 'reaction');
       });
     }
 
@@ -2891,10 +3665,11 @@
     function normalizeObjectives(objectives) {
       return objectives.slice(0, 3).map((objective) => {
         const normalized = {
-          type: OBJECTIVE_TYPES.includes(objective.type) ? objective.type : 'rings',
+          type: objective.type === 'pairs' ? 'reaction' : (OBJECTIVE_TYPES.includes(objective.type) ? objective.type : 'rings'),
           count: objective.count,
         };
-        if (normalized.type === 'clearColor') normalized.color = objective.color;
+        if ((normalized.type === 'clearColor' || normalized.type === 'matches') && objective.color != null) normalized.color = objective.color;
+        if (normalized.type === 'reaction' && objective.reaction) normalized.reaction = objective.reaction;
         return normalized;
       });
     }
@@ -2945,8 +3720,9 @@
       if (!pieceColors.length) errors.push('Select at least one piece color.');
       draft.pieceColors = ELEMENT_OPTIONS.map((option) => option.value).filter((value) => pieceColors.includes(value));
 
-      if (document.getElementById('detailBufferEnabledInput').checked) delete draft.buffer;
-      else draft.buffer = false;
+      // Buffer tools are per-feature now (change/shuffle in Available/Unlocks);
+      // the editor no longer writes the legacy `buffer` master switch.
+      delete draft.buffer;
 
       const changeCharges = readOptionalNonNegativeInt('detailChangeChargesInput', 'changeCharges', errors);
       const shuffleCharges = readOptionalNonNegativeInt('detailShuffleChargesInput', 'shuffleCharges', errors);
@@ -2955,20 +3731,22 @@
       if (shuffleCharges == null) delete draft.shuffleCharges;
       else draft.shuffleCharges = shuffleCharges;
 
-      const magicEnabled = document.getElementById('detailMagicEnabledInput').checked;
-      if (!magicEnabled) {
-        delete draft.magicEnabled;
-        delete draft.magicCharges;
-      } else {
-        draft.magicEnabled = true;
-        const charges = {};
+      // Magic derives from the feature set — the editor no longer writes the
+      // legacy `magicEnabled` flag. Start charges are kept only when a magic_*
+      // feature is actually available (in Available/Unlocks).
+      delete draft.magicEnabled;
+      const magicAvailable = !!detailsEditorForm.querySelector(
+        '[name="detailAvailable"]:checked[value^="magic_"], [name="detailUnlock"]:checked[value^="magic_"]'
+      );
+      const charges = {};
+      if (magicAvailable) {
         MAGIC_CHARGE_KEYS.forEach((key) => {
           const value = readOptionalNonNegativeInt('detailMagicCharge_' + key, 'magicCharges.' + key, errors);
           if (value && value > 0) charges[key] = value;
         });
-        if (Object.keys(charges).length) draft.magicCharges = charges;
-        else delete draft.magicCharges;
       }
+      if (Object.keys(charges).length) draft.magicCharges = charges;
+      else delete draft.magicCharges;
 
       const gatingOn = document.getElementById('detailUnlocksGatingInput');
       if (gatingOn && gatingOn.checked) {
@@ -2978,6 +3756,14 @@
         delete draft.unlocks;
       }
 
+      const availGatingOn = document.getElementById('detailAvailableGatingInput');
+      if (availGatingOn && availGatingOn.checked) {
+        const picked = Array.from(detailsEditorForm.querySelectorAll('[name="detailAvailable"]:checked')).map((cb) => cb.value);
+        draft.available = FEATURE_IDS.filter((id) => picked.includes(id));
+      } else {
+        delete draft.available;
+      }
+
       const objectives = [];
       detailsEditorForm.querySelectorAll('.objective-row').forEach((row, objectiveIndex) => {
         const type = row.querySelector('[name="objectiveType"]').value;
@@ -2985,10 +3771,16 @@
         if (!OBJECTIVE_TYPES.includes(type)) errors.push('Objective ' + (objectiveIndex + 1) + ' has invalid type.');
         if (!Number.isInteger(count) || count <= 0) errors.push('Objective ' + (objectiveIndex + 1) + ' count must be positive.');
         const objective = { type, count };
-        if (type === 'clearColor') {
-          const color = Number(row.querySelector('[name="objectiveColor"]').value);
-          if (!ELEMENT_OPTIONS.some((option) => option.value === color)) errors.push('Objective ' + (objectiveIndex + 1) + ' color is required.');
-          objective.color = color;
+        if (type === 'clearColor' || type === 'matches') {
+          const rawColor = row.querySelector('[name="objectiveColor"]').value;
+          const color = Number(rawColor);
+          if (type === 'clearColor' && !ELEMENT_OPTIONS.some((option) => option.value === color)) errors.push('Objective ' + (objectiveIndex + 1) + ' color is required.');
+          if (rawColor !== '' && ELEMENT_OPTIONS.some((option) => option.value === color)) objective.color = color;
+        }
+        if (type === 'reaction') {
+          const reaction = row.querySelector('[name="objectiveReaction"]').value;
+          if (!REACTION_OPTIONS.some((option) => option.value === reaction)) errors.push('Objective ' + (objectiveIndex + 1) + ' reaction is invalid.');
+          if (reaction) objective.reaction = reaction;
         }
         objectives.push(objective);
       });
@@ -3295,6 +4087,25 @@
           updateActiveVersionSummary();
           updateTestSlotStatus();
         });
+        button.addEventListener('dblclick', () => {
+          selectedVersionId = version.id;
+          fillVersionFields(version);
+          if (loadSelectedVersion()) closeVersionsModal();
+        });
+        button.addEventListener('pointerup', (event) => {
+          if (event.pointerType !== 'touch') return;
+          const now = Date.now();
+          if (lastVersionTapId === version.id && now - lastVersionTapAt <= DOUBLE_TAP_MS) {
+            lastVersionTapId = null;
+            lastVersionTapAt = 0;
+            selectedVersionId = version.id;
+            fillVersionFields(version);
+            if (loadSelectedVersion()) closeVersionsModal();
+            return;
+          }
+          lastVersionTapId = version.id;
+          lastVersionTapAt = now;
+        });
         savedVersionsList.appendChild(button);
       });
       updateDirtyIndicator();
@@ -3314,8 +4125,18 @@
       versionsModal.hidden = true;
     }
 
+    function openTestingModal() {
+      testingModal.hidden = false;
+      updateTestSlotStatus();
+      buildFeatureOverrideGrid();
+    }
+
+    function closeTestingModal() {
+      testingModal.hidden = true;
+    }
+
     function updateActiveVersionSummary() {
-      const version = getSelectedVersion();
+      const version = getActiveVersion();
       if (!version) {
         activeVersionSummary.textContent = 'Current version: none' + (hasAnyEditorEdits() ? ' - Unapplied changes' : '');
         return;
@@ -3340,7 +4161,7 @@
     function getVersionSaveSnapshot() {
       if (hasAnyEditorEdits() && currentLevels.length) {
         const levels = cloneLevels(currentLevels);
-        const rawText = JSON.stringify(levels, null, 2);
+        const rawText = campaignJson();
         return { levels, rawText, fromEditor: true };
       }
       const levels = parseLevelsInput(inputEl.value);
@@ -3349,7 +4170,7 @@
 
     function getWorkingVersionText() {
       if (!inputDirtySinceRender && currentLevels.length) {
-        return JSON.stringify(currentLevels, null, 2);
+        return campaignJson();
       }
       return inputEl.value;
     }
@@ -3367,18 +4188,22 @@
       updateLevelManagerView();
     }
 
+    function normalizedLevelsHash(levels) {
+      return hashText(JSON.stringify(Array.isArray(levels) ? levels : [], null, 2));
+    }
+
     function createVersionFromInput() {
       const name = versionNameInput.value.trim();
       if (!name) {
         setStatus('Version name is required.', 'error');
-        return;
+        return false;
       }
       let snapshot;
       try {
         snapshot = getVersionSaveSnapshot();
       } catch (error) {
         setStatus('Cannot save: ' + error.message, 'error');
-        return;
+        return false;
       }
       const levels = snapshot.levels;
       const rawText = snapshot.rawText;
@@ -3393,35 +4218,38 @@
         updatedAt: now,
         levelCount: levels.length,
         hash: hashText(rawText),
+        normalizedHash: normalizedLevelsHash(levels),
         rawText,
         normalizedJson: levels,
       };
       savedVersions.push(version);
       selectedVersionId = version.id;
+      activeVersionId = version.id;
       saveSavedVersions();
       if (snapshot.fromEditor) markEditorChangesSavedToVersion();
       renderSavedVersions();
       setStatus('Saved version: ' + name, 'ok');
       updateActiveVersionSummary();
+      return true;
     }
 
     function updateSelectedVersionFromInput() {
       const version = getSelectedVersion();
       if (!version) {
         setStatus('No version selected.', 'error');
-        return;
+        return false;
       }
       const name = versionNameInput.value.trim();
       if (!name) {
         setStatus('Version name is required.', 'error');
-        return;
+        return false;
       }
       let snapshot;
       try {
         snapshot = getVersionSaveSnapshot();
       } catch (error) {
         setStatus('Cannot update: ' + error.message, 'error');
-        return;
+        return false;
       }
       const levels = snapshot.levels;
       const rawText = snapshot.rawText;
@@ -3432,19 +4260,22 @@
       version.updatedAt = new Date().toISOString();
       version.levelCount = levels.length;
       version.hash = hashText(rawText);
+      version.normalizedHash = normalizedLevelsHash(levels);
       version.rawText = rawText;
       version.normalizedJson = levels;
+      activeVersionId = version.id;
       saveSavedVersions();
       if (snapshot.fromEditor) markEditorChangesSavedToVersion();
       renderSavedVersions();
       setStatus('Updated version: ' + name, 'ok');
       updateActiveVersionSummary();
+      return true;
     }
 
     function quickUpdateCurrentVersion() {
-      const version = getSelectedVersion();
+      const version = getActiveVersion();
       if (!version) {
-        setStatus('No version selected.', 'error');
+        setStatus('No current version loaded.', 'error');
         updateDirtyIndicator();
         return;
       }
@@ -3468,8 +4299,11 @@
       version.updatedAt = new Date().toISOString();
       version.levelCount = levels.length;
       version.hash = hashText(rawText);
+      version.normalizedHash = normalizedLevelsHash(levels);
       version.rawText = rawText;
       version.normalizedJson = levels;
+      selectedVersionId = version.id;
+      fillVersionFields(version);
       saveSavedVersions();
       if (snapshot.fromEditor) markEditorChangesSavedToVersion();
       renderSavedVersions();
@@ -3483,25 +4317,27 @@
       const version = getSelectedVersion();
       if (!version) {
         setStatus('No version selected.', 'error');
-        return;
+        return false;
       }
-      if (hasAnyEditorEdits() && !confirm('You have unapplied editor changes. Load selected version anyway?')) return;
-      if (hasUnsavedChanges() && !confirm('Textarea has unsaved changes. Load selected version anyway?')) return;
+      if (hasAnyEditorEdits() && !confirm('You have unapplied editor changes. Load selected version anyway?')) return false;
+      if ((hasUnsavedChanges() || inputDirtySinceRender) && !confirm('Textarea has unsaved changes. Load selected version anyway?')) return false;
       inputEl.value = version.rawText || '';
       fillVersionFields(version);
       const rendered = renderFromInput();
       selectedVersionId = version.id;
+      activeVersionId = version.id;
       renderSavedVersions();
       updateDirtyIndicator();
       updateActiveVersionSummary();
       if (rendered) setStatus('Loaded version: ' + (version.name || '(untitled)'), 'ok');
+      return !!rendered;
     }
 
     function duplicateSelectedVersion() {
       const version = getSelectedVersion();
       if (!version) {
         setStatus('No version selected.', 'error');
-        return;
+        return false;
       }
       const now = new Date().toISOString();
       const copy = {
@@ -3519,31 +4355,34 @@
       renderSavedVersions();
       setStatus('Duplicated version: ' + copy.name, 'ok');
       updateActiveVersionSummary();
+      return true;
     }
 
     function deleteSelectedVersion() {
       const version = getSelectedVersion();
       if (!version) {
         setStatus('No version selected.', 'error');
-        return;
+        return false;
       }
-      if (!confirm('Delete version "' + (version.name || '(untitled)') + '"?')) return;
+      if (!confirm('Delete version "' + (version.name || '(untitled)') + '"?')) return false;
       const index = savedVersions.findIndex((item) => item.id === version.id);
       savedVersions = savedVersions.filter((item) => item.id !== version.id);
       const next = savedVersions[Math.min(index, savedVersions.length - 1)] || null;
+      if (activeVersionId === version.id) activeVersionId = null;
       selectedVersionId = next ? next.id : null;
       fillVersionFields(next);
       saveSavedVersions();
       renderSavedVersions();
       setStatus('Deleted version.', 'ok');
       updateActiveVersionSummary();
+      return true;
     }
 
     function exportSelectedVersion() {
       const version = getSelectedVersion();
       if (!version) {
         setStatus('No version selected.', 'error');
-        return;
+        return false;
       }
       const date = todayString();
       const filename = 'eb-levels-' + safeFilenamePart(version.name) + '-' + safeFilenamePart(version.tag) + '-' + date + '.json';
@@ -3555,12 +4394,13 @@
       });
       setStatus('Exported selected version.', 'ok');
       updateActiveVersionSummary();
+      return true;
     }
 
     function exportAllVersions() {
       if (!savedVersions.length) {
         setStatus('No versions to export.', 'error');
-        return;
+        return false;
       }
       downloadJson('eb-level-viewer-versions-' + todayString() + '.json', {
         type: 'elemental-blocks-level-viewer-version-pack',
@@ -3570,6 +4410,7 @@
       });
       setStatus('Exported all versions.', 'ok');
       updateActiveVersionSummary();
+      return true;
     }
 
     function importVersionsFromFile(file) {
@@ -3611,7 +4452,7 @@
         const raw = localStorage.getItem(TEST_LEVELS_STORAGE_KEY);
         if (!raw) return { ok: false, payload: null, error: null };
         const payload = JSON.parse(raw);
-        if (!payload || payload.schema !== 1) return { ok: false, payload, error: 'schema mismatch' };
+        if (!payload || (payload.schema !== 1 && payload.schema !== 2)) return { ok: false, payload, error: 'schema mismatch' };
         if (payload.enabled !== true) return { ok: false, payload, error: 'disabled' };
         if (!Array.isArray(payload.levels)) return { ok: false, payload, error: 'levels is not an array' };
         return { ok: true, payload, error: null };
@@ -3643,27 +4484,29 @@
       const version = getSelectedVersion();
       if (!version) {
         setStatus('No saved version selected.', 'error');
-        return;
+        return false;
       }
       if (hasAnyEditorEdits()) {
         setStatus('Apply changes and save/update the version before setting it for test.', 'error');
-        return;
+        return false;
       }
       if (hasUnsavedChanges()) {
         setStatus('Save or update the selected version before setting it for test.', 'error');
-        return;
+        return false;
       }
+      let campaign;
       let levels;
       try {
-        levels = parseLevelsInput(version.rawText || '');
+        campaign = parseCampaignInput(version.rawText || '');
+        levels = campaign.levels;
       } catch (error) {
         setStatus('Cannot set for test: ' + error.message, 'error');
-        return;
+        return false;
       }
-      const rawText = JSON.stringify(levels, null, 2);
+      const rawText = JSON.stringify(campaign, null, 2);
       const payload = {
         enabled: true,
-        schema: 1,
+        schema: 2,
         createdAt: new Date().toISOString(),
         source: 'levelstool',
         sourceVersionId: version.id,
@@ -3671,16 +4514,18 @@
         sourceVersionTag: version.tag || '',
         levelCount: levels.length,
         hash: hashText(rawText),
+        acts: campaign.acts,
         levels,
       };
       try {
         localStorage.setItem(TEST_LEVELS_STORAGE_KEY, JSON.stringify(payload));
       } catch (error) {
         setStatus('Could not set test slot: ' + error.message, 'error');
-        return;
+        return false;
       }
       updateTestSlotStatus();
       setStatus('Set for test: ' + (version.name || '(untitled)'), 'ok');
+      return true;
     }
 
     function clearTestSlot() {
@@ -3735,7 +4580,7 @@
     }
 
     function saveFeatureOverride() {
-      if (!featureOverrideGrid) return;
+      if (!featureOverrideGrid) return false;
       const payload = {};
       featureOverrideGrid.querySelectorAll('select[data-feature]').forEach((select) => {
         if (select.value === 'on') payload[select.dataset.feature] = true;
@@ -3751,7 +4596,9 @@
         }
       } catch (error) {
         setStatus('Could not save feature override: ' + error.message, 'error');
+        return false;
       }
+      return true;
     }
 
     function clearFeatureOverride() {
@@ -3759,10 +4606,11 @@
         localStorage.removeItem(FEATURE_OVERRIDE_STORAGE_KEY);
       } catch (error) {
         setStatus('Could not clear feature override: ' + error.message, 'error');
-        return;
+        return false;
       }
       buildFeatureOverrideGrid();
       setStatus('Cleared feature override.', 'ok');
+      return true;
     }
 
     function downloadJson(filename, data) {
@@ -3791,15 +4639,31 @@
       return (hash >>> 0).toString(16);
     }
 
-    function hasUnsavedChanges() {
-      const version = getSelectedVersion();
-      if (!version) return false;
-      return hashText(getWorkingVersionText()) !== version.hash;
+    function normalizedCampaignHash(campaign) {
+      return hashText(JSON.stringify({
+        format: CAMPAIGN_FORMAT,
+        version: CAMPAIGN_VERSION,
+        acts: normalizeActs(campaign.acts, campaign.levels),
+        levels: campaign.levels,
+      }));
     }
 
+    function hasUnsavedChanges() {
+      const version = getActiveVersion();
+      if (!version) return false;
+      if (inputDirtySinceRender || !currentLevels.length) {
+        return hashText(getWorkingVersionText()) !== version.hash;
+      }
+      try {
+        const savedCampaign = parseCampaignInput(version.rawText || '');
+        return normalizedCampaignHash(campaignData()) !== normalizedCampaignHash(savedCampaign);
+      } catch (error) {
+        return hashText(getWorkingVersionText()) !== version.hash;
+      }
+    }
     function updateDirtyIndicator() {
-      if (!selectedVersionId || !getSelectedVersion()) {
-        dirtyIndicator.textContent = 'No version selected';
+      if (!activeVersionId || !getActiveVersion()) {
+        dirtyIndicator.textContent = 'No current version';
         dirtyIndicator.className = 'dirty-indicator';
         updateQuickUpdateButton();
         updateActiveVersionSummary();
@@ -3818,7 +4682,7 @@
 
     function updateQuickUpdateButton() {
       if (!quickUpdateVersionBtn) return;
-      const show = !!getSelectedVersion() && hasUnsavedChanges();
+      const show = !!getActiveVersion() && hasUnsavedChanges();
       quickUpdateVersionBtn.hidden = !show;
       quickUpdateVersionBtn.classList.toggle('hidden', !show);
       quickUpdateVersionBtn.disabled = !show;
@@ -3826,6 +4690,10 @@
 
     function getSelectedVersion() {
       return savedVersions.find((version) => version.id === selectedVersionId) || null;
+    }
+
+    function getActiveVersion() {
+      return savedVersions.find((version) => version.id === activeVersionId) || null;
     }
 
     function getSelectedLevel() {
@@ -3850,8 +4718,10 @@
 
     function renderFromInput(options = {}) {
       try {
-        const levels = parseLevelsInput(inputEl.value);
+        const campaign = parseCampaignInput(inputEl.value);
+        const levels = campaign.levels;
         currentLevels = levels;
+        currentActs = campaign.acts;
         inputDirtySinceRender = false;
         if (!options.keepEditSession) resetGridEditState();
         const requestedId = options.selectedLevelId || selectedLevelId;
@@ -3860,11 +4730,14 @@
         renderLevelButtons(currentLevels);
         renderSelectedLevel(selected);
         updateLevelManagerView();
-        setStatus('Loaded ' + levels.length + ' level(s).', 'ok');
+        setStatus(campaign.legacy
+          ? 'Loaded ' + levels.length + ' level(s) from a legacy array — all placed into one act. Use "Acts..." to organize the campaign.'
+          : 'Loaded ' + levels.length + ' level(s) in ' + campaign.acts.length + ' act(s).', 'ok');
         updateDirtyIndicator();
         return true;
       } catch (error) {
         currentLevels = [];
+        currentActs = [];
         selectedLevelId = null;
         inputDirtySinceRender = false;
         resetGridEditState();
@@ -3896,7 +4769,7 @@
         return;
       }
 
-      copyTextToClipboard(JSON.stringify(currentLevels, null, 2), 'Normalized JSON copied.');
+      copyTextToClipboard(campaignJson(), 'Normalized campaign JSON copied.');
     }
 
     function copyCurrentScheme() {
@@ -3985,20 +4858,26 @@
         updatedAt: version.updatedAt || now,
         levelCount: levels.length,
         hash: hashText(rawText),
+        normalizedHash: normalizedLevelsHash(levels),
         rawText,
         normalizedJson: levels,
       };
     }
 
     openVersionsBtn.addEventListener('click', openVersionsModal);
+    openTestingBtn.addEventListener('click', openTestingModal);
     quickUpdateVersionBtn.addEventListener('click', quickUpdateCurrentVersion);
     openLevelManagerBtn.addEventListener('click', openLevelManagerModal);
     editDetailsBtn.addEventListener('click', openDetailsEditorModal);
     closeVersionsBtn.addEventListener('click', closeVersionsModal);
+    closeTestingBtn.addEventListener('click', closeTestingModal);
     closeLevelManagerBtn.addEventListener('click', closeLevelManagerModal);
     closeDetailsEditorBtn.addEventListener('click', closeDetailsEditorModal);
     versionsModal.addEventListener('click', (event) => {
       if (event.target === versionsModal) closeVersionsModal();
+    });
+    testingModal.addEventListener('click', (event) => {
+      if (event.target === testingModal) closeTestingModal();
     });
     levelManagerModal.addEventListener('click', (event) => {
       if (event.target === levelManagerModal) closeLevelManagerModal();
@@ -4008,12 +4887,14 @@
     });
     document.addEventListener('keydown', (event) => {
       if (event.key === 'Escape' && !versionsModal.hidden) closeVersionsModal();
+      if (event.key === 'Escape' && !testingModal.hidden) closeTestingModal();
       if (event.key === 'Escape' && !levelManagerModal.hidden) closeLevelManagerModal();
+      if (event.key === 'Escape' && !actsManagerModal.hidden) closeActsManagerModal();
       if (event.key === 'Escape' && !detailsEditorModal.hidden) closeDetailsEditorModal();
     });
     document.addEventListener('keydown', (event) => {
       if (!editMode) return;
-      if (!versionsModal.hidden || !levelManagerModal.hidden || !detailsEditorModal.hidden) return;
+      if (!versionsModal.hidden || !testingModal.hidden || !levelManagerModal.hidden || !actsManagerModal.hidden || !detailsEditorModal.hidden) return;
       const target = event.target;
       if (target && ['INPUT', 'TEXTAREA'].includes(target.tagName)) return;
       if (target && target.isContentEditable) return;
@@ -4061,9 +4942,15 @@
       inputDirtySinceRender = true;
       updateDirtyIndicator();
     });
-    saveVersionBtn.addEventListener('click', createVersionFromInput);
-    updateVersionBtn.addEventListener('click', updateSelectedVersionFromInput);
-    loadVersionBtn.addEventListener('click', loadSelectedVersion);
+    saveVersionBtn.addEventListener('click', () => {
+      if (createVersionFromInput()) closeVersionsModal();
+    });
+    updateVersionBtn.addEventListener('click', () => {
+      if (updateSelectedVersionFromInput()) closeVersionsModal();
+    });
+    loadVersionBtn.addEventListener('click', () => {
+      if (loadSelectedVersion()) closeVersionsModal();
+    });
     duplicateVersionBtn.addEventListener('click', duplicateSelectedVersion);
     deleteVersionBtn.addEventListener('click', deleteSelectedVersion);
     exportVersionBtn.addEventListener('click', exportSelectedVersion);
@@ -4071,9 +4958,22 @@
     importVersionsBtn.addEventListener('click', () => importVersionsInput.click());
     setVersionForTestBtn.addEventListener('click', setSelectedVersionForTest);
     clearTestSlotBtn.addEventListener('click', clearTestSlot);
-    if (saveFeatureOverrideBtn) saveFeatureOverrideBtn.addEventListener('click', saveFeatureOverride);
-    if (clearFeatureOverrideBtn) clearFeatureOverrideBtn.addEventListener('click', clearFeatureOverride);
+    if (saveFeatureOverrideBtn) {
+      saveFeatureOverrideBtn.addEventListener('click', () => {
+        saveFeatureOverride();
+      });
+    }
+    if (clearFeatureOverrideBtn) {
+      clearFeatureOverrideBtn.addEventListener('click', () => {
+        clearFeatureOverride();
+      });
+    }
     importVersionsInput.addEventListener('change', () => importVersionsFromFile(importVersionsInput.files && importVersionsInput.files[0]));
+    openActsManagerBtn.addEventListener('click', openActsManagerModal);
+    closeActsManagerBtn.addEventListener('click', closeActsManagerModal);
+    addActBtn.addEventListener('click', () => { pushUndoSnapshot(); currentActs.push({ id: currentActs.length + 1, title: 'New Act ' + (currentActs.length + 1), levelIds: [] }); markActsEdited('Added act.'); });
+    applyActsBtn.addEventListener('click', () => { applyCurrentLevelsToTextarea('Applied campaign changes.'); closeActsManagerModal(); });
+    actsManagerModal.addEventListener('click', (event) => { if (event.target === actsManagerModal) closeActsManagerModal(); });
     createLevelBtn.addEventListener('click', addLevelFromManager);
     duplicateCurrentLevelBtn.addEventListener('click', duplicateCurrentLevel);
     deleteCurrentLevelBtn.addEventListener('click', deleteCurrentLevel);
@@ -4083,7 +4983,9 @@
     applyStructureBtn.addEventListener('click', applyStructureEditsToTextarea);
 
     function loadSampleLevels() {
-      inputEl.value = JSON.stringify(SAMPLE_LEVELS, null, 2);
+      currentLevels = cloneLevels(SAMPLE_LEVELS);
+      currentActs = inferActs(currentLevels);
+      inputEl.value = campaignJson();
       renderFromInput();
     }
 
@@ -4095,6 +4997,7 @@
       inputEl.value = '';
       inputDirtySinceRender = false;
       currentLevels = [];
+      currentActs = [];
       selectedLevelId = null;
       resetGridEditState();
       levelButtonsEl.textContent = '';

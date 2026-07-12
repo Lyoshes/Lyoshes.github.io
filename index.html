@@ -104,7 +104,7 @@
     </div>
     <span class="loader-core"></span>
   </div>
-  <div class="loader-hint">Entering the tower…</div>
+  <div class="loader-hint" data-i18n="loader.enteringTower">Entering the tower…</div>
 </div>
 <!-- Game container (sized like other panels on desktop) -->
 <div class="game-container" id="gameContainer">
@@ -132,7 +132,7 @@
       </div>
       <div class="hud-panel hud-ear hud-ear-right">
         <div class="ear-content ear-score">
-          <div class="panel-label">SCORE</div>
+          <div class="panel-label" data-i18n="hud.score">SCORE</div>
           <div id="scoreHud">0</div>
           <div class="panel-label" id="remainLabel">TIME</div>
           <div class="score-time-row"><span class="hud-clock" id="remainClock"></span><span id="remainingHud">2:00</span></div>
@@ -145,7 +145,7 @@
   <div class="hud-target hidden" id="targetHud"></div>
   <!-- Buffer action buttons — sides of screen, above magic row -->
   <div class="buf-side-wrap buf-side-left">
-    <button class="buf-btn change-btn" id="changePieceBtn" aria-label="Change piece" title="Change piece">
+    <button class="buf-btn change-btn" id="changePieceBtn" aria-label="Change piece" title="Change piece" data-i18n-aria-label="aria.changePiece" data-i18n-title="aria.changePiece">
       <span class="buf-btn-charges" id="changeChargesDisplay">3</span>
     </button>
     <div class="buf-dots" id="changeDots">
@@ -156,7 +156,7 @@
     </div>
   </div>
   <div class="buf-side-wrap buf-side-right">
-    <button class="buf-btn shuffle-btn" id="shuffleColorsBtn" aria-label="Shuffle colors" title="Shuffle colors">
+    <button class="buf-btn shuffle-btn" id="shuffleColorsBtn" aria-label="Shuffle colors" title="Shuffle colors" data-i18n-aria-label="aria.shuffleColors" data-i18n-title="aria.shuffleColors">
       <span class="buf-btn-charges" id="shuffleChargesDisplay">3</span>
     </button>
     <div class="buf-dots" id="shuffleDots">
@@ -167,24 +167,24 @@
     </div>
   </div>
   <!-- Pause button (replaces settings button during game) -->
-  <button class="pause-btn hidden" id="pauseBtn" aria-label="Pause"></button>
+  <button class="pause-btn hidden" id="pauseBtn" aria-label="Pause" data-i18n-aria-label="aria.pause"></button>
   <!-- KZ Drop booster (standalone killzone-lowering, all modes) -->
   <div class="kzdrop-wrap">
-    <button class="kzdrop-btn empty" id="kzDropBtn" type="button" aria-label="KZ Drop" title="KZ Drop">
+    <button class="kzdrop-btn empty" id="kzDropBtn" type="button" aria-label="KZ Drop" title="KZ Drop" data-i18n-aria-label="aria.kzDrop" data-i18n-title="aria.kzDrop">
       <span class="kzdrop-charges"></span>
     </button>
   </div>
   <!-- Magic buttons -->
-  <div class="color-row" id="magicRow" aria-label="Magic">
-    <button class="color-btn" id="magicBlue" data-element="water" aria-label="Water"><span class="charges">3</span></button>
-    <button class="color-btn" id="magicGreen" data-element="earth" aria-label="Earth"><span class="charges">3</span></button>
-    <button class="magic-active-indicator hidden" id="magicActiveIndicator" type="button" aria-label="Active magic indicator">
+  <div class="color-row" id="magicRow" aria-label="Magic" data-i18n-aria-label="aria.magic">
+    <button class="color-btn" id="magicBlue" data-element="water" aria-label="Water" data-i18n-aria-label="elements.water"><span class="charges">3</span></button>
+    <button class="color-btn" id="magicGreen" data-element="earth" aria-label="Earth" data-i18n-aria-label="elements.earth"><span class="charges">3</span></button>
+    <button class="magic-active-indicator hidden" id="magicActiveIndicator" type="button" aria-label="Active magic indicator" data-i18n-aria-label="aria.activeMagic">
       <div class="magic-active-progress"></div>
       <span class="magic-active-icon" id="magicActiveIcon"></span>
       <span class="magic-active-cost" id="magicActiveCost"></span>
     </button>
-    <button class="color-btn" id="magicYellow" data-element="air" aria-label="Air"><span class="charges">3</span></button>
-    <button class="color-btn" id="magicRed" data-element="fire" aria-label="Fire"><span class="charges">3</span></button>
+    <button class="color-btn" id="magicYellow" data-element="air" aria-label="Air" data-i18n-aria-label="elements.air"><span class="charges">3</span></button>
+    <button class="color-btn" id="magicRed" data-element="fire" aria-label="Fire" data-i18n-aria-label="elements.fire"><span class="charges">3</span></button>
   </div>
 </div>
 <div class="overlay" id="overlay">
@@ -196,7 +196,7 @@
 
     <!-- Top-right buttons: settings -->
     <div class="mm-top-bar">
-      <button class="side-btn" id="startSettingsBtn" aria-label="Settings"></button>
+      <button class="side-btn" id="startSettingsBtn" aria-label="Settings" data-i18n-aria-label="aria.settings"></button>
     </div>
 
     <!-- Tab content area -->
@@ -211,14 +211,14 @@
         <div class="mm-home-spacer mm-home-spacer-top" aria-hidden="true"></div>
 
         <div class="mm-mode-list" id="modeGrid">
-          <button class="mm-mode-btn" id="adventureBtn" aria-label="Adventure">
-            <span class="mm-mode-label">Adventure</span>
+          <button class="mm-mode-btn" id="adventureBtn" aria-label="Adventure" data-i18n-aria-label="menu.adventure">
+            <span class="mm-mode-label" data-i18n="menu.adventure">Adventure</span>
           </button>
-          <button class="mm-mode-btn mode-btn active" data-mode="25_20" aria-label="Quick Tower">
-            <span class="mm-mode-label">Quick Tower</span>
+          <button class="mm-mode-btn mode-btn active" data-mode="25_20" aria-label="Quick Tower" data-i18n-aria-label="menu.quickTower">
+            <span class="mm-mode-label" data-i18n="menu.quickTower">Quick Tower</span>
           </button>
-          <button class="mm-mode-btn mode-btn" data-mode="30_24" aria-label="Magic Tower">
-            <span class="mm-mode-label">Magic Tower</span>
+          <button class="mm-mode-btn mode-btn" data-mode="30_24" aria-label="Magic Tower" data-i18n-aria-label="menu.magicTower">
+            <span class="mm-mode-label" data-i18n="menu.magicTower">Magic Tower</span>
           </button>
         </div>
 
@@ -233,18 +233,18 @@
       <!-- LEADERBOARD TAB -->
       <div class="mm-tab-pane hidden" id="mmTabLeaderboard" data-tab="leaderboard">
         <div class="lb-content">
-          <div class="lb-header">Leaderboards</div>
+          <div class="lb-header" data-i18n="leaderboard.title">Leaderboards</div>
 
           <!-- Mode switcher (display-only; does NOT start a game) -->
-          <div class="lb-mode-switch" id="lbModeSwitch" role="tablist" aria-label="Leaderboard mode">
-            <button class="lb-mode-btn active" data-lbmode="25_20" role="tab">Quick Tower</button>
-            <button class="lb-mode-btn" data-lbmode="30_24" role="tab">Magic Tower</button>
+          <div class="lb-mode-switch" id="lbModeSwitch" role="tablist" aria-label="Leaderboard mode" data-i18n-aria-label="leaderboard.modeSwitchAria">
+            <button class="lb-mode-btn active" data-lbmode="25_20" role="tab" data-i18n="menu.quickTower">Quick Tower</button>
+            <button class="lb-mode-btn" data-lbmode="30_24" role="tab" data-i18n="menu.magicTower">Magic Tower</button>
           </div>
 
           <!-- Your progress card: title, rings, progress, best record (per mode) -->
           <div class="lb-card lb-best">
             <div class="lb-card-top">
-              <div class="lb-card-label">Your Progress</div>
+              <div class="lb-card-label" data-i18n="leaderboard.yourProgress">Your Progress</div>
             </div>
             <div class="lb-best-body" id="lbBestBody">
               <!-- Current title -->
@@ -253,7 +253,7 @@
                   <img id="lbTitleIcon" class="lb-title-icon" alt="" draggable="false" />
                 </div>
                 <div class="lb-title-text">
-                  <div class="lb-title-cap">Title</div>
+                  <div class="lb-title-cap" data-i18n="leaderboard.titleCap">Title</div>
                   <div class="lb-title-name" id="lbTitleName">Novice Builder</div>
                 </div>
               </div>
@@ -266,16 +266,16 @@
               <!-- Ring progression stats -->
               <div class="lb-stat-row lb-stat-row-3">
                 <div class="lb-stat">
-                  <div class="lb-stat-cap">Total Rings</div>
+                  <div class="lb-stat-cap" data-i18n="leaderboard.totalRings">Total Rings</div>
                   <div class="lb-stat-val" id="lbTotalRings">0</div>
                 </div>
                 <div class="lb-stat">
-                  <div class="lb-stat-cap">Next Title</div>
+                  <div class="lb-stat-cap" data-i18n="leaderboard.nextTitle">Next Title</div>
                   <div class="lb-stat-val" id="lbNextThreshold">5</div>
                 </div>
                 <div class="lb-stat">
-                  <div class="lb-stat-cap">To Next</div>
-                  <div class="lb-stat-val"><span id="lbToNext">5</span> <span class="lb-stat-unit" id="lbToNextUnit">rings</span></div>
+                  <div class="lb-stat-cap" data-i18n="leaderboard.toNext">To Next</div>
+                  <div class="lb-stat-val"><span id="lbToNext">5</span> <span class="lb-stat-unit" id="lbToNextUnit" data-i18n="leaderboard.ringsUnit">rings</span></div>
                 </div>
               </div>
 
@@ -284,11 +284,11 @@
               <!-- Best record -->
               <div class="lb-stat-row lb-stat-row-2">
                 <div class="lb-stat">
-                  <div class="lb-stat-cap">Best Score</div>
+                  <div class="lb-stat-cap" data-i18n="leaderboard.bestScore">Best Score</div>
                   <div class="lb-stat-val lb-stat-val-lg" id="lbBestScore">0</div>
                 </div>
                 <div class="lb-stat">
-                  <div class="lb-stat-cap">Best Time</div>
+                  <div class="lb-stat-cap" data-i18n="leaderboard.bestTime">Best Time</div>
                   <div class="lb-stat-val lb-stat-val-lg" id="lbBestTime">⏱ 0:00</div>
                 </div>
               </div>
@@ -298,12 +298,12 @@
           <!-- Future online ranking -->
           <div class="lb-card lb-global">
             <div class="lb-card-top">
-              <div class="lb-card-label">Global Top</div>
+              <div class="lb-card-label" data-i18n="leaderboard.globalTop">Global Top</div>
             </div>
             <div class="lb-global-body">
               <div class="lb-global-orb">🌐</div>
-              <div class="lb-coming">Coming Soon</div>
-              <div class="lb-coming-sub">Global leaderboards are in development</div>
+              <div class="lb-coming" data-i18n="leaderboard.comingSoon">Coming Soon</div>
+              <div class="lb-coming-sub" data-i18n="leaderboard.comingSoonSub">Global leaderboards are in development</div>
             </div>
           </div>
         </div>
@@ -313,8 +313,8 @@
       <div class="mm-tab-pane hidden" id="mmTabAchievements" data-tab="achievements">
         <div class="mm-placeholder">
           <img class="mm-placeholder-icon" src="img/tabbar/ico_achiv.png" alt="" draggable="false" />
-          <div class="mm-placeholder-title">Achievements</div>
-          <div class="mm-placeholder-sub">Coming soon</div>
+          <div class="mm-placeholder-title" data-i18n="menu.achievements">Achievements</div>
+          <div class="mm-placeholder-sub" data-i18n="common.comingSoon">Coming soon</div>
         </div>
       </div>
 
@@ -322,8 +322,8 @@
       <div class="mm-tab-pane hidden" id="mmTabCollection" data-tab="collection">
         <div class="mm-placeholder">
           <img class="mm-placeholder-icon" src="img/tabbar/ico_collection.png" alt="" draggable="false" />
-          <div class="mm-placeholder-title">Collection</div>
-          <div class="mm-placeholder-sub">Coming soon</div>
+          <div class="mm-placeholder-title" data-i18n="menu.collection">Collection</div>
+          <div class="mm-placeholder-sub" data-i18n="common.comingSoon">Coming soon</div>
         </div>
       </div>
 
@@ -332,8 +332,8 @@
       <div class="mm-tab-pane hidden" id="mmTabQuests" data-tab="quests">
         <div class="mm-placeholder">
           <img class="mm-placeholder-icon" src="img/tabbar/ico_quests.png" alt="" draggable="false" />
-          <div class="mm-placeholder-title">Quests</div>
-          <div class="mm-placeholder-sub">Coming soon</div>
+          <div class="mm-placeholder-title" data-i18n="menu.quests">Quests</div>
+          <div class="mm-placeholder-sub" data-i18n="common.comingSoon">Coming soon</div>
         </div>
       </div>
 
@@ -342,25 +342,25 @@
     <!-- Tab Bar -->
     <div class="mm-tabbar">
       <div class="mm-tabbar-fit">
-        <button class="mm-tab-btn mm-tab-achievements" data-tab="achievements" aria-label="Achievements">
+        <button class="mm-tab-btn mm-tab-achievements" data-tab="achievements" aria-label="Achievements" data-i18n-aria-label="menu.achievements">
           <img src="img/tabbar/ico_achiv.png" alt="" draggable="false" />
-          <span>Achievements</span>
+          <span data-i18n="menu.achievements">Achievements</span>
         </button>
-        <button class="mm-tab-btn mm-tab-leaderboard" data-tab="leaderboard" aria-label="Leaderboards">
+        <button class="mm-tab-btn mm-tab-leaderboard" data-tab="leaderboard" aria-label="Leaderboards" data-i18n-aria-label="menu.leaderboards">
           <img src="img/tabbar/ico_leaderboard.png" alt="" draggable="false" />
-          <span>Leaderboards</span>
+          <span data-i18n="menu.leaderboards">Leaderboards</span>
         </button>
-        <button class="mm-tab-btn mm-tab-home active" data-tab="home" aria-label="Home">
+        <button class="mm-tab-btn mm-tab-home active" data-tab="home" aria-label="Home" data-i18n-aria-label="menu.home">
           <img src="img/tabbar/ico_home.png" alt="" draggable="false" />
-          <span>Home</span>
+          <span data-i18n="menu.home">Home</span>
         </button>
-        <button class="mm-tab-btn mm-tab-collection" data-tab="collection" aria-label="Collection">
+        <button class="mm-tab-btn mm-tab-collection" data-tab="collection" aria-label="Collection" data-i18n-aria-label="menu.collection">
           <img src="img/tabbar/ico_collection.png" alt="" draggable="false" />
-          <span>Collection</span>
+          <span data-i18n="menu.collection">Collection</span>
         </button>
-        <button class="mm-tab-btn mm-tab-quests" data-tab="quests" aria-label="Quests">
+        <button class="mm-tab-btn mm-tab-quests" data-tab="quests" aria-label="Quests" data-i18n-aria-label="menu.quests">
           <img src="img/tabbar/ico_quests.png" alt="" draggable="false" />
-          <span>Quests</span>
+          <span data-i18n="menu.quests">Quests</span>
         </button>
       </div>
     </div>
@@ -369,7 +369,7 @@
   <!-- Game Over splash (shown immediately; tap to reveal the results panel) -->
   <div class="gameover-splash hidden" id="gameoverSplash">
     <div class="gameover-splash-title">GAME OVER</div>
-    <div class="gameover-splash-hint">Tap to continue</div>
+    <div class="gameover-splash-hint" data-i18n="results.tapToContinue">Tap to continue</div>
   </div>
 
   <!-- Game Over panel (styled like pause) -->
@@ -379,7 +379,7 @@
     
     <div class="gameover-content">
       <div class="gameover-head">
-        <div class="gameover-title res-title">RESULTS</div>
+        <div class="gameover-title res-title" data-i18n="results.title">RESULTS</div>
         <div class="res-title-rule" aria-hidden="true"></div>
       </div>
 
@@ -388,7 +388,7 @@
         <!-- Adventure level card (replaces title progress in Adventure) -->
         <div class="gameover-score-card level-card hidden" id="goLevelCard">
           <div class="gameover-score-top">
-            <div class="gameover-label">Adventure</div>
+            <div class="gameover-label" data-i18n="results.adventure">Adventure</div>
             <div class="go-mission-status" id="goMissionStatus">Mission Complete</div>
           </div>
           <div class="go-level-row">
@@ -399,15 +399,15 @@
         <!-- Adventure reward: features unlocked by this win -->
         <div class="gameover-score-card unlock-card hidden" id="goUnlockCard">
           <div class="gameover-score-top">
-            <div class="gameover-label">✦ New Unlock</div>
+            <div class="gameover-label" data-i18n="results.newUnlock">✦ New Unlock</div>
           </div>
           <div class="go-unlock-list" id="goUnlockList"></div>
         </div>
         <!-- Title progress card -->
         <div class="gameover-score-card title-prog">
           <div class="gameover-score-top">
-            <div class="gameover-label">Title Progress</div>
-            <span class="res-rank-badge hidden" id="goNewRank">★ New Rank!</span>
+            <div class="gameover-label" data-i18n="results.titleProgress">Title Progress</div>
+            <span class="res-rank-badge hidden" id="goNewRank" data-i18n="results.newRank">★ New Rank!</span>
           </div>
 
           <div class="res-title-row">
@@ -418,7 +418,7 @@
               <div class="res-title-name" id="goTitleName">Novice Builder</div>
               <div class="res-rings-chip">
                 <span class="res-ring-ico" aria-hidden="true"></span>
-                <span class="res-rings-label">Rings</span>
+                <span class="res-rings-label" data-i18n="results.rings">Rings</span>
                 <span class="res-rings-count" id="goTotalRings">0</span>
               </div>
             </div>
@@ -443,7 +443,7 @@
         <div class="gameover-score-card final res-score-card" id="goScoreCard">
           <div class="res-score-row">
             <div class="res-score-col">
-              <div class="res-score-cap">Score</div>
+              <div class="res-score-cap" data-i18n="results.score">Score</div>
               <div class="res-score-val" id="goScore">0</div>
             </div>
             <div class="res-score-vdiv" aria-hidden="true"></div>
@@ -455,7 +455,7 @@
           <div class="res-score-hdiv" aria-hidden="true"></div>
           <div class="res-score-row res-best-row">
             <div class="res-score-col">
-              <div class="res-best-cap">Best Score</div>
+              <div class="res-best-cap" data-i18n="results.bestScore">Best Score</div>
               <div class="res-best-val" id="goBestScore">0</div>
             </div>
             <div class="res-score-vdiv" aria-hidden="true"></div>
@@ -464,12 +464,12 @@
               <div class="res-best-val" id="goBestTime">0:00</div>
             </div>
           </div>
-          <div class="gameover-record hidden" id="goNewRecord">🏆 NEW RECORD!</div>
+          <div class="gameover-record hidden" id="goNewRecord" data-i18n="results.newRecord">🏆 NEW RECORD!</div>
         </div>
 
         <!-- Scoring events performed during this run -->
         <div class="gameover-score-card stats res-breakdown-card">
-          <div class="gameover-stats-title">BREAKDOWN</div>
+          <div class="gameover-stats-title" data-i18n="results.breakdown">BREAKDOWN</div>
           <div class="gameover-stats-grid" id="goBreakdown"></div>
         </div>
         </div>
@@ -478,9 +478,9 @@
     
     <!-- Bottom action buttons -->
     <div class="gameover-actions">
-      <button class="gameover-action-btn" id="goExitBtn" aria-label="Exit to Menu" title="Exit to Menu"></button>
-      <button class="gameover-action-btn" id="goRestartBtn" aria-label="Restart" title="Restart"></button>
-      <button class="gameover-action-btn hidden" id="goNextBtn" aria-label="Next Level" title="Next Level"></button>
+      <button class="gameover-action-btn" id="goExitBtn" aria-label="Exit to Menu" title="Exit to Menu" data-i18n-aria-label="aria.exitToMenu" data-i18n-title="aria.exitToMenu"></button>
+      <button class="gameover-action-btn" id="goRestartBtn" aria-label="Restart" title="Restart" data-i18n-aria-label="aria.restart" data-i18n-title="aria.restart"></button>
+      <button class="gameover-action-btn hidden" id="goNextBtn" aria-label="Next Level" title="Next Level" data-i18n-aria-label="aria.nextLevel" data-i18n-title="aria.nextLevel"></button>
     </div>
   </div>
 </div>
@@ -493,53 +493,53 @@
     
     <!-- Left side buttons (settings, sound, music) -->
     <div class="pause-side-btns">
-      <button class="pause-circle" id="pauseSettingsBtn" aria-label="Settings" title="Settings"></button>
-      <button class="pause-circle" id="pauseSoundBtn" aria-label="Sound" title="Sound"></button>
-      <button class="pause-circle" id="pauseMusicBtn" aria-label="Music" title="Music"></button>
+      <button class="pause-circle" id="pauseSettingsBtn" aria-label="Settings" title="Settings" data-i18n-aria-label="aria.settings" data-i18n-title="aria.settings"></button>
+      <button class="pause-circle" id="pauseSoundBtn" aria-label="Sound" title="Sound" data-i18n-aria-label="aria.sound" data-i18n-title="aria.sound"></button>
+      <button class="pause-circle" id="pauseMusicBtn" aria-label="Music" title="Music" data-i18n-aria-label="aria.music" data-i18n-title="aria.music"></button>
     </div>
     
     <!-- Content -->
     <div class="pause-content">
-      <div class="pause-title">PAUSED</div>
+      <div class="pause-title" data-i18n="pause.title">PAUSED</div>
 
       <div class="pause-scroll">
         <div class="pause-score-grid">
         <!-- Best score card -->
         <div class="pause-score-card best">
           <div class="pause-score-top">
-            <div class="pause-label">Best</div>
+            <div class="pause-label" data-i18n="pause.best">Best</div>
             <div class="pause-pill best">⏱ <span id="pauseBestTime">0:00</span></div>
           </div>
           <div class="pause-big-score" id="pauseBestScore">0</div>
           <div class="pause-meta-row">
-            <span>Mode: <small id="pauseBestMode">High Tower</small></span>
+            <span><span data-i18n="pause.mode">Mode:</span> <small id="pauseBestMode">High Tower</small></span>
           </div>
         </div>
         
         <!-- Current score card -->
         <div class="pause-score-card current">
           <div class="pause-score-top">
-            <div class="pause-label">Current</div>
+            <div class="pause-label" data-i18n="pause.current">Current</div>
             <div class="pause-pill cur">⏱ <span id="pauseCurrentTime">0:00</span></div>
           </div>
           <div class="pause-big-score" id="pauseCurrentScore">0</div>
           <div class="pause-meta-row">
-            <span>Mode: <small id="pauseCurrentMode">High Tower</small></span>
+            <span><span data-i18n="pause.mode">Mode:</span> <small id="pauseCurrentMode">High Tower</small></span>
           </div>
         </div>
         </div>
 
         <div class="pause-adventure-card hidden" id="pauseAdventureCard">
         <div class="pause-adventure-head">
-          <div class="pause-label">Mission</div>
+          <div class="pause-label" data-i18n="pause.mission">Mission</div>
           <div class="pause-pill cur">
-            <span class="pause-adv-moves-cap">Moves Left</span>
+            <span class="pause-adv-moves-cap" data-i18n="pause.movesLeft">Moves Left</span>
             <span class="pause-adv-moves-val" id="pauseAdventureMovesLeft">0</span>
           </div>
         </div>
         <div class="pause-adventure-objectives" id="pauseAdventureObjectives"></div>
         <div class="pause-adventure-unlock-wrap">
-          <div class="pause-adv-unlock-cap">Will Unlock</div>
+          <div class="pause-adv-unlock-cap" data-i18n="pause.willUnlock">Will Unlock</div>
           <div class="pause-adventure-unlocks" id="pauseAdventureUnlocks"></div>
         </div>
         </div>
@@ -548,9 +548,9 @@
     
     <!-- Bottom action buttons -->
     <div class="pause-actions">
-      <button class="pause-action-btn" id="exitToMenuBtn" aria-label="Exit to Menu" title="Exit to Menu"></button>
-      <button class="pause-action-btn" id="restartBtn" aria-label="Restart" title="Restart"></button>
-      <button class="pause-action-btn" id="resumeBtn" aria-label="Resume" title="Resume"></button>
+      <button class="pause-action-btn" id="exitToMenuBtn" aria-label="Exit to Menu" title="Exit to Menu" data-i18n-aria-label="aria.exitToMenu" data-i18n-title="aria.exitToMenu"></button>
+      <button class="pause-action-btn" id="restartBtn" aria-label="Restart" title="Restart" data-i18n-aria-label="aria.restart" data-i18n-title="aria.restart"></button>
+      <button class="pause-action-btn" id="resumeBtn" aria-label="Resume" title="Resume" data-i18n-aria-label="aria.resume" data-i18n-title="aria.resume"></button>
     </div>
     
     <!-- Confirmation dialog -->
@@ -558,8 +558,8 @@
       <div class="confirm-box">
         <div class="confirm-text" id="confirmText">Are you sure?</div>
         <div class="confirm-buttons">
-          <button class="confirm-btn cancel" id="confirmCancel" aria-label="Cancel"></button>
-          <button class="confirm-btn ok" id="confirmOk" aria-label="Confirm"></button>
+          <button class="confirm-btn cancel" id="confirmCancel" aria-label="Cancel" data-i18n-aria-label="common.cancel"></button>
+          <button class="confirm-btn ok" id="confirmOk" aria-label="Confirm" data-i18n-aria-label="common.confirm"></button>
         </div>
       </div>
     </div>
@@ -573,28 +573,32 @@
     <div class="ringlines" aria-hidden="true"></div>
     
     <div class="settings-content">
-      <div class="settings-title">SETTINGS</div>
-      
+      <div class="settings-title" data-i18n="settings.title">SETTINGS</div>
+
       <div class="settings-tabs">
-        <button class="tab-btn active" data-tab="controls">General</button>
-        <button class="tab-btn" data-tab="sounds">Sounds</button>
+        <button class="tab-btn active" data-tab="controls" data-i18n="settings.tabGeneral">General</button>
+        <button class="tab-btn" data-tab="sounds" data-i18n="settings.tabSounds">Sounds</button>
       </div>
 
       <div class="tab-content active" id="tab-controls">
         <div class="settings-row">
-          <span class="settings-label">Single tap to rotate block</span>
+          <span class="settings-label" data-i18n="settings.language">Language</span>
+          <div class="lang-picker" id="languagePicker"></div>
+        </div>
+        <div class="settings-row">
+          <span class="settings-label" data-i18n="settings.tapRotate">Single tap to rotate block</span>
           <div class="toggle-switch" id="tapRotateToggle"></div>
         </div>
         <div class="settings-row">
-          <span class="settings-label">Invert swipe direction</span>
+          <span class="settings-label" data-i18n="settings.invertSwipe">Invert swipe direction</span>
           <div class="toggle-switch" id="invertSwipeToggle"></div>
         </div>
         <div class="settings-row">
-          <span class="settings-label">Vibration</span>
+          <span class="settings-label" data-i18n="settings.vibration">Vibration</span>
           <div class="toggle-switch" id="hapticsToggle"></div>
         </div>
         <div class="settings-row settings-row-sep" style="display:none;">
-          <span class="settings-label">Theme</span>
+          <span class="settings-label" data-i18n="settings.theme">Theme</span>
           <div class="theme-picker">
             <button class="theme-btn" data-theme="water"><span class="theme-icon water"></span></button>
             <button class="theme-btn" data-theme="air"><span class="theme-icon air"></span></button>
@@ -603,28 +607,28 @@
           </div>
         </div>
         <div class="settings-row" style="display:none;">
-          <span class="settings-label">Fullscreen mode</span>
+          <span class="settings-label" data-i18n="settings.fullscreen">Fullscreen mode</span>
           <button class="settings-action-btn" id="fullscreenBtn">Enable</button>
         </div>
-        <div id="iosHint" class="ios-hint" style="display:none;">
-          <b>📱 iOS Safari:</b> Tap <b>Share</b> → <b>Add to Home Screen</b> to run in fullscreen mode.
+        <div id="iosHint" class="ios-hint" style="display:none;" data-i18n="settings.iosHint">
+          📱 iOS Safari: tap Share → Add to Home Screen to run in fullscreen mode.
         </div>
-        <div id="standaloneBadge" class="standalone-badge" style="display:none;">
+        <div id="standaloneBadge" class="standalone-badge" style="display:none;" data-i18n="settings.standalone">
           ✓ Running in standalone mode
         </div>
       </div>
 
       <div class="tab-content" id="tab-sounds">
         <div class="settings-row">
-          <span class="settings-label">Sounds</span>
+          <span class="settings-label" data-i18n="settings.sounds">Sounds</span>
           <div class="toggle-switch" id="soundsToggle"></div>
         </div>
         <div class="settings-row">
-          <span class="settings-label">Music</span>
+          <span class="settings-label" data-i18n="settings.music">Music</span>
           <div class="toggle-switch" id="musicToggle"></div>
         </div>
         <div class="settings-row settings-row-sep">
-          <span class="settings-label">Sound Volume</span>
+          <span class="settings-label" data-i18n="settings.soundVolume">Sound Volume</span>
           <div class="volume-control">
             <button class="volume-btn" data-volume="0" id="soundVol0">0</button>
             <button class="volume-btn" data-volume="1" id="soundVol1">1</button>
@@ -634,7 +638,7 @@
           </div>
         </div>
         <div class="settings-row">
-          <span class="settings-label">Music Volume</span>
+          <span class="settings-label" data-i18n="settings.musicVolume">Music Volume</span>
           <div class="volume-control">
             <button class="volume-btn" data-volume="0" id="musicVol0">0</button>
             <button class="volume-btn" data-volume="1" id="musicVol1">1</button>
@@ -648,7 +652,7 @@
     
     <!-- Close button at bottom -->
     <div class="settings-actions">
-      <button class="settings-action-circle" id="settingsClose" aria-label="Close" title="Close"></button>
+      <button class="settings-action-circle" id="settingsClose" aria-label="Close" title="Close" data-i18n-aria-label="common.close" data-i18n-title="common.close"></button>
     </div>
   </div>
 </div>
