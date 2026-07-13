@@ -90,7 +90,7 @@
   <img id="splash-icon" src="" alt="" />
   <div id="splash-title">Elemental Blocks</div>
   <div id="splash-bar-wrap"><div id="splash-bar"></div></div>
-  <div id="splash-version">v0.41.8</div>
+  <div id="splash-version">v0.41.9</div>
 </div>
 <script src="splash.js"></script>
 <!-- In-game transition loader (menu/restart -> board) -->
@@ -224,7 +224,7 @@
 
         <div class="mm-home-spacer mm-home-spacer-bot" aria-hidden="true"></div>
 
-        <div class="start-version" id="startVersion">v0.41.8</div>
+        <div class="start-version" id="startVersion">v0.41.9</div>
         <!-- bestScore / bestTimeVal kept hidden for JS compat -->
         <span id="bestScore" style="display:none"></span>
         <span id="bestTimeVal" style="display:none"></span>
@@ -578,6 +578,7 @@
       <div class="settings-tabs">
         <button class="tab-btn active" data-tab="controls" data-i18n="settings.tabGeneral">General</button>
         <button class="tab-btn" data-tab="sounds" data-i18n="settings.tabSounds">Sounds</button>
+        <button class="tab-btn" data-tab="diagnostics" data-i18n="settings.tabDiagnostics">Diagnostics</button>
       </div>
 
       <div class="tab-content active" id="tab-controls">
@@ -647,6 +648,31 @@
             <button class="volume-btn" data-volume="4" id="musicVol4">4</button>
           </div>
         </div>
+      </div>
+
+      <div class="tab-content" id="tab-diagnostics">
+        <div class="settings-row settings-row-stack">
+          <div class="settings-row-copy">
+            <span class="settings-label" data-i18n="settings.analyticsExport">Analytics data</span>
+            <div class="settings-desc" data-i18n="settings.analyticsExportDesc">Download local run analytics as JSON.</div>
+          </div>
+          <button class="settings-action-btn diagnostics-btn" id="diagnosticsExportAnalyticsBtn" data-i18n="settings.downloadAllAnalytics">Download all analytics</button>
+        </div>
+        <div class="settings-row settings-row-stack">
+          <div class="settings-row-copy">
+            <span class="settings-label" data-i18n="settings.latestRunExport">Latest run</span>
+            <div class="settings-desc" data-i18n="settings.latestRunExportDesc">Download only the most recent analytics run.</div>
+          </div>
+          <button class="settings-action-btn diagnostics-btn" id="diagnosticsExportLatestRunBtn" data-i18n="settings.downloadLatestRun">Download latest run</button>
+        </div>
+        <div class="settings-row settings-row-stack settings-row-danger">
+          <div class="settings-row-copy">
+            <span class="settings-label" data-i18n="settings.clearAnalytics">Clear analytics</span>
+            <div class="settings-desc" data-i18n="settings.clearAnalyticsDesc">Delete only local analytics runs. Records and progress stay intact.</div>
+          </div>
+          <button class="settings-action-btn diagnostics-btn diagnostics-btn-danger" id="diagnosticsClearAnalyticsBtn" data-i18n="settings.clearAnalytics">Clear analytics</button>
+        </div>
+        <div class="settings-diagnostics-status" id="diagnosticsStatus" data-i18n-dynamic></div>
       </div>
     </div>
     
