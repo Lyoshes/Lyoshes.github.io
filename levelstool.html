@@ -1696,7 +1696,7 @@
       { value: 3, label: '3 Air' },
       { value: 4, label: '4 Earth' },
     ];
-    const OBJECTIVE_TYPES = ['rings', 'matches', 'reaction', 'clearColor', 'combo', 'cascade', 'surviveMoves'];
+    const OBJECTIVE_TYPES = ['rings', 'matches', 'reaction', 'clearColor', 'combo', 'cascade', 'surviveMoves', 'destroyStone'];
     const REACTION_OPTIONS = [
       { value: '', label: 'Any Reaction', colors: [] },
       { value: 'steam', label: 'Steam (Fire + Water)', colors: [1, 2] },
@@ -1947,6 +1947,12 @@
               const palette = Array.isArray(level.pieceColors) ? level.pieceColors.map(Number) : ELEMENT_OPTIONS.map((option) => option.value);
               const missing = reaction.colors.filter((color) => !palette.includes(color));
               if (missing.length) warnings.push(reaction.label + ' objective uses colors missing from pieceColors.');
+            }
+          }
+          if (objective.type === 'destroyStone') {
+            const stoneCount = (Array.isArray(level.rows) ? level.rows : []).reduce((sum, row) => sum + (String(row).split('0').length - 1), 0);
+            if (Number.isInteger(objective.count) && objective.count > stoneCount) {
+              warnings.push('destroyStone objective ' + (index + 1) + ' count ' + objective.count + ' exceeds ' + stoneCount + ' Stone in the layout.');
             }
           }
         });
@@ -3077,6 +3083,7 @@
           ['i18n keys', ['titleKey', 'headlineKey', 'descriptionKey'].filter((f) => level[f]).map((f) => f + '=' + level[f]).join(', ') || '(none)'],
           ['grid', gridLabel(level)],
           ['movesLimit', level.movesLimit],
+          ['stoneDurability', level.stoneDurability == null ? '(immune)' : level.stoneDurability],
         ]),
         buildDetailsBlock('Tools', [
           ['pieceColors', formatElementList(level.pieceColors)],
@@ -3318,7 +3325,10 @@
       section.append(
         makeInputRow('Grid n', 'detailGridNInput', 'number', grid.n || 18, { min: 1, step: 1 }),
         makeInputRow('Grid h', 'detailGridHInput', 'number', grid.h || 16, { min: 1, step: 1 }),
-        makeInputRow('Moves limit', 'detailMovesInput', 'number', level.movesLimit == null ? 30 : level.movesLimit, { min: 1, step: 1 })
+        makeInputRow('Moves limit', 'detailMovesInput', 'number', level.movesLimit == null ? 30 : level.movesLimit, { min: 1, step: 1 }),
+        // Stone durability (char '0'): 0 = immune to adjacent matches, 1–4 =
+        // required damage. Blank = 0. Applies to every Stone on the level.
+        makeInputRow('Stone durability (0-4, blank=immune)', 'detailStoneDurabilityInput', 'number', level.stoneDurability == null ? '' : level.stoneDurability, { min: 0, max: 4, step: 1 })
       );
       return section;
     }
@@ -3740,6 +3750,18 @@
       const gridN = readPositiveDetailsInt('detailGridNInput', 'grid.n', errors, 18);
       const gridH = readPositiveDetailsInt('detailGridHInput', 'grid.h', errors, 16);
       draft.movesLimit = readPositiveDetailsInt('detailMovesInput', 'movesLimit', errors, 30);
+
+      // Stone durability: optional integer 0..4 ('' = default/immune).
+      {
+        const raw = (document.getElementById('detailStoneDurabilityInput')?.value || '').trim();
+        if (raw === '') {
+          delete draft.stoneDurability;
+        } else {
+          const v = Number(raw);
+          if (!Number.isInteger(v) || v < 0 || v > 4) errors.push('Stone durability must be an integer 0..4.');
+          else draft.stoneDurability = v;
+        }
+      }
 
       const pieceColors = Array.from(detailsEditorForm.querySelectorAll('[name="detailPieceColor"]:checked')).map((input) => Number(input.value));
       if (!pieceColors.length) errors.push('Select at least one piece color.');
