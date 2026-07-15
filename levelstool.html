@@ -817,6 +817,16 @@
       color: #061507;
     }
 
+    .brush-btn.brush-timed {
+      background: #c9803a;
+      color: #fff;
+    }
+
+    .brush-btn.brush-seal {
+      background: #5b4a8a;
+      color: #fff;
+    }
+
     .brush-btn.active {
       border-color: #fff;
       box-shadow:
@@ -850,6 +860,8 @@
     .current-brush-swatch.brush-water { background: var(--water); }
     .current-brush-swatch.brush-air { background: var(--air); }
     .current-brush-swatch.brush-earth { background: var(--earth); }
+    .current-brush-swatch.brush-timed { background: #c9803a; }
+    .current-brush-swatch.brush-seal { background: #5b4a8a; }
 
     .edit-dirty-badge {
       color: var(--warn);
@@ -929,6 +941,8 @@
     .cell.air { background: var(--air); color: #1d1600; }
     .cell.earth { background: var(--earth); color: #061507; }
     .cell.stone { background: var(--stone); color: #111; }
+    .cell.timed { background: #c9803a; color: #fff; font-weight: 700; }
+    .cell.seal { background: #5b4a8a; color: #fff; font-weight: 700; }
     .cell.unknown { background: var(--unknown); }
     .cell.seam-right,
     .sector-label.seam-right { border-right: 2px solid rgba(255, 255, 255, 0.88); }
@@ -1671,6 +1685,16 @@
       },
     ];
 
+    // Reaction Seal chars A\u2013F (mirrors levelLoader SEAL_CHAR_TO_REACTION and
+    // REACTION_IDS order). Each seal is opened only by its two-element reaction.
+    const SEAL_CHAR_META = {
+      A: { reaction: 'steam', colors: [1, 2] },
+      B: { reaction: 'plasma', colors: [1, 3] },
+      C: { reaction: 'magma', colors: [1, 4] },
+      D: { reaction: 'frost', colors: [2, 3] },
+      E: { reaction: 'bloom', colors: [2, 4] },
+      F: { reaction: 'sandstorm', colors: [3, 4] },
+    };
     const CELL_TYPES = {
       '.': { className: 'empty', name: 'empty', label: '' },
       '1': { className: 'fire', name: 'fire', label: '1' },
@@ -1678,8 +1702,26 @@
       '3': { className: 'air', name: 'air', label: '3' },
       '4': { className: 'earth', name: 'earth', label: '4' },
       '0': { className: 'stone', name: 'stone', label: '0' },
+      'T': { className: 'timed', name: 'timed', label: 'T' },
     };
+    for (const [ch, meta] of Object.entries(SEAL_CHAR_META)) {
+      CELL_TYPES[ch] = {
+        className: 'seal',
+        name: 'seal-' + meta.reaction + ' (' + meta.colors.join('+') + ')',
+        label: ch,
+        reaction: meta.reaction,
+        colors: meta.colors.slice(),
+      };
+    }
     const MATCHABLE_CELLS = new Set(['1', '2', '3', '4']);
+    const SEAL_CHARS = new Set(Object.keys(SEAL_CHAR_META));
+    // Cells that count toward a full-ring row (matches game countsForRing):
+    // elements, Stone and Timed count; Reaction Seals do NOT (a seal row can't
+    // complete a ring). Empty never counts.
+    function countsForRingCell(ch) {
+      return ch !== '.' && !!CELL_TYPES[ch] && !SEAL_CHARS.has(ch);
+    }
+    const TIMED_EFFECT_OPTIONS = ['petrify_neighbors'];
 
     const BRUSHES = [
       { char: '.', name: 'Erase', short: '\u00d7', className: 'brush-empty', hotkey: 'E' },
@@ -1688,6 +1730,13 @@
       { char: '2', name: 'Water', short: '2', className: 'brush-water', hotkey: '2' },
       { char: '3', name: 'Air', short: '3', className: 'brush-air', hotkey: '3' },
       { char: '4', name: 'Earth', short: '4', className: 'brush-earth', hotkey: '4' },
+      { char: 'T', name: 'Timed', short: 'T', className: 'brush-timed', hotkey: 'T' },
+      { char: 'A', name: 'Steam Seal', short: 'A', className: 'brush-seal', hotkey: 'A' },
+      { char: 'B', name: 'Plasma Seal', short: 'B', className: 'brush-seal', hotkey: 'B' },
+      { char: 'C', name: 'Magma Seal', short: 'C', className: 'brush-seal', hotkey: 'C' },
+      { char: 'D', name: 'Frost Seal', short: 'D', className: 'brush-seal', hotkey: 'D' },
+      { char: 'E', name: 'Bloom Seal', short: 'E', className: 'brush-seal', hotkey: 'E' },
+      { char: 'F', name: 'Sandstorm Seal', short: 'F', className: 'brush-seal', hotkey: 'F' },
     ];
     const UNDO_LIMIT = 100;
     const ELEMENT_OPTIONS = [
@@ -1696,7 +1745,7 @@
       { value: 3, label: '3 Air' },
       { value: 4, label: '4 Earth' },
     ];
-    const OBJECTIVE_TYPES = ['rings', 'matches', 'reaction', 'clearColor', 'combo', 'cascade', 'surviveMoves', 'destroyStone'];
+    const OBJECTIVE_TYPES = ['rings', 'matches', 'reaction', 'clearColor', 'combo', 'cascade', 'surviveMoves', 'destroyStone', 'openSeal', 'disarmTimed'];
     const REACTION_OPTIONS = [
       { value: '', label: 'Any Reaction', colors: [] },
       { value: 'steam', label: 'Steam (Fire + Water)', colors: [1, 2] },
@@ -1860,7 +1909,7 @@
 
       for (let y = 0; y < h; y++) {
         const row = rows[h - 1 - y] || '';
-        if (row.length >= n && Array.from({ length: n }, (_, s) => row[s] || '.').every(isFilledCell)) {
+        if (row.length >= n && Array.from({ length: n }, (_, s) => row[s] || '.').every(countsForRingCell)) {
           addIssue('ring', 'Initial complete ring at y=' + y, makeCells(Array.from({ length: n }, (_, s) => [y, s])));
         }
       }
@@ -1955,7 +2004,34 @@
               warnings.push('destroyStone objective ' + (index + 1) + ' count ' + objective.count + ' exceeds ' + stoneCount + ' Stone in the layout.');
             }
           }
+          if (objective.type === 'openSeal') {
+            if (objective.reaction && !REACTION_OPTIONS.some((option) => option.value === objective.reaction)) {
+              warnings.push('Objective ' + (index + 1) + ' has unknown reaction.');
+            }
+            const sealCount = (Array.isArray(level.rows) ? level.rows : []).reduce((sum, row) => {
+              for (const ch of String(row)) {
+                if (SEAL_CHARS.has(ch) && (!objective.reaction || SEAL_CHAR_META[ch].reaction === objective.reaction)) sum += 1;
+              }
+              return sum;
+            }, 0);
+            if (Number.isInteger(objective.count) && objective.count > sealCount) {
+              warnings.push('openSeal objective ' + (index + 1) + ' count ' + objective.count + ' exceeds ' + sealCount + ' matching Seal(s) in the layout.');
+            }
+          }
+          if (objective.type === 'disarmTimed') {
+            const timedCount = (Array.isArray(level.rows) ? level.rows : []).reduce((sum, row) => sum + (String(row).split('T').length - 1), 0);
+            if (Number.isInteger(objective.count) && objective.count > timedCount) {
+              warnings.push('disarmTimed objective ' + (index + 1) + ' count ' + objective.count + ' exceeds ' + timedCount + ' Timed Block(s) in the layout.');
+            }
+          }
         });
+      }
+
+      if (level.timedTurns != null && (!Number.isInteger(level.timedTurns) || level.timedTurns < 1 || level.timedTurns > 5)) {
+        warnings.push('timedTurns must be an integer 1..5.');
+      }
+      if (level.timedEffect != null && !TIMED_EFFECT_OPTIONS.includes(level.timedEffect)) {
+        warnings.push('Unknown timedEffect "' + level.timedEffect + '".');
       }
 
       if (level.magicCharges != null) {
@@ -3142,7 +3218,7 @@
         const isAnyReaction = objective && (objective.type === 'reaction' || objective.type === 'pairs') && !objective.reaction;
         const reaction = isAnyReaction ? ' Any Reaction' : (objective && objective.reaction ? ' ' + (REACTION_OPTIONS.find((option) => option.value === objective.reaction)?.label || objective.reaction) : '');
         const type = objective && objective.type === 'pairs' ? 'reaction' : (objective && objective.type ? objective.type : '?');
-        item.textContent = type + reaction + ' x ' + (objective && objective.count != null ? objective.count : '?') + color;
+        item.textContent = type + reaction + ' count ' + (objective && objective.count != null ? objective.count : '?') + color;
         list.appendChild(item);
       });
       block.appendChild(list);
@@ -3304,6 +3380,21 @@
       return row;
     }
 
+    function makeSelectRow(label, id, options, selectedValue) {
+      const row = document.createElement('label');
+      row.className = 'form-row';
+      row.appendChild(document.createTextNode(label));
+      const select = document.createElement('select');
+      select.id = id;
+      options.forEach((opt) => {
+        const value = typeof opt === 'string' ? opt : opt.value;
+        const text = typeof opt === 'string' ? opt : opt.label;
+        select.appendChild(makeOption(value, text, String(selectedValue) === String(value)));
+      });
+      row.appendChild(select);
+      return row;
+    }
+
     function buildBasicEditorSection(level) {
       const section = buildEditorSection('Basic');
       section.append(
@@ -3328,7 +3419,12 @@
         makeInputRow('Moves limit', 'detailMovesInput', 'number', level.movesLimit == null ? 30 : level.movesLimit, { min: 1, step: 1 }),
         // Stone durability (char '0'): 0 = immune to adjacent matches, 1–4 =
         // required damage. Blank = 0. Applies to every Stone on the level.
-        makeInputRow('Stone durability (0-4, blank=immune)', 'detailStoneDurabilityInput', 'number', level.stoneDurability == null ? '' : level.stoneDurability, { min: 0, max: 4, step: 1 })
+        makeInputRow('Stone durability (0-4, blank=immune)', 'detailStoneDurabilityInput', 'number', level.stoneDurability == null ? '' : level.stoneDurability, { min: 0, max: 4, step: 1 }),
+        // Timed Block start countdown (char 'T'): 1–5 turns, blank = 5. One
+        // effect for now; the selector uses TIMED_EFFECT_OPTIONS so more can be
+        // added without changing the level format.
+        makeInputRow('Timed turns (1-5, blank=5)', 'detailTimedTurnsInput', 'number', level.timedTurns == null ? '' : level.timedTurns, { min: 1, max: 5, step: 1 }),
+        makeSelectRow('Timed effect', 'detailTimedEffectInput', TIMED_EFFECT_OPTIONS, level.timedEffect || 'petrify_neighbors')
       );
       return section;
     }
@@ -3645,7 +3741,7 @@
         const color = row.querySelector('[name="objectiveColor"]');
         if (color) color.hidden = !(type && (type.value === 'clearColor' || type.value === 'matches'));
         const reaction = row.querySelector('[name="objectiveReaction"]');
-        if (reaction) reaction.hidden = !(type && type.value === 'reaction');
+        if (reaction) reaction.hidden = !(type && (type.value === 'reaction' || type.value === 'openSeal'));
       });
     }
 
@@ -3696,7 +3792,7 @@
           count: objective.count,
         };
         if ((normalized.type === 'clearColor' || normalized.type === 'matches') && objective.color != null) normalized.color = objective.color;
-        if (normalized.type === 'reaction' && objective.reaction) normalized.reaction = objective.reaction;
+        if ((normalized.type === 'reaction' || normalized.type === 'openSeal') && objective.reaction) normalized.reaction = objective.reaction;
         return normalized;
       });
     }
@@ -3763,6 +3859,24 @@
         }
       }
 
+      // Timed turns (char 'T'): optional integer 1..4? no — 1..5 ('' = default 5).
+      {
+        const raw = (document.getElementById('detailTimedTurnsInput')?.value || '').trim();
+        if (raw === '') {
+          delete draft.timedTurns;
+        } else {
+          const v = Number(raw);
+          if (!Number.isInteger(v) || v < 1 || v > 5) errors.push('Timed turns must be an integer 1..5.');
+          else draft.timedTurns = v;
+        }
+        // Timed effect: only persist a non-default value (default omitted for
+        // clean levels). Unknown values are an error.
+        const eff = document.getElementById('detailTimedEffectInput')?.value || '';
+        if (eff && !TIMED_EFFECT_OPTIONS.includes(eff)) errors.push('Unknown timedEffect "' + eff + '".');
+        else if (eff && eff !== 'petrify_neighbors') draft.timedEffect = eff;
+        else delete draft.timedEffect;
+      }
+
       const pieceColors = Array.from(detailsEditorForm.querySelectorAll('[name="detailPieceColor"]:checked')).map((input) => Number(input.value));
       if (!pieceColors.length) errors.push('Select at least one piece color.');
       draft.pieceColors = ELEMENT_OPTIONS.map((option) => option.value).filter((value) => pieceColors.includes(value));
@@ -3824,7 +3938,7 @@
           if (type === 'clearColor' && !ELEMENT_OPTIONS.some((option) => option.value === color)) errors.push('Objective ' + (objectiveIndex + 1) + ' color is required.');
           if (rawColor !== '' && ELEMENT_OPTIONS.some((option) => option.value === color)) objective.color = color;
         }
-        if (type === 'reaction') {
+        if (type === 'reaction' || type === 'openSeal') {
           const reaction = row.querySelector('[name="objectiveReaction"]').value;
           if (!REACTION_OPTIONS.some((option) => option.value === reaction)) errors.push('Objective ' + (objectiveIndex + 1) + ' reaction is invalid.');
           if (reaction) objective.reaction = reaction;
@@ -4968,6 +5082,19 @@
 
       if (['0', '1', '2', '3', '4'].includes(key)) {
         activeBrush = key;
+        renderSelectedLevel(getSelectedLevel());
+        return;
+      }
+
+      // Special brushes: 'T' Timed, 'a'-'f' Reaction Seals (Bloom seal 'E'
+      // clashes with Erase, so paint it from the palette).
+      if (key === 't') {
+        activeBrush = 'T';
+        renderSelectedLevel(getSelectedLevel());
+        return;
+      }
+      if (['a', 'b', 'c', 'd', 'f'].includes(key)) {
+        activeBrush = key.toUpperCase();
         renderSelectedLevel(getSelectedLevel());
       }
     });
