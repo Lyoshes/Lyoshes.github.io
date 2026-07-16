@@ -2643,6 +2643,19 @@
       markStructureEdited('Moved level ' + (level.id != null ? level.id : '') + '.');
     }
 
+    function retargetLevelLocalizationKeys(level, oldId, newId) {
+      const from = Number(oldId);
+      const to = Number(newId);
+      if (!level || !Number.isInteger(from) || !Number.isInteger(to) || from === to) return;
+      ['titleKey', 'headlineKey', 'descriptionKey'].forEach((field) => {
+        const key = level[field];
+        if (typeof key !== 'string') return;
+        const match = key.match(/^levels\.l(\d+)(\..+)$/);
+        if (!match || Number(match[1]) !== from) return;
+        level[field] = 'levels.l' + to + match[2];
+      });
+    }
+
     function renumberLevelIds() {
       if (hasPendingGridEditsForStructure()) return;
       if (!currentLevels.length) {
@@ -2657,12 +2670,23 @@
         'Dev-only — never do this to a shipped campaign.'
       )) return;
       pushUndoSnapshot();
-      const ordered = campaignOrderedLevels();
-      const idMap = new Map();
-      ordered.forEach((level, index) => { idMap.set(Number(level.id), index + 1); });
-      currentLevels.forEach((level) => { level.id = idMap.get(Number(level.id)) || level.id; });
-      currentLevels.sort((a, b) => Number(a.id) - Number(b.id));
-      currentActs.forEach((act) => { act.levelIds = (act.levelIds || []).map((id) => idMap.get(Number(id))).filter(Boolean); });
+      const campaignOrder = campaignOrderState();
+      const oldIdByLevel = new Map();
+      const newIdByLevel = new Map();
+      campaignOrder.ordered.forEach((level, index) => {
+        oldIdByLevel.set(level, Number(level && level.id));
+        newIdByLevel.set(level, index + 1);
+      });
+      campaignOrder.ordered.forEach((level) => {
+        const newId = newIdByLevel.get(level);
+        retargetLevelLocalizationKeys(level, oldIdByLevel.get(level), newId);
+        level.id = newId;
+      });
+      currentLevels = campaignOrder.ordered.slice();
+      currentActs.forEach((act, index) => {
+        const actLevels = campaignOrder.actLevels[index] || [];
+        act.levelIds = actLevels.map((level) => newIdByLevel.get(level)).filter(Number.isFinite);
+      });
       selectLevel(selected || currentLevels[0]);
       hasStructureEdits = true;
       markStructureEdited('Renumbered level ids in campaign order.');
@@ -2678,19 +2702,33 @@
     // each act), unassigned levels last in array order — mirrors
     // orderLevelsByActs in game.js. The player-facing level number is the
     // 1-based position in this order; the id is only a stable save key.
-    function campaignOrderedLevels() {
-      const byId = new Map(currentLevels.map((level) => [Number(level.id), level]));
+    function campaignOrderState() {
+      const byId = new Map();
+      currentLevels.forEach((level) => {
+        const id = Number(level && level.id);
+        if (!byId.has(id)) byId.set(id, []);
+        byId.get(id).push(level);
+      });
       const used = new Set();
       const ordered = [];
-      currentActs.forEach((act) => {
+      const actLevels = currentActs.map(() => []);
+      currentActs.forEach((act, actIndex) => {
         (act.levelIds || []).forEach((rawId) => {
           const id = Number(rawId);
-          const level = byId.get(id);
-          if (level && !used.has(id)) { used.add(id); ordered.push(level); }
+          const level = (byId.get(id) || []).find((candidate) => !used.has(candidate));
+          if (level) {
+            used.add(level);
+            ordered.push(level);
+            actLevels[actIndex].push(level);
+          }
         });
       });
-      currentLevels.forEach((level) => { if (!used.has(Number(level.id))) ordered.push(level); });
-      return ordered;
+      currentLevels.forEach((level) => { if (!used.has(level)) ordered.push(level); });
+      return { ordered, actLevels };
+    }
+
+    function campaignOrderedLevels() {
+      return campaignOrderState().ordered;
     }
 
     function campaignPositionMap() {
