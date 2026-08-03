@@ -90,7 +90,7 @@
   <img id="splash-icon" src="" alt="" />
   <div id="splash-title">Elemental Blocks</div>
   <div id="splash-bar-wrap"><div id="splash-bar"></div></div>
-  <div id="splash-version">v0.44.5</div>
+  <div id="splash-version">v0.44.6</div>
 </div>
 <script src="splash.js"></script>
 <!-- In-game transition loader (menu/restart -> board) -->
@@ -137,6 +137,19 @@
           <div class="panel-label" id="remainLabel" data-i18n-dynamic>TIME</div>
           <div class="score-time-row"><span class="hud-clock" id="remainClock"></span><span id="remainingHud">2:00</span></div>
         </div>
+      </div>
+    </div>
+    <!-- Modes with no active piece use this single strip instead of the panel
+         row above: nothing to preview, so score and time take the whole width -->
+    <div class="hud-panel hud-strip" id="hudStrip">
+      <div class="hud-strip-item">
+        <div class="panel-label" data-i18n="hud.score">SCORE</div>
+        <div id="scoreHudStrip">0</div>
+      </div>
+      <div class="hud-strip-sep" aria-hidden="true"></div>
+      <div class="hud-strip-item">
+        <div class="panel-label" id="remainLabelStrip" data-i18n-dynamic>TIME</div>
+        <div class="score-time-row"><span class="hud-clock" id="remainClockStrip"></span><span id="remainingHudStrip">1:00</span></div>
       </div>
     </div>
   </div>
@@ -220,11 +233,14 @@
           <button class="mm-mode-btn mode-btn" data-mode="30_24" aria-label="Magic Tower" data-i18n-aria-label="menu.magicTower">
             <span class="mm-mode-label" data-i18n="menu.magicTower">Magic Tower</span>
           </button>
+          <button class="mm-mode-btn mode-btn" id="collapseTowerBtn" data-mode="collapse" aria-label="Collapse Tower" data-i18n-aria-label="menu.collapseTower">
+            <span class="mm-mode-label" data-i18n="menu.collapseTower">Collapse Tower</span>
+          </button>
         </div>
 
         <div class="mm-home-spacer mm-home-spacer-bot" aria-hidden="true"></div>
 
-        <div class="start-version" id="startVersion">v0.44.5</div>
+        <div class="start-version" id="startVersion">v0.44.6</div>
         <!-- bestScore / bestTimeVal kept hidden for JS compat -->
         <span id="bestScore" style="display:none"></span>
         <span id="bestTimeVal" style="display:none"></span>
