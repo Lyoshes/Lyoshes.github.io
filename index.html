@@ -7,9 +7,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="theme-color" content="#0b0f14" />
-  <!-- Defense-in-depth: no external/injected scripts can run; inline styles are
-       allowed (the splash <style> block below and JS-driven style attributes). -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self'; media-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'" />
+  <!-- Firebase Analytics requires Google's external tag loader. No inline/eval scripts. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.googletagmanager.com/gtag/js https://www.google.com/recaptcha/enterprise.js https://www.gstatic.com/recaptcha/; style-src 'self' 'unsafe-inline'; img-src 'self' https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com; media-src 'self'; connect-src 'self' https://firebase.googleapis.com https://firebaseinstallations.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firestore.googleapis.com https://content-firebaseappcheck.googleapis.com https://www.google.com/recaptcha/ https://www.google-analytics.com https://region1.google-analytics.com https://analytics.google.com https://region1.analytics.google.com https://www.googletagmanager.com; frame-src https://www.google.com/recaptcha/; object-src 'none'; base-uri 'self'; form-action 'none'" />
   <link rel="manifest" href="manifest.json" />
   <script src="viewport.js"></script>
   <link rel="icon" type="image/png" sizes="512x512" href="img/splash_icon.png" />
@@ -689,6 +688,8 @@
           <button class="settings-action-btn diagnostics-btn diagnostics-btn-danger" id="diagnosticsClearAnalyticsBtn" data-i18n="settings.clearAnalytics">Clear analytics</button>
         </div>
         <div class="settings-diagnostics-status" id="diagnosticsStatus" data-i18n-dynamic></div>
+        <pre id="firebaseDiagnostics" style="white-space: pre-wrap; font-size: 12px" aria-label="Firebase diagnostics"></pre>
+        <p><a href="privacy/" target="_blank" rel="noopener" data-i18n="settings.privacy">Privacy</a> · <a href="support/" target="_blank" rel="noopener" data-i18n="settings.support">Support</a></p>
       </div>
     </div>
     
